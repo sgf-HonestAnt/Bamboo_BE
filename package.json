@@ -1,0 +1,27 @@
+{
+  "name": "SoloCapstone_BE",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sgf-HonestAnt/SoloCapstone_BE.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sgf-HonestAnt/SoloCapstone_BE/issues"
+  },
+  "homepage": "https://github.com/sgf-HonestAnt/SoloCapstone_BE#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.13"
+  },
+  "dependencies": {
+    "cors": "^2.8.5"
+  }
+}
