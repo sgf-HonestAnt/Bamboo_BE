@@ -39,10 +39,10 @@
     "http-errors": "^1.8.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.12",
-    "mongoose-beautiful-unique-validation": "^7.1.1",
     "multer": "^1.4.3",
     "multer-storage-cloudinary": "^4.0.0",
     "passport": "^0.5.0",
-    "passport-google-oauth20": "^2.0.0"
+    "passport-google-oauth20": "^2.0.0",
+    "query-to-mongo": "^0.10.1"
   }
 }

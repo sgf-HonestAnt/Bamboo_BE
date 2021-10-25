@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import beautifyUnique from "mongoose-beautiful-unique-validation";
 
 const { Schema, model } = mongoose;
 
@@ -25,7 +24,8 @@ const userSchema = new Schema(
     bio: { type: String, default: bio, required: true },
     level: { type: Number, default: 0, required: true },
     xp: { type: Number, default: 0, required: true },
-    // password
+    password: { type: String, required: true },
+    admin: { type: Boolean, required: false },
     settings: {
       // difficulty: { type: Number },
       selectedTheme: {
@@ -70,14 +70,12 @@ const userSchema = new Schema(
     //   type: [{ type: Schema.Types.ObjectId, ref: "Challenge" }],
     //   required: true,
     // },
-    //refreshToken
+    refreshToken: { type: String },
   },
   { timestamps: true }
 );
 
-//userSchema.plugin(beautifyUnique);
-
-userSchema.static("findUser", async function (query) {
+userSchema.static("findUsers", async function (query) {
   const total = await this.countDocuments(query.criteria);
   const users = await this.find(query.criteria, query.options.fields)
     .limit(query.options.limit)
@@ -85,5 +83,16 @@ userSchema.static("findUser", async function (query) {
     .sort(query.options.sort);
   return { total, users };
 });
+
+userSchema.methods.toJSON = function () {
+  const userDoc = this;
+  const userObj = userDoc.toObject();
+  delete userObj.settings;
+  delete userObj.followedUsers;
+  delete userObj.password;
+  delete userObj.refreshToken;
+  delete userObj.__v;
+  return userObj;
+};
 
 export default model("User", userSchema);
