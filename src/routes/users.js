@@ -10,16 +10,46 @@ const storage = new CloudinaryStorage({
   params: { folder: "capstone_users" },
 });
 
+const findAltUsername = async (username) => {
+  const users = await UserModel.find({});
+  const usernames = users.map((u) => u.username);
+  const numbers = [...Array(1000).keys()];
+  const usernameNum = numbers.map((n) => `username${n}`);
+  // repeat until three suggestions, checking each suggestion does not already exist in usernames
+  // let array = []
+  // for(let....)
+  // if unique push array
+  // return array
+  const randomNumber = Math.floor(Math.random() * 1000);
+  const altUsername = usernameNum[randomNumber];
+  const nameUnique = usernames.findIndex((u) => u === altUsername) === -1;
+  if (nameUnique) {
+    console.log(altUsername)
+    return altUsername;
+  }
+  // repeat until three suggestions, checking each suggestion does not already exist in usernames
+};
+
 const userRoute = express.Router();
 
-const route = " users";
+const route = "users";
 
 userRoute.post("/", async (req, res, next) => {
   console.log("POST", route);
   try {
-    const newUser = new UserModel(req.body);
-    const { _id } = await newUser.save();
-    res.status(201).send({ _id });
+    const { email, username } = req.body;
+    const emailDuplicate = await UserModel.findOne({ email });
+    const usernameDuplicate = await UserModel.findOne({ username });
+    if (emailDuplicate) {
+      res.status(409).send({ error: `Email Exists` });
+    } else if (usernameDuplicate) {
+      const available = await findAltUsername(username);
+      res.status(409).send({ error: `Username Exists`, available });
+    } else {
+      const newUser = new UserModel(req.body);
+      const { _id } = await newUser.save();
+      res.status(201).send({ _id });
+    }
   } catch (e) {
     next(e);
   }
@@ -28,6 +58,16 @@ userRoute.get("/", async (req, res, next) => {
   console.log("GET", route);
   try {
     const users = await UserModel.find({});
+    res.send(users);
+  } catch (e) {
+    next(e);
+  }
+});
+userRoute.get("/:u_id", async (req, res, next) => {
+  console.log("GET SINGLE", route);
+  try {
+    const { u_id } = req.params;
+    const users = await UserModel.find({ _id: u_id });
     res.send(users);
   } catch (e) {
     next(e);

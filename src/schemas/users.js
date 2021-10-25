@@ -1,20 +1,30 @@
 import mongoose from "mongoose";
+import beautifyUnique from "mongoose-beautiful-unique-validation";
 
 const { Schema, model } = mongoose;
 
 const avatar =
   "https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg";
 
+const bio = "Newbie";
+
 const userSchema = new Schema(
   {
-    first_name: { type: String, required: true },
+    first_name: {
+      type: String,
+      required: true,
+    },
     last_name: { type: String, required: true },
-    username: { type: String, required: true },
-    email: { type: String, required: true },
+    username: { type: String, unique: true, required: true },
+    email: {
+      type: String,
+      unique: true,
+      required: true,
+    },
     avatar: { type: String, default: avatar, required: true },
-    bio: { type: String, required: true },
-    level: { type: Number, min: 0, required: true },
-    xp: { type: Number, min: 0, required: true },
+    bio: { type: String, default: bio, required: true },
+    level: { type: Number, default: 0, required: true },
+    xp: { type: Number, default: 0, required: true },
     // password
     settings: {
       // difficulty: { type: Number },
@@ -49,11 +59,12 @@ const userSchema = new Schema(
       },
     },
     //collection
-    tasks: {
-      type: Schema.Types.ObjectId,
-      ref: "TaskList",
-      required: true,
-    },
+    // tasks: {
+    //   default:
+    //   type: Schema.Types.ObjectId,
+    //   ref: "TaskList",
+    //   required: true,
+    // },
     // challenges: {
     //   default: [],
     //   type: [{ type: Schema.Types.ObjectId, ref: "Challenge" }],
@@ -63,6 +74,8 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
+
+//userSchema.plugin(beautifyUnique);
 
 userSchema.static("findUser", async function (query) {
   const total = await this.countDocuments(query.criteria);
