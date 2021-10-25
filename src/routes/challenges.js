@@ -2,7 +2,7 @@ import express from "express";
 
 const challengeRoute = express.Router();
 
-const route = "achievements";
+const route = " challenges";
 
 challengeRoute.get("/", async (req, res, next) => {
   console.log("GET", route);

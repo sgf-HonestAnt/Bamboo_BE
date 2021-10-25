@@ -2,7 +2,7 @@ import express from "express";
 
 const featureRoute = express.Router();
 
-const route = "achievements";
+const route = " app-features";
 
 featureRoute.get("/", async (req, res, next) => {
   console.log("GET", route);

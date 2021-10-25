@@ -2,11 +2,11 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import listEndpoints from "express-list-endpoints";
-import achievementRoute from "./services/achievements/index.js";
-import featureRoute from "./services/app-features/index.js";
-import challengeRoute from "./services/challenges/index.js";
-import taskRoute from "./services/tasks/index.js";
-import userRoute from "./services/users/index.js";
+import achievementRoute from "./routes/achievements.js";
+import featureRoute from "./routes/app-features.js";
+import challengeRoute from "./routes/challenges.js";
+import taskRoute from "./routes/tasks.js";
+import userRoute from "./routes/users.js";
 
 const server = express();
 
@@ -56,4 +56,5 @@ mongoose.connection.on("connected", () => {
       console.log("❌ Server not running due to :", error)
     );
 }) 
+
 
