@@ -98,7 +98,6 @@ userSchema.methods.toJSON = function () {
   const userDoc = this;
   const userObj = userDoc.toObject();
   delete userObj.settings;
-  delete userObj.followedUsers;
   delete userObj.password;
   delete userObj.refreshToken;
   delete userObj.__v;

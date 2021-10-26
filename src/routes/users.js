@@ -64,7 +64,8 @@ userRoute
       const user = await UserModel.checkCredentials(email, password);
       if (user !== null) {
         const { accessToken, refreshToken } = await generateTokens(user);
-        res.send({ accessToken, refreshToken });
+        const { admin } = user;
+        res.send({ accessToken, refreshToken, admin });
       } else {
         res.status(401).send({ error: `Credentials not accepted` });
       }
@@ -72,6 +73,10 @@ userRoute
       next(e);
     }
   })
+  //*********************************************************************
+  .post("/session/refresh")
+  //*********************************************************************
+
   // ✅
   .post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸POST", route);
@@ -97,7 +102,23 @@ userRoute
   .post("/request/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸REQUEST TO FOLLOW", route);
     try {
-      console.log("This function needs to be written!");
+      const { followedUsers, _id } = req.user;
+      const u_id = req.params.u_id;
+      if (followedUsers.requested.includes(u_id)) {
+        res.status(409).send({ error: `Already Requested` })
+      } else if (!followedUsers.rejected.includes(u_id)) {
+        await followedUsers.requested.push(u_id);
+        const update = { followedUsers };
+        const filter = { _id };
+        const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
+          returnOriginal: false,
+        });
+        await updatedUser.save();
+        // also save to the other user's object!!
+        res.status(201).send(updatedUser.followedUsers);
+      } else { 
+        res.status(401).send({ error: `Credentials not accepted` });
+      }
     } catch (e) {
       next(e);
     }
@@ -161,13 +182,30 @@ userRoute
   .put("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸PUT ME");
     try {
-      const filter = { _id: req.user._id };
-      const update = { ...req.body };
-      const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
-        returnOriginal: false,
-      });
-      await updatedUser.save();
-      res.send(updatedUser);
+      const { _id } = req.user;
+      const { email, username } = req.body;
+      const emailDuplicate = await UserModel.find({ email });
+      const usernameDuplicate = await UserModel.find({ username });
+      if (
+        emailDuplicate.length > 0 &&
+        emailDuplicate[0]._id.toString() !== _id.toString()
+      ) {
+        res.status(409).send({ error: `Email Exists` });
+      } else if (
+        usernameDuplicate.length > 0 &&
+        usernameDuplicate[0]._id.toString() !== _id.toString()
+      ) {
+        const available = await generateNames(username);
+        res.status(409).send({ error: `Username Exists`, available });
+      } else {
+        const update = { ...req.body };
+        const filter = { _id: req.user._id };
+        const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
+          returnOriginal: false,
+        });
+        await updatedUser.save();
+        res.send(updatedUser);
+      }
     } catch (e) {
       next(e);
     }
@@ -216,14 +254,33 @@ userRoute
   .put("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸PUT", route);
     try {
-      const { u_id } = req.params;
-      const editedUser = await UserModel.findByIdAndUpdate(u_id, req.body, {
-        new: true,
-      });
-      if (editedUser) {
-        res.send(editedUser);
+      const _id = req.params.u_id;
+      const { email, username } = req.body;
+      const emailDuplicate = await UserModel.find({ email });
+      const usernameDuplicate = await UserModel.find({ username });
+      if (
+        emailDuplicate.length > 0 &&
+        emailDuplicate[0]._id.toString() !== _id
+      ) {
+        res.status(409).send({ error: `Email Exists` });
+      } else if (
+        usernameDuplicate.length > 0 &&
+        usernameDuplicate[0]._id.toString() !== _id
+      ) {
+        const available = await generateNames(username);
+        res.status(409).send({ error: `Username Exists`, available });
       } else {
-        next(createHttpError(404, `💀USER ID_${u_id} NOT FOUND`));
+        const update = { ...req.body };
+        const filter = { _id };
+        const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
+          returnOriginal: false,
+        });
+        await updatedUser.save();
+        if (updatedUser) {
+          res.send(updatedUser);
+        } else {
+          next(createHttpError(404, `💀USER ID_${u_id} NOT FOUND`));
+        }
       }
     } catch (e) {
       next(e);
