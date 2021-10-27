@@ -397,7 +397,7 @@ userRoute
     }
   )
   // ✅
-  .put("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
+  .put("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => { 
     console.log("🔸PUT", route);
     try {
       const _id = req.params.u_id;
