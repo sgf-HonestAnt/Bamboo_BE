@@ -40,17 +40,17 @@ const userSchema = new Schema(
     followedUsers: {
       response_awaited: {
         default: [],
-        type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        type: [{ type: String }],
         required: true,
       },
       requested: {
         default: [],
-        type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        type: [{ type: String }],
         required: true,
       },
       pending: {
         default: [],
-        type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        type: [{ type: String }],
         required: true,
       },
       accepted: {
@@ -60,7 +60,7 @@ const userSchema = new Schema(
       },
       rejected: {
         default: [],
-        type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        type: [{ type: String }],
         required: true,
       },
     },
