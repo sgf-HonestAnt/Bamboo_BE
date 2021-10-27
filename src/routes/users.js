@@ -6,6 +6,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import UserModel from "../schemas/users.js";
 import generator from "../utils/generator.js";
+import shuffle from "../utils/shuffle.js";
 import { generateTokens, refreshTokens } from "../auth/tools.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../auth/jwt.js";
 
@@ -28,54 +29,6 @@ const generateNames = async (username) => {
     }
   }
   return altNames;
-};
-
-const addIDToList = async (ID, _id, user, list, removeFromList = "default") => {
-  console.log("fifth param?", removeFromList);
-  let { followedUsers } = user;
-  console.log("🔸add ID To List");
-  // add to list
-  list === "response_awaited"
-    ? await followedUsers.response_awaited.push(ID.toString())
-    : list === "requested"
-    ? await followedUsers.requested.push(ID.toString())
-    : list === "pending"
-    ? await followedUsers.pending.push(ID.toString())
-    : list === "accepted"
-    ? await followedUsers.accepted.push(ID)
-    : await followedUsers.rejected.push(ID.toString());
-  // optionally, remove from second list
-  if (removeFromList !== "default") {
-    console.log("🔸remove ID From List");
-    let list;
-    removeFromList === "response_awaited"
-      ? (list = await followedUsers.response_awaited.filter(
-          (el) => el.toString() !== ID.toString()
-        ))
-      : removeFromList === "requested"
-      ? (list = await followedUsers.requested.filter(
-          (el) => el !== ID.toString()
-        ))
-      : removeFromList === "pending"
-      ? (list = await followedUsers.pending.filter(
-          (el) => el !== ID.toString()
-        ))
-      : removeFromList === "accepted"
-      ? (list = await followedUsers.accepted.filter((el) => el !== ID))
-      : (list = await followedUsers.rejected.filter(
-          (el) => el !== ID.toString()
-        ));
-    followedUsers = { ...followedUsers, [removeFromList]: list };
-  }
-  const update = {
-    followedUsers,
-  };
-  const filter = { _id };
-  const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
-    returnOriginal: false,
-  });
-  await updatedUser.save();
-  return updatedUser;
 };
 
 const userRoute = express.Router();
@@ -163,14 +116,14 @@ userRoute
         if (sendersList.requested.includes(sendee._id)) {
           res.status(409).send({ error: `Already Requested` });
         } else if (!sendersList.rejected.includes(sendee._id)) {
-          const addIDToSenderRequested = await addIDToList(
+          const addIDToSenderRequested = await shuffle(
             sendee._id,
             sender._id,
             sender,
             "requested"
           );
           if (addIDToSenderRequested) {
-            const addIDToSendeeAwaited = await addIDToList(
+            const addIDToSendeeAwaited = await shuffle(
               sender._id,
               sendee._id,
               sendee,
@@ -205,7 +158,7 @@ userRoute
         if (responseAwaitedIncludesUserID) {
           // first, add sender ID to sendee "accepted"
           // then, remove ID from "response_awaited"
-          const addIDToSendeeAccepted = await addIDToList(
+          const moveIDFromSendeeAwaitedToAccepted = await shuffle(
             sender._id,
             sendee._id,
             sendee,
@@ -214,16 +167,21 @@ userRoute
           );
           // next, add sendee ID to sender "accepted"
           // then, remove ID from "requested"
-          const addIDToSenderAccepted = await addIDToList(
-            sendee._id,
-            sender._id,
-            sender,
-            "accepted",
-            "requested"
-          );
-          const complete = addIDToSendeeAccepted && addIDToSenderAccepted;
+          const moveIDFromSenderRequestedToAccepted =
+            await shuffle(
+              sendee._id,
+              sender._id,
+              sender,
+              "accepted",
+              "requested"
+            );
+          const complete =
+            moveIDFromSendeeAwaitedToAccepted &&
+            moveIDFromSenderRequestedToAccepted;
           if (complete) {
-            res.status(201).send(addIDToSendeeAccepted.followedUsers);
+            res
+              .status(201)
+              .send(moveIDFromSendeeAwaitedToAccepted.followedUsers);
           } else {
             console.log("something went wrong...");
           }
@@ -241,7 +199,51 @@ userRoute
   .post("/reject/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸REJECT FOLLOW BY", route);
     try {
-      console.log("This function needs to be written!");
+      const sender = await UserModel.findOne({ _id: req.params.u_id });
+      const sendee = req.user;
+      // the sendee wants to reject sender's request to follow each other
+      // in sendee's list, sender's id will be simply removed from "response_awaited"
+      // in sender's list, sendee's id will be moved from "requested" to "rejected"
+      if (sender && sendee) {
+        const responseAwaitedIncludesUserID =
+          sendee.followedUsers.response_awaited.findIndex(
+            (el) => el === sender._id.toString()
+          ) !== -1;
+        if (responseAwaitedIncludesUserID) {
+          // first, remove sender ID from sendee "response_awaited"
+          const removeIDFromSendeeResponseAwaited = await shuffle(
+            sender._id,
+            sendee._id,
+            sendee,
+            null,
+            "response_awaited"
+          );
+          // next, add sendee ID to sender "rejected"
+          // then, remove ID from "requested"
+          const moveIDFromSenderRequestedToRejected =
+            await shuffle(
+              sendee._id,
+              sender._id,
+              sender,
+              "rejected",
+              "requested"
+            );
+          const complete =
+            removeIDFromSendeeResponseAwaited &&
+            moveIDFromSenderRequestedToRejected;
+          if (complete) {
+            res
+              .status(201)
+              .send(removeIDFromSendeeResponseAwaited.followedUsers);
+          } else {
+            console.log("something went wrong...");
+          }
+        } else {
+          res.status(409).send({ error: `ID Not Found In Requested List` });
+        }
+      } else {
+        res.status(401).send({ error: `Credentials not accepted` });
+      }
     } catch (e) {
       next(e);
     }
