@@ -11,7 +11,8 @@ import { generateTokens, refreshTokens } from "../auth/tools.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../auth/jwt.js";
 
 // ❗ add a function to clear duplicated IDs which may be created in error
-// ❗ ensure users cannot add their own IDs
+// ❗ ensure users cannot add their own IDs at followedUsers requests, reject and accept
+// ❗ remove "pending" as is not in use
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -141,7 +142,6 @@ userRoute
       next(e);
     }
   })
-  //*********************************************************************
   .post("/accept/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸ACCEPT FOLLOW BY", route);
     try {
@@ -167,14 +167,13 @@ userRoute
           );
           // next, add sendee ID to sender "accepted"
           // then, remove ID from "requested"
-          const moveIDFromSenderRequestedToAccepted =
-            await shuffle(
-              sendee._id,
-              sender._id,
-              sender,
-              "accepted",
-              "requested"
-            );
+          const moveIDFromSenderRequestedToAccepted = await shuffle(
+            sendee._id,
+            sender._id,
+            sender,
+            "accepted",
+            "requested"
+          );
           const complete =
             moveIDFromSendeeAwaitedToAccepted &&
             moveIDFromSenderRequestedToAccepted;
@@ -195,7 +194,6 @@ userRoute
       next(e);
     }
   })
-  //*********************************************************************
   .post("/reject/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸REJECT FOLLOW BY", route);
     try {
@@ -220,14 +218,13 @@ userRoute
           );
           // next, add sendee ID to sender "rejected"
           // then, remove ID from "requested"
-          const moveIDFromSenderRequestedToRejected =
-            await shuffle(
-              sendee._id,
-              sender._id,
-              sender,
-              "rejected",
-              "requested"
-            );
+          const moveIDFromSenderRequestedToRejected = await shuffle(
+            sendee._id,
+            sender._id,
+            sender,
+            "rejected",
+            "requested"
+          );
           const complete =
             removeIDFromSendeeResponseAwaited &&
             moveIDFromSenderRequestedToRejected;
@@ -248,7 +245,6 @@ userRoute
       next(e);
     }
   })
-  //*********************************************************************
   // ✅
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸GET ME");
