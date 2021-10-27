@@ -38,6 +38,11 @@ const userSchema = new Schema(
     },
     // achievements
     followedUsers: {
+      response_awaited: {
+        default: [],
+        type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        required: true,
+      },
       requested: {
         default: [],
         type: [{ type: Schema.Types.ObjectId, ref: "User" }],

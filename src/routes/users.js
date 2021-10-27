@@ -27,6 +27,62 @@ const generateNames = async (username) => {
   return altNames;
 };
 
+const addIDToList = async (ID, _id, user, list) => {
+  const { followedUsers } = user;
+  console.log("🔸addIDToList");
+  list === "response_awaited"
+    ? await followedUsers.response_awaited.push(ID)
+    : list === "requested"
+    ? await followedUsers.requested.push(ID)
+    : list === "pending"
+    ? await followedUsers.pending.push(ID)
+    : list === "accepted"
+    ? await followedUsers.accepted.push(ID)
+    : await followedUsers.rejected.push(ID);
+  const update = {
+    followedUsers,
+  };
+  const filter = { _id };
+  const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
+    returnOriginal: false,
+  });
+  await updatedUser.save();
+  return updatedUser;
+};
+
+const delIDFromList = async (ID, _id, user, list) => {
+  const { followedUsers } = user;
+  console.log("🔸delIDFromList");
+  list === "response_awaited"
+    ? await followedUsers.response_awaited.filter(
+        (user_id) => user_id.toString() !== ID.toString()
+      )
+    : list === "requested"
+    ? await followedUsers.requested.filter(
+        (user_id) => user_id.toString() !== ID.toString()
+      )
+    : list === "pending"
+    ? await followedUsers.pending.filter(
+        (user_id) => user_id.toString() !== ID.toString()
+      )
+    : list === "accepted"
+    ? await followedUsers.accepted.filter(
+        (user_id) => user_id.toString() !== ID.toString()
+      )
+    : await followedUsers.rejected.filter(
+        (user_id) => user_id.toString() !== ID.toString()
+      );
+  const update = {
+    followedUsers,
+  };
+  const filter = { _id };
+  const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
+    returnOriginal: false,
+  });
+  await updatedUser.save();
+  return updatedUser;
+};
+
 const userRoute = express.Router();
 
 const route = "USER";
@@ -98,36 +154,100 @@ userRoute
       next(e);
     }
   })
-  //*********************************************************************
   .post("/request/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸REQUEST TO FOLLOW", route);
     try {
-      const { followedUsers, _id } = req.user;
-      const u_id = req.params.u_id;
-      if (followedUsers.requested.includes(u_id)) {
-        res.status(409).send({ error: `Already Requested` })
-      } else if (!followedUsers.rejected.includes(u_id)) {
-        await followedUsers.requested.push(u_id);
-        const update = { followedUsers };
-        const filter = { _id };
-        const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
-          returnOriginal: false,
-        });
-        await updatedUser.save();
-        // also save to the other user's object!!
-        res.status(201).send(updatedUser.followedUsers);
-      } else { 
-        res.status(401).send({ error: `Credentials not accepted` });
+      const sender = req.user;
+      const sendee = await UserModel.findOne({ _id: req.params.u_id });
+      // the sender wants to send a 'follow' request to sendee
+      // they can only do this if sendee's id is not in their rejected list
+      // in sender's list, sendee's id will be added to "requested"
+      // in sendee's list, sender's id will be added to "response_awaited"
+      if (sender && sendee) {
+        const sendersList = sender.followedUsers;
+        if (sendersList.requested.includes(sendee._id)) {
+          res.status(409).send({ error: `Already Requested` });
+        } else if (!sendersList.rejected.includes(sendee._id)) {
+          const addIDToSenderRequested = await addIDToList(
+            sendee._id,
+            sender._id,
+            sender,
+            "requested"
+          );
+          if (addIDToSenderRequested) {
+            const addIDToSendeeAwaited = await addIDToList(
+              sender._id,
+              sendee._id,
+              sendee,
+              "response_awaited"
+            );
+            if (addIDToSendeeAwaited) {
+              res.status(201).send(addIDToSenderRequested.followedUsers);
+            }
+          }
+        } else {
+          res.status(401).send({ error: `Credentials not accepted` });
+        }
       }
     } catch (e) {
       next(e);
     }
   })
   //*********************************************************************
+  // problems
+  // allowing acceptance of same id twice
+  // not deleting id correctly
+  // should check if id is even in the awaited list
   .post("/accept/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸ACCEPT FOLLOW BY", route);
     try {
-      console.log("This function needs to be written!");
+      const sender = await UserModel.findOne({ _id: req.params.u_id });
+      const sendee = req.user;
+      // the sendee wants to accept sender's request to follow each other
+      // in sendee's list, sender's id will be moved from "response_awaited" to "accepted"
+      // in sender's list, sendee's id will be moved from "requested" to "accepted"
+      if (sender && sendee) {
+        // first, add sender ID to sendee "accepted"
+        const addIDToSendeeAccepted = await addIDToList(
+          sender._id,
+          sendee._id,
+          sendee,
+          "accepted"
+        );
+        // then, remove ID from "response_awaited"
+        const remIDFromSendeeAwaited = await delIDFromList(
+          sender._id,
+          sendee._id,
+          sendee,
+          "response_awaited"
+        );
+        // next, add sendee ID to sender "accepted"
+        const addIDToSenderAccepted = await addIDToList(
+          sendee._id,
+          sender._id,
+          sender,
+          "accepted"
+        );
+        // then, remove ID from "requested"
+        const remIDFromSenderRequested = await delIDFromList(
+          sendee._id,
+          sender._id,
+          sender,
+          "requested"
+        );
+        const complete =
+          addIDToSendeeAccepted &&
+          addIDToSenderAccepted &&
+          remIDFromSendeeAwaited &&
+          remIDFromSenderRequested;
+        if (complete) {
+          res.status(201).send(addIDToSendeeAccepted.followedUsers);
+        } else {
+          console.log("something went wrong...");
+        }
+      } else {
+        res.status(401).send({ error: `Credentials not accepted` });
+      }
     } catch (e) {
       next(e);
     }
