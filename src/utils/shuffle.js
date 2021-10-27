@@ -7,9 +7,8 @@ const shuffle = async (
   addToList,
   removeFromList = null
 ) => {
-  console.log(addToList, removeFromList);
   let { followedUsers } = user;
-  console.log("🔸add ID To List");
+  console.log("🔸add ID To List", addToList);
   // add to list
   if (addToList) {
     addToList === "response_awaited"
@@ -25,7 +24,7 @@ const shuffle = async (
   }
   // optionally, remove from second list
   if (removeFromList) {
-    console.log("🔸remove ID From List");
+    console.log("🔸remove ID From List", removeFromList);
     let list;
     removeFromList === "response_awaited"
       ? (list = await followedUsers.response_awaited.filter(
