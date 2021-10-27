@@ -26,6 +26,7 @@ featureRoute.put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
   console.log("🔸PUT", route);
   try {
     if (req.user) {
+      // else 401
       const { _id } = req.params;
       const update = { ...req.body };
       const filter = { _id };
@@ -38,6 +39,7 @@ featureRoute.put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
       );
       await updatedFeature.save();
       if (updatedFeature) {
+        // else 404
         res.send(updatedFeature);
       } else {
         next(createHttpError(404, `💀FEATURE ID_${_id} NOT FOUND`));
@@ -53,9 +55,12 @@ featureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
   console.log("🔸POST", route);
   try {
     if (req.user) {
+      // else 401
       const newFeature = new FeatureModel(req.body);
       const { _id } = await newFeature.save();
-      res.status(201).send({ _id });
+      if (_id) {
+        res.status(201).send({ _id });
+      } else console.log("something went wrong...");
     } else {
       res.status(401).send({ error: `Credentials not accepted` });
     }
@@ -67,9 +72,11 @@ featureRoute.delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
   console.log("🔸DELETE", route);
   try {
     if (req.user) {
+      // else 401
       const { _id } = req.params;
       const deletedFeature = await FeatureModel.findByIdAndDelete(_id);
       if (deletedFeature) {
+        // else 404
         res.status(204).send();
       } else {
         next(createHttpError(404, `💀FEATURE ID_${_id} NOT FOUND`));
