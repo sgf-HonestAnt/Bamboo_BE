@@ -4,6 +4,7 @@ import createHttpError from "http-errors";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
+import mongoose from "mongoose";
 import UserModel from "../schemas/users.js";
 import generator from "../utils/generator.js";
 import shuffle from "../utils/shuffle.js";
@@ -116,33 +117,41 @@ userRoute
     // in sendee's list, sender's id will be added to "response_awaited"
     try {
       const sender = req.user;
-      const sendee = await UserModel.findOne({ _id: req.params.u_id });
-      const idsMatch = req.user._id.toString() === req.params.u_id;
-      if (idsMatch) {
-        res.status(409).send({ error: `User IDs cannot be a match!` });
-      } else if (sender.followedUsers.requested.includes(sendee._id)) {
-        res.status(409).send({ error: `Duplicated requests are forbidden!` });
-      } else if (sender.followedUsers.accepted.includes(sendee._id)) {
-        res.status(409).send({ error: `User already accepted!` });
-      } else if (sender.followedUsers.rejected.includes(sendee._id)) {
-        res.status(409).send({ error: `Rejected users can't request again!` });
+      const { u_id } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(u_id)) {
+        res.status(404).send({ error: `User ID ${u_id} not found!` });
       } else {
-        const shuffleSenderList = await shuffle(
-          sendee._id,
-          sender._id,
-          sender,
-          "requested"
-        );
-        const shuffleSendeeList = await shuffle(
-          sender._id,
-          sendee._id,
-          sendee,
-          "response_awaited"
-        );
-        if (shuffleSenderList && shuffleSendeeList) {
-          res.status(201).send(shuffleSenderList.followedUsers);
+        const sendee = await UserModel.findById(u_id);
+        console.log("sendee=>", sendee);
+        const idsMatch = req.user._id.toString() === u_id;
+        if (idsMatch) {
+          res.status(409).send({ error: `User IDs cannot be a match!` });
+        } else if (sender.followedUsers.requested.includes(sendee._id)) {
+          res.status(409).send({ error: `Duplicated requests are forbidden!` });
+        } else if (sender.followedUsers.accepted.includes(sendee._id)) {
+          res.status(409).send({ error: `User already accepted!` });
+        } else if (sender.followedUsers.rejected.includes(sendee._id)) {
+          res
+            .status(409)
+            .send({ error: `Rejected users can't request again!` });
         } else {
-          console.log("something went wrong...");
+          const shuffleSenderList = await shuffle(
+            sendee._id,
+            sender._id,
+            sender,
+            "requested"
+          );
+          const shuffleSendeeList = await shuffle(
+            sender._id,
+            sendee._id,
+            sendee,
+            "response_awaited"
+          );
+          if (shuffleSenderList && shuffleSendeeList) {
+            res.status(201).send(shuffleSenderList.followedUsers);
+          } else {
+            console.log("something went wrong...");
+          }
         }
       }
     } catch (e) {

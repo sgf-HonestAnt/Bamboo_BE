@@ -175,6 +175,20 @@ describe("Testing the server", () => {
     expect(response.body.error).toBe("Credentials not accepted");
   });
 
+  it("should test that post /users/request/id endpoint returns 404 if user not found", async () => {
+    const newLogin = await request.post("/users/session").send({
+      email: "jamesbond@gmail.com",
+      password: "jamesbond",
+    });
+    const { accessToken } = newLogin.body;
+    const _id = "007";
+    const response = await request
+      .post(`/users/request/${_id}`)
+      .set({ Authorization: `Bearer ${accessToken}` });
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe(`User ID ${_id} not found!`);
+  });
+
   //   it("should test that post /users/request/id endpoint returns 409 if user requests own ID", async() => {})
 
   //   it("should test that post /users/request/id endpoint returns 409 if duplicate request", async() => {})
