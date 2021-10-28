@@ -68,16 +68,17 @@ userRoute
     try {
       const { email, password } = req.body;
       const user = await UserModel.checkCredentials(email, password);
+      console.log(user)
       if (user !== null) {
         const { accessToken, refreshToken } = await generateTokens(user);
-        const { admin } = user;
-        res.status(200).send({ accessToken, refreshToken, admin });
+        const { admin, _id } = user;
+        res.status(200).send({ _id, accessToken, refreshToken, admin });
       } else {
         res.status(401).send({ error: `Credentials not accepted` });
       }
     } catch (e) {
       next(e);
-    }
+    } 
   })
   //*********************************************************************
   .post("/session/refresh")
@@ -109,6 +110,7 @@ userRoute
       next(e);
     }
   })
+  // ✅
   .post("/request/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸REQUEST TO FOLLOW", route);
     // the sender wants to send a 'follow' request to sendee
@@ -161,58 +163,41 @@ userRoute
   .post("/accept/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸ACCEPT FOLLOW BY", route);
     try {
-      const sender = await UserModel.findOne({ _id: req.params.u_id });
       const sendee = req.user;
-      const idsAreDifferent = req.user._id.toString() !== req.params.u_id;
-      const idExistsInAwaited = sendee.followedUsers.response_awaited.includes(
-        req.params.u_id
-      );
-      // the sendee wants to accept sender's request to follow each other
-      if (sender) {
-        // else 404
-        if (sendee) {
-          // else 401
-          if (idsAreDifferent) {
-            // else 409
-            if (idExistsInAwaited) {
-              // else 409
-              // in sendee's list, sender's id will be moved from "response_awaited" to "accepted"
-              const moveIDFromSendeeAwaitedToAccepted = await shuffle(
-                sender._id,
-                sendee._id,
-                sendee,
-                "accepted",
-                "response_awaited"
-              );
-              // in sender's list, sendee's id will be moved from "requested" to "accepted"
-              const moveIDFromSenderRequestedToAccepted = await shuffle(
-                sendee._id,
-                sender._id,
-                sender,
-                "accepted",
-                "requested"
-              );
-              const complete =
-                moveIDFromSendeeAwaitedToAccepted &&
-                moveIDFromSenderRequestedToAccepted;
-              if (complete) {
-                res
-                  .status(201)
-                  .send(moveIDFromSendeeAwaitedToAccepted.followedUsers);
-              } else {
-                console.log("something went wrong...");
-              }
-            } else {
-              res.status(409).send({ error: `User ID must exist in Awaited` });
-            }
-          } else {
-            res.status(409).send({ error: `User IDs cannot be a match` });
-          }
-        } else {
-          res.status(401).send({ error: `Credentials not accepted` });
-        }
+      const { u_id } = req.params;
+      const idsMatch = req.user._id.toString() === u_id;
+      const idExistsInAwaited =
+        sendee.followedUsers.response_awaited.includes(u_id);
+      if (!mongoose.Types.ObjectId.isValid(u_id)) {
+        res.status(404).send({ error: `User ID ${u_id} not found!` });
+      } else if (idsMatch) {
+        res.status(409).send({ error: `User IDs cannot be a match` });
+      } else if (!idExistsInAwaited) {
+        res.status(409).send({ error: `User ID must exist in Awaited` });
       } else {
-        res.status(404).send({ error: `User id ${req.params.u_id} not found` });
+        const sender = await UserModel.findOne({ _id: u_id });
+        const moveIDFromSendeeAwaitedToAccepted = await shuffle(
+          sender._id,
+          sendee._id,
+          sendee,
+          "accepted",
+          "response_awaited"
+        );
+        const moveIDFromSenderRequestedToAccepted = await shuffle(
+          sendee._id,
+          sender._id,
+          sender,
+          "accepted",
+          "requested"
+        );
+        const complete =
+          moveIDFromSendeeAwaitedToAccepted &&
+          moveIDFromSenderRequestedToAccepted;
+        if (complete) {
+          res.status(201).send(moveIDFromSendeeAwaitedToAccepted.followedUsers);
+        } else {
+          console.log("something went wrong...");
+        }
       }
     } catch (e) {
       next(e);
