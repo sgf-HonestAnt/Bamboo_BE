@@ -82,6 +82,7 @@ featureRoute.delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
         next(createHttpError(404, `💀FEATURE ID_${_id} NOT FOUND`));
       }
     } else {
+      // next(createHttpError(401, `Credentials not accepted`));
       res.status(401).send({ error: `Credentials not accepted` });
     }
   } catch (e) {

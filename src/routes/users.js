@@ -53,6 +53,8 @@ userRoute
         if (newUser) {
           const { accessToken, refreshToken } = await generateTokens(newUser);
           res.status(201).send({ _id, accessToken, refreshToken });
+        } else {
+          console.log({ message: "💀USER NOT SAVED", user: req.body });
         }
       }
     } catch (e) {
@@ -95,7 +97,11 @@ userRoute
       } else {
         const newUser = new UserModel(req.body);
         const { _id } = await newUser.save();
-        res.status(201).send({ _id });
+        if (_id) {
+          res.status(201).send({ _id });
+        } else {
+          console.log({ message: "💀USER NOT SAVED", user: req.body });
+        }
       }
     } catch (e) {
       next(e);
@@ -103,67 +109,44 @@ userRoute
   })
   .post("/request/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸REQUEST TO FOLLOW", route);
+    // the sender wants to send a 'follow' request to sendee
+    // they can only do this if sendee's id is not in their rejected list
+    // in sender's list, sendee's id will be added to "requested"
+    // in sendee's list, sender's id will be added to "response_awaited"
     try {
       const sender = req.user;
       const sendee = await UserModel.findOne({ _id: req.params.u_id });
-      const idsAreDifferent = req.user._id.toString() !== req.params.u_id;
-      // the sender wants to send a 'follow' request to sendee
-      // they can only do this if sendee's id is not in their rejected list
-      // in sender's list, sendee's id will be added to "requested"
-      // in sendee's list, sender's id will be added to "response_awaited"
-      if (sender) {
-        // else 401
-        if (sendee) {
-          // else 404
-          if (idsAreDifferent) {
-            // else 409
-            const sendersList = sender.followedUsers;
-            if (sendersList.requested.includes(sendee._id)) {
-              res
-                .status(409)
-                .send({ error: `It's forbidden to make duplicate requests` });
-            } else if (sendersList.accepted.includes(sendee._id)) {
-              res
-                .status(409)
-                .send({ error: `Accepted users can't request again` });
-            } else if (!sendersList.rejected.includes(sendee._id)) {
-              // else 409
-              const addIDToSenderRequested = await shuffle(
-                sendee._id,
-                sender._id,
-                sender,
-                "requested"
-              );
-              if (addIDToSenderRequested) {
-                const addIDToSendeeAwaited = await shuffle(
-                  sender._id,
-                  sendee._id,
-                  sendee,
-                  "response_awaited"
-                );
-                if (addIDToSendeeAwaited) {
-                  res.status(201).send(addIDToSenderRequested.followedUsers);
-                } else {
-                  console.log("something went wrong...");
-                }
-              } else {
-                console.log("something went wrong...");
-              }
-            } else {
-              res
-                .status(409)
-                .send({ error: `Rejected users can't request again` });
-            }
-          } else {
-            res.status(409).send({ error: `User IDs cannot be a match` });
-          }
-        } else {
-          res
-            .status(404)
-            .send({ error: `User id ${req.params.u_id} not found` });
-        }
-      } else {
+      const idsMatch = req.user._id.toString() === req.params.u_id;
+      if (!sender) {
         res.status(401).send({ error: `Credentials not accepted` });
+      } else if (!sendee) {
+        res.status(404).send({ error: `User id ${req.params.u_id} not found` });
+      } else if (idsMatch) {
+        res.status(409).send({ error: `User IDs cannot be a match!` });
+      } else if (sender.followedUsers.requested.includes(sendee._id)) {
+        res.status(409).send({ error: `Duplicated requests are forbidden!` });
+      } else if (sender.followedUsers.accepted.includes(sendee._id)) {
+        res.status(409).send({ error: `User already accepted!` });
+      } else if (sender.followedUsers.rejected.includes(sendee._id)) {
+        res.status(409).send({ error: `Rejected users can't request again!` });
+      } else {
+        const shuffleSenderList = await shuffle(
+          sendee._id,
+          sender._id,
+          sender,
+          "requested"
+        );
+        const shuffleSendeeList = await shuffle(
+          sender._id,
+          sendee._id,
+          sendee,
+          "response_awaited"
+        );
+        if (shuffleSenderList && shuffleSendeeList) {
+          res.status(201).send(shuffleSenderList.followedUsers);
+        } else {
+          console.log("something went wrong...");
+        }
       }
     } catch (e) {
       next(e);
@@ -397,7 +380,7 @@ userRoute
     }
   )
   // ✅
-  .put("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => { 
+  .put("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸PUT", route);
     try {
       const _id = req.params.u_id;
