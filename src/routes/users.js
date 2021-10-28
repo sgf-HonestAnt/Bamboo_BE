@@ -70,7 +70,7 @@ userRoute
       if (user !== null) {
         const { accessToken, refreshToken } = await generateTokens(user);
         const { admin } = user;
-        res.send({ accessToken, refreshToken, admin });
+        res.status(200).send({ accessToken, refreshToken, admin });
       } else {
         res.status(401).send({ error: `Credentials not accepted` });
       }
@@ -89,7 +89,9 @@ userRoute
       const { email, username } = req.body;
       const emailDuplicate = await UserModel.findOne({ email });
       const usernameDuplicate = await UserModel.findOne({ username });
-      if (emailDuplicate) {
+      if (!req.user) {
+        res.status(401).send({ error: `Credentials not accepted` });
+      } else if (emailDuplicate) {
         res.status(409).send({ error: `Email Exists` });
       } else if (usernameDuplicate) {
         const available = await generateNames(username);

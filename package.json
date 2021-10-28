@@ -7,8 +7,8 @@
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
     "watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watchAll",
-    "dev": "nodemon -r dotenv/config ./src/server.js",
-    "start": "node ./src/server.js"
+    "dev": "nodemon -r dotenv/config ./src",
+    "start": "node ./src"
   },
   "repository": {
     "type": "git",
