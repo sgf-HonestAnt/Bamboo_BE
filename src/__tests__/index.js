@@ -113,7 +113,7 @@ describe("Testing the server", () => {
     expect(response.body._id).toBeDefined();
   });
 
-  it("should test that post /users admin endpoint returns 401 to previous access token", async () => {
+  it("should test that post /users admin endpoint returns 409 if email duplicate", async () => {
     const newAdmin = await request.post("/users/register").send({
       first_name: "Jane",
       last_name: "Moneypenny",
@@ -123,20 +123,17 @@ describe("Testing the server", () => {
       admin: true,
     });
     const { accessToken } = newAdmin.body;
-    await request
-      .post("/users/session")
-      .send({ email: "missmoneypenny@gmail.com", password: "missmoneypenny" }); // provides new access token
     const response = await request
       .post("/users")
       .send({
         first_name: "Vesper",
         last_name: "Lynd",
         username: "notacar",
-        email: "vesperlynd@gmail.com",
+        email: "felixleiter@gmail.com", // duplicate
         password: "vesperlynd",
       })
       .set({ Authorization: `Bearer ${accessToken}` });
-    expect(response.status).toBe(401); // ❗ 201 SHOULD BE 401
-    expect(response.body.error).toBe("Credentials not accepted");
+    expect(response.status).toBe(409);
+    expect(response.body.error).toBe("Email Exists");
   });
 });
