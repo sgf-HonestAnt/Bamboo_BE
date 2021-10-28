@@ -14,10 +14,10 @@ export const JWT_MIDDLEWARE = async (req, res, next) => {
         req.user = user;
         next();
       } else {
-        next(createHttpError(404, "☠️ USER NOT FOUND!"));
+        res.status(404).send({ error: `User not found` });
       }
     } catch (err) {
-      next(createHttpError(401, "☠️ INVALID TOKEN"));
+      res.status(401).send({ error: `Credentials not accepted` });
     }
   }
 };

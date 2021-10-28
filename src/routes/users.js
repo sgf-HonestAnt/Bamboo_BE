@@ -86,7 +86,7 @@ userRoute
   .post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸POST", route);
     try {
-      console.log(req.user)
+      console.log(req.user);
       const { email, username } = req.body;
       const emailDuplicate = await UserModel.findOne({ email });
       const usernameDuplicate = await UserModel.findOne({ username });
@@ -118,9 +118,12 @@ userRoute
       const sender = req.user;
       const sendee = await UserModel.findOne({ _id: req.params.u_id });
       const idsMatch = req.user._id.toString() === req.params.u_id;
-      if (!sender) {
-        res.status(401).send({ error: `Credentials not accepted` });
-      } else if (!sendee) {
+      // if (!sender) {
+      //   res.status(401).send({ error: `Credentials not accepted` });
+      // } else
+      if (!sendee) {
+        // ❗ error here. Investigate...
+        console.log("no sendee found");
         res.status(404).send({ error: `User id ${req.params.u_id} not found` });
       } else if (idsMatch) {
         res.status(409).send({ error: `User IDs cannot be a match!` });
