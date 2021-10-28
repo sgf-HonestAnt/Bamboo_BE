@@ -86,12 +86,14 @@ userRoute
   .post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸POST", route);
     try {
+      console.log(req.user) // ❗ SHOULD BE 401 if ACCESSTOKEN EXPIRED!
       const { email, username } = req.body;
       const emailDuplicate = await UserModel.findOne({ email });
       const usernameDuplicate = await UserModel.findOne({ username });
-      if (!req.user) {
-        res.status(401).send({ error: `Credentials not accepted` });
-      } else if (emailDuplicate) {
+      // if (!req.user) {
+      //   res.status(401).send({ error: `Credentials not accepted` });
+      // } else 
+      if (emailDuplicate) {
         res.status(409).send({ error: `Email Exists` });
       } else if (usernameDuplicate) {
         const available = await generateNames(username);

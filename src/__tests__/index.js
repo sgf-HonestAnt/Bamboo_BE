@@ -2,7 +2,6 @@ import supertest from "supertest";
 import server from "../server.js";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { validUsers, validLogins, validAdmins, validAdminsLogins } from "../utils/validUsers.js";
 
 dotenv.config();
 
@@ -43,7 +42,13 @@ describe("Testing the server", () => {
   });
 
   it("should test that post /users/register endpoint is OK", async () => {
-    const response = await request.post("/users/register").send(validUsers[0]);
+    const response = await request.post("/users/register").send({
+      first_name: "Jane",
+      last_name: "Bond",
+      username: "janebond007",
+      email: "janebond@gmail.com",
+      password: "janebond",
+    });
     expect(response.status).toBe(201);
     expect(response.body._id).toBeDefined();
     expect(response.body.accessToken).toBeDefined();
@@ -56,7 +61,7 @@ describe("Testing the server", () => {
       last_name: "Doe",
       username: "janebond007", // duplicate username
       email: "janedoe@gmail.com",
-      password: "anothersupersafepassword",
+      password: "janedoe",
     });
     expect(response.status).toBe(409);
     expect(response.body.error).toBeDefined();
@@ -64,7 +69,10 @@ describe("Testing the server", () => {
   });
 
   it("should test that post /users/session endpoint is OK", async () => {
-    const response = await request.post("/users/session").send(validLogins[0]);
+    const response = await request.post("/users/session").send({
+      email: "janebond@gmail.com",
+      password: "janebond",
+    });
     expect(response.status).toBe(200);
     expect(response.body.accessToken).toBeDefined();
     expect(response.body.refreshToken).toBeDefined();
@@ -73,7 +81,7 @@ describe("Testing the server", () => {
   it("should test that post /users/session endpoint returns 401 if bad credentials", async () => {
     const response = await request.post("/users/session").send({
       email: "janebond@gmail.com",
-      password: "nothispassword",
+      password: "notjanebond",
     });
     expect(response.status).toBe(401);
     expect(response.body.error).toBe("Credentials not accepted");
@@ -82,25 +90,53 @@ describe("Testing the server", () => {
   // post "/users/session/refresh" tests
 
   it("should test that post /users admin endpoint is OK", async () => {
-    const newAdmin = await request.post("/users/register").send(validAdmins[0]);
+    const newAdmin = await request.post("/users/register").send({
+      first_name: "James",
+      last_name: "Bond",
+      username: "jamesbond007",
+      email: "jamesbond@gmail.com",
+      password: "jamesbond",
+      admin: true,
+    });
     const { accessToken } = newAdmin.body;
     const response = await request
       .post("/users")
-      .send(validUsers[1])
+      .send({
+        first_name: "Felix",
+        last_name: "Leiter",
+        username: "luckyfelix",
+        email: "felixleiter@gmail.com",
+        password: "felixleiter",
+      })
       .set({ Authorization: `Bearer ${accessToken}` });
     expect(response.status).toBe(201);
     expect(response.body._id).toBeDefined();
   });
 
   it("should test that post /users admin endpoint returns 401 to previous access token", async () => {
-    const newAdmin = await request.post("/users/register").send(validAdmins[1]);
+    const newAdmin = await request.post("/users/register").send({
+      first_name: "Jane",
+      last_name: "Moneypenny",
+      username: "secretary",
+      email: "missmoneypenny@gmail.com",
+      password: "missmoneypenny",
+      admin: true,
+    });
     const { accessToken } = newAdmin.body;
-    await request.post("/users/session").send(validAdminsLogins[1]); // provides new access token
+    await request
+      .post("/users/session")
+      .send({ email: "missmoneypenny@gmail.com", password: "missmoneypenny" }); // provides new access token
     const response = await request
       .post("/users")
-      .send(validUsers[2])
+      .send({
+        first_name: "Vesper",
+        last_name: "Lynd",
+        username: "notacar",
+        email: "vesperlynd@gmail.com",
+        password: "vesperlynd",
+      })
       .set({ Authorization: `Bearer ${accessToken}` });
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(401); // ❗ 201 SHOULD BE 401
     expect(response.body.error).toBe("Credentials not accepted");
   });
 });
