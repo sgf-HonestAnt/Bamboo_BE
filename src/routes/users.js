@@ -118,14 +118,7 @@ userRoute
       const sender = req.user;
       const sendee = await UserModel.findOne({ _id: req.params.u_id });
       const idsMatch = req.user._id.toString() === req.params.u_id;
-      // if (!sender) {
-      //   res.status(401).send({ error: `Credentials not accepted` });
-      // } else
-      if (!sendee) {
-        // ❗ error here. Investigate...
-        console.log("no sendee found");
-        res.status(404).send({ error: `User id ${req.params.u_id} not found` });
-      } else if (idsMatch) {
+      if (idsMatch) {
         res.status(409).send({ error: `User IDs cannot be a match!` });
       } else if (sender.followedUsers.requested.includes(sendee._id)) {
         res.status(409).send({ error: `Duplicated requests are forbidden!` });

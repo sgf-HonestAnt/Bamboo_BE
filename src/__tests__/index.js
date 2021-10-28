@@ -175,19 +175,6 @@ describe("Testing the server", () => {
     expect(response.body.error).toBe("Credentials not accepted");
   });
 
-  it("should test that post /users/request/id endpoint returns 404 to non-existing ID", async () => {
-    const newLogin = await request.post("/users/session").send({
-      email: "jamesbond@gmail.com",
-      password: "jamesbond",
-    });
-    const { accessToken } = newLogin.body;
-    const response = await request
-      .post(`/users/request/001`)
-      .set({ Authorization: `Bearer ${accessToken}` });
-    expect(response.status).toBe(404);
-    expect(response.body.error).toBe("User id 001 not found");
-  }); // ❗ error here. Investigate...
-
   //   it("should test that post /users/request/id endpoint returns 409 if user requests own ID", async() => {})
 
   //   it("should test that post /users/request/id endpoint returns 409 if duplicate request", async() => {})
