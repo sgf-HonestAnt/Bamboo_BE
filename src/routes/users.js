@@ -50,10 +50,10 @@ userRoute
         res.status(409).send({ error: `Username Exists`, available });
       } else {
         const newUser = new UserModel(req.body);
-        const { _id } = await newUser.save();
+        const { _id, admin } = await newUser.save();
         if (newUser) {
           const { accessToken, refreshToken } = await generateTokens(newUser);
-          res.status(201).send({ _id, accessToken, refreshToken });
+          res.status(201).send({ _id, accessToken, refreshToken, admin });
         } else {
           console.log({ message: "💀USER NOT SAVED", user: req.body });
         }
@@ -68,7 +68,7 @@ userRoute
     try {
       const { email, password } = req.body;
       const user = await UserModel.checkCredentials(email, password);
-      console.log(user)
+      console.log(user);
       if (user !== null) {
         const { accessToken, refreshToken } = await generateTokens(user);
         const { admin, _id } = user;
@@ -78,7 +78,7 @@ userRoute
       }
     } catch (e) {
       next(e);
-    } 
+    }
   })
   //*********************************************************************
   .post("/session/refresh")
@@ -124,7 +124,6 @@ userRoute
         res.status(404).send({ error: `User ID ${u_id} not found!` });
       } else {
         const sendee = await UserModel.findById(u_id);
-        console.log("sendee=>", sendee);
         const idsMatch = req.user._id.toString() === u_id;
         if (idsMatch) {
           res.status(409).send({ error: `User IDs cannot be a match!` });
@@ -160,6 +159,7 @@ userRoute
       next(e);
     }
   })
+  // ✅
   .post("/accept/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸ACCEPT FOLLOW BY", route);
     try {
@@ -175,7 +175,7 @@ userRoute
       } else if (!idExistsInAwaited) {
         res.status(409).send({ error: `User ID must exist in Awaited` });
       } else {
-        const sender = await UserModel.findOne({ _id: u_id });
+        const sender = await UserModel.findById(u_id);
         const moveIDFromSendeeAwaitedToAccepted = await shuffle(
           sender._id,
           sendee._id,
@@ -203,60 +203,44 @@ userRoute
       next(e);
     }
   })
+  // ✅
   .post("/reject/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸REJECT FOLLOW BY", route);
     try {
-      const sender = await UserModel.findOne({ _id: req.params.u_id });
+      const { u_id } = req.params;
+      const idsMatch = req.user._id.toString() === u_id;
       const sendee = req.user;
-      const idsAreDifferent = req.user._id.toString() !== req.params.u_id;
-      const idExistsInAwaited = sendee.followedUsers.response_awaited.includes(
-        req.params.u_id
-      );
-      if (sender) {
-        // else 404
-        if (sendee) {
-          // else 401
-          if (idsAreDifferent) {
-            // else 409
-            if (idExistsInAwaited) {
-              // else 409
-              // in sendee's list, sender's id will be simply removed from "response_awaited": "to" list is null
-              const removeIDFromSendeeResponseAwaited = await shuffle(
-                sender._id,
-                sendee._id,
-                sendee,
-                null,
-                "response_awaited"
-              );
-              // in sender's list, sendee's id will be moved from "requested" to "rejected"
-              const moveIDFromSenderRequestedToRejected = await shuffle(
-                sendee._id,
-                sender._id,
-                sender,
-                "rejected",
-                "requested"
-              );
-              const complete =
-                removeIDFromSendeeResponseAwaited &&
-                moveIDFromSenderRequestedToRejected;
-              if (complete) {
-                res
-                  .status(201)
-                  .send(removeIDFromSendeeResponseAwaited.followedUsers);
-              } else {
-                console.log("something went wrong...");
-              }
-            } else {
-              res.status(409).send({ error: `User ID must exist in Awaited` });
-            }
-          } else {
-            res.status(409).send({ error: `User IDs cannot be a match` });
-          }
-        } else {
-          res.status(401).send({ error: `Credentials not accepted` });
-        }
+      const sender = await UserModel.findById(u_id);
+      const idExistsInAwaited = sendee.followedUsers.response_awaited.includes(u_id);
+      if (!mongoose.Types.ObjectId.isValid(u_id)) {
+        res.status(404).send({ error: `User ID ${u_id} not found!` });
+      } else if (idsMatch) {
+        res.status(409).send({ error: `User IDs cannot be a match` });
+      } else if (!idExistsInAwaited) {
+        res.status(409).send({ error: `User ID must exist in Awaited` });
       } else {
-        res.status(404).send({ error: `User id ${req.params.u_id} not found` });
+        const removeIDFromSendeeResponseAwaited = await shuffle(
+          sender._id,
+          sendee._id,
+          sendee,
+          null,
+          "response_awaited"
+        );
+        const moveIDFromSenderRequestedToRejected = await shuffle(
+          sendee._id,
+          sender._id,
+          sender,
+          "rejected",
+          "requested"
+        );
+        const complete =
+          removeIDFromSendeeResponseAwaited &&
+          moveIDFromSenderRequestedToRejected;
+        if (complete) {
+          res.status(201).send(removeIDFromSendeeResponseAwaited.followedUsers);
+        } else {
+          console.log("something went wrong...");
+        }
       }
     } catch (e) {
       next(e);

@@ -2,6 +2,25 @@ import supertest from "supertest";
 import server from "../server.js";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import {
+  jamesBond,
+  badBondLogin,
+  missMoneypenny,
+  jasonBourne,
+  jasonBourneLogin,
+  felixLeiter,
+  goldfinger,
+  vesperLynd,
+  jackRyan,
+  joeBloggs,
+  janeDoe,
+  janeBloggs,
+  johnDoe,
+  doctorNo,
+  goldeneye,
+  xenia,
+  jaws,
+} from "../utils/testConst.js";
 
 dotenv.config();
 
@@ -36,55 +55,28 @@ describe("Testing the server", () => {
     expect(response.body.message).toBe("Test success");
   });
 
-  it("should test that a /nonexistent endpoint is returning 404", async () => {
-    const response = await request.get("/not-existing");
+  it("should test that a non-existent endpoint is returning 404", async () => {
+    const response = await request.get("/non-existent");
     expect(response.status).toBe(404);
   });
+});
 
-  const jamesBond = {
-    first_name: "James",
-    last_name: "Bond",
-    username: "redoctober",
-    email: "jamesbond@gmail.com",
-    password: "jamesbond",
-  };
+describe("Testing basic user endpoints", () => {
+  beforeAll((done) => {
+    mongoose.connect(process.env.MONGO_TEST).then(() => {
+      console.log("Connected to Atlas");
+      done();
+    });
+  });
 
-  const jamesBondLogin = {
-    email: "jamesbond@gmail.com",
-    password: "jamesbond",
-  };
-
-  const badBondLogin = {
-    email: "jamesbond@gmail.com",
-    password: "notjamesbond",
-  };
-  
-  const missMoneypenny = {
-    first_name: "Jane",
-    last_name: "Moneypenny",
-    username: "secretary",
-    email: "missmoneypenny@gmail.com",
-    password: "missmoneypenny",
-    admin: true,
-  };
-  
-  const missMoneypennyLogin = {
-    email: "missmoneypenny@gmail.com",
-    password: "missmoneypenny",
-  };
-
-  const jasonBourne = {
-    first_name: "Jason",
-    last_name: "Bourne",
-    username: "whatsmyidentity",
-    email: "jasonbourne@gmail.com",
-    password: "jasonbourne",
-  };
-
-  const jasonBourneLogin = {
-    email: "jasonbourne@gmail.com",
-    password: "jasonbourne",
-  };
+  afterAll((done) => {
+    mongoose.connection.dropDatabase().then(() => {
+      console.log("Test DB dropped");
+      mongoose.connection.close().then(() => {
+        done();
+      });
+    });
+  });
 
   it("should test that post /users/register endpoint is OK", async () => {
     const response = await request.post("/users/register").send(jamesBond);
@@ -94,11 +86,21 @@ describe("Testing the server", () => {
     expect(response.body.refreshToken).toBeDefined();
   });
 
-  it("should test that post /users/register endpoint returns 409 to username duplicate", async () => {
+  it("should test that post /users/register admin endpoint is OK", async () => {
+    const response = await request.post("/users/register").send(missMoneypenny);
+    expect(response.status).toBe(201);
+    expect(response.body._id).toBeDefined();
+    expect(response.body.accessToken).toBeDefined();
+    expect(response.body.refreshToken).toBeDefined();
+    expect(response.body.admin).toBeTruthy();
+  });
+
+  it("should test that post /users/register endpoint returns 409 if username duplicate", async () => {
+    const username = jamesBond.username;
     const response = await request.post("/users/register").send({
       first_name: "Jack",
       last_name: "Ryan",
-      username: "redoctober",
+      username,
       email: "jackryan@gmail.com",
       password: "jackryan",
     });
@@ -108,8 +110,12 @@ describe("Testing the server", () => {
   });
 
   it("should test that post /users/session endpoint is OK", async () => {
-    const response = await request.post("/users/session").send(missMoneypenny);
+    await request.post("/users/register").send(jasonBourne);
+    const response = await request
+      .post("/users/session")
+      .send(jasonBourneLogin);
     expect(response.status).toBe(200);
+    expect(response.body._id).toBeDefined();
     expect(response.body.accessToken).toBeDefined();
     expect(response.body.refreshToken).toBeDefined();
   });
@@ -123,76 +129,121 @@ describe("Testing the server", () => {
   // post "/users/session/refresh" tests
 
   it("should test that post /users admin endpoint is OK", async () => {
-    const newLogin = await request.post("/users/session").send(missMoneypennyLogin);
-    const { accessToken } = newLogin.body;
+    const felix = await request.post("/users/register").send(felixLeiter);
+    const felix_token = felix.body.accessToken;
     const response = await request
       .post("/users")
-      .send({
-        first_name: "Felix",
-        last_name: "Leiter",
-        username: "luckyfelix",
-        email: "felixleiter@gmail.com",
-        password: "felixleiter",
-      })
-      .set({ Authorization: `Bearer ${accessToken}` });
+      .send(jackRyan)
+      .set({ Authorization: `Bearer ${felix_token}` });
     expect(response.status).toBe(201);
     expect(response.body._id).toBeDefined();
   });
 
   it("should test that post /users admin endpoint returns 409 if email duplicate", async () => {
-    const newLogin = await request.post("/users/session").send(missMoneypennyLogin);
-    const { accessToken } = newLogin.body;
+    const email = jamesBond.email;
+    const vesper = await request.post("/users/register").send(vesperLynd);
+    const vesper_token = vesper.body.accessToken;
     const response = await request
       .post("/users")
       .send({
-        first_name: "Vesper",
-        last_name: "Lynd",
-        username: "notacar",
-        email: "felixleiter@gmail.com", // duplicate
-        password: "vesperlynd",
+        first_name: "Mister",
+        last_name: "Goldfinger",
+        username: "goldfinger",
+        email,
+        password: "nemesis",
       })
-      .set({ Authorization: `Bearer ${accessToken}` });
+      .set({ Authorization: `Bearer ${vesper_token}` });
     expect(response.status).toBe(409);
     expect(response.body.error).toBe("Email Exists");
   });
 
-  it("should test that post /users/request/:id endpoint is OK", async () => {
-    const newLogin = await request.post("/users/session").send(jamesBondLogin);
-    const { accessToken } = newLogin.body;
-    const newUser = await request.post("/users/register").send(jasonBourne);
-    const { _id } = newUser.body;
-    const response = await request
-      .post(`/users/request/${_id}`)
-      .set({ Authorization: `Bearer ${accessToken}` });
-    expect(response.status).toBe(201);
-    expect(response.body.requested).toBeDefined();
-    expect(response.body.requested).toContain(_id);
+  // it("should test that get /users/me endpoint is OK", async () => {});
+  // it("should test that get /users endpoint is OK", async () => {});
+  // it("should test that get /users/:id admin endpoint is OK", async () => {});
+  // it("should test that put /users/me endpoint is OK", async () => {});
+  // it("should test that put /users/:id admin endpoint is OK", async () => {});
+  // it("should test that put /users/me/avatar endpoint is OK", async () => {});
+  // it("should test that put /users/:id/avatar admin endpoint is OK", async () => {});
+  // it("should test that put /users/:id admin endpoint is OK", async () => {});
+  // it("should test that delete /users/session endpoint is OK", async () => {});
+  // it("should test that delete /users/me endpoint is OK", async () => {});
+  // it("should test that delete /users/:id admin endpoint is OK", async () => {});
+});
+
+describe("Testing advanced user endpoints", () => {
+  beforeAll((done) => {
+    mongoose.connect(process.env.MONGO_TEST).then(() => {
+      console.log("Connected to Atlas");
+      done();
+    });
+  });
+
+  afterAll((done) => {
+    mongoose.connection.dropDatabase().then(() => {
+      console.log("Test DB dropped");
+      mongoose.connection.close().then(() => {
+        done();
+      });
+    });
+  });
+
+  it("should test that post /users/request/:id endpoint is OK and that it returns 409 if duplicated or already rejected", async () => {
+    const joe = await request.post("/users/register").send(joeBloggs);
+    const joe_id = joe.body._id;
+    const joe_token = joe.body.accessToken;
+    const jane = await request.post("/users/register").send(janeDoe);
+    const jane_id = jane.body._id;
+    const jane_token = jane.body.accessToken;
+    const firstResponse = await request
+      .post(`/users/request/${joe_id}`)
+      .set({ Authorization: `Bearer ${jane_token}` });
+    expect(firstResponse.status).toBe(201);
+    expect(firstResponse.body.requested).toBeDefined();
+    expect(firstResponse.body.requested).toContain(joe_id);
+    const secondResponse = await request
+      .post(`/users/request/${joe_id}`)
+      .set({ Authorization: `Bearer ${jane_token}` });
+    expect(secondResponse.status).toBe(409);
+    expect(secondResponse.body.error).toBe(
+      "Duplicated requests are forbidden!"
+    );
+    await request
+      .post(`/users/reject/${jane_id}`)
+      .set({ Authorization: `Bearer ${joe_token}` });
+    const thirdResponse = await request
+      .post(`/users/request/${joe_id}`)
+      .set({ Authorization: `Bearer ${jane_token}` });
+    expect(thirdResponse.status).toBe(409);
+    expect(thirdResponse.body.error).toBe(
+      "Rejected users can't request again!"
+    );
   });
 
   it("should test that post /users/request/id endpoint returns 401 if bad credentials", async () => {
-    const newLogin = await request.post("/users/session").send(jamesBondLogin);
-    const { _id } = newLogin.body;
+    const badToken = "notAnAccessToken";
+    const john = await request.post("/users/register").send(johnDoe);
+    const john_id = john.body._id;
     const response = await request
-      .post(`/users/request/${_id}`)
-      .set({ Authorization: `Bearer NOT_AN_ACCESS_TOKEN` });
+      .post(`/users/request/${john_id}`)
+      .set({ Authorization: `Bearer ${badToken}` });
     expect(response.status).toBe(401);
     expect(response.body.error).toBe("Credentials not accepted");
   });
 
   it("should test that post /users/request/id endpoint returns 404 if user not found", async () => {
-    const newLogin = await request.post("/users/session").send(missMoneypennyLogin);
-    const { accessToken } = newLogin.body;
     const _id = "M";
+    const janeB = await request.post("/users/register").send(janeBloggs);
+    const janeB_token = janeB.body.accessToken;
     const response = await request
       .post(`/users/request/${_id}`)
-      .set({ Authorization: `Bearer ${accessToken}` });
+      .set({ Authorization: `Bearer ${janeB_token}` });
     expect(response.status).toBe(404);
     expect(response.body.error).toBe(`User ID ${_id} not found!`);
   });
 
   it("should test that post /users/request/id endpoint returns 409 if user requests own ID", async () => {
-    const newLogin = await request.post("/users/session").send(missMoneypennyLogin);
-    const { _id, accessToken } = newLogin.body;
+    const mrGoldfinger = await request.post("/users/register").send(goldfinger);
+    const { _id, accessToken } = mrGoldfinger.body;
     const response = await request
       .post(`/users/request/${_id}`)
       .set({ Authorization: `Bearer ${accessToken}` });
@@ -200,57 +251,49 @@ describe("Testing the server", () => {
     expect(response.body.error).toBe(`User IDs cannot be a match!`);
   });
 
-  it("should test that post /users/request/id endpoint returns 409 if duplicate request", async () => {
-    const senderLogin = await request
-      .post("/users/session")
-      .send(missMoneypennyLogin);
-    const sender_token = senderLogin.body.accessToken;
-    const sendeeLogin = await request
-      .post("/users/session")
-      .send(jasonBourneLogin);
-    const sendee_id = sendeeLogin.body._id;
-    // const newUser = await request.post("/users/register").send({
-    //   first_name: "Auric",
-    //   last_name: "Goldfinger",
-    //   username: "nemesis",
-    //   email: "goldfinger@gmail.com",
-    //   password: "goldfinger",
-    // });
-    // const auric_id = newUser.body;
+  it("should test that post /users/reject/id endpoint is OK and that it returns 409 if ID not awaited", async () => {
+    const drNo = await request.post("/users/register").send(doctorNo);
+    const drNo_id = drNo.body._id;
+    const drNo_token = drNo.body.accessToken;
+    console.log(drNo);
+    const trevelyan = await request.post("/users/register").send(goldeneye);
+    const trevelyan_id = trevelyan.body._id;
+    const trevelyan_token = trevelyan.body.accessToken;
+    console.log(trevelyan);
     await request
-      .post(`/users/request/${sendee_id}`)
-      .set({ Authorization: `Bearer ${sender_token}` });
-    const response = await request
-      .post(`/users/request/${sendee_id}`)
-      .set({ Authorization: `Bearer ${sender_token}` });
-    expect(response.status).toBe(409);
-    expect(response.body.error).toBe(`Duplicated requests are forbidden!`);
+      .post(`/users/request/${drNo_id}`)
+      .set({ Authorization: `Bearer ${trevelyan_token}` });
+    const firstResponse = await request
+      .post(`/users/reject/${trevelyan_id}`)
+      .set({ Authorization: `Bearer ${drNo_token}` });
+    expect(firstResponse.status).toBe(201);
+    expect(firstResponse.body.response_awaited).toHaveLength(0);
+    const secondResponse = await request
+      .post(`/users/reject/${trevelyan_id}`)
+      .set({ Authorization: `Bearer ${drNo_token}` });
+    expect(secondResponse.status).toBe(409);
+    expect(secondResponse.body.error).toBe(`User ID must exist in Awaited`);
   });
 
-  it("should test that post /users/request/id endpoint returns 409 if ID already rejected", async () => {
-    const senderLogin = await request
-      .post("/users/session")
-      .send(missMoneypennyLogin);
-    const sender_id = senderLogin.body._id;
-    const sender_token = senderLogin.body._id;
-    const sendeeLogin = await request
-      .post("/users/session")
-      .send(jamesBondLogin);
-    const sendee_id = sendeeLogin.body._id;
-    const sendee_token = sendeeLogin.body._id;
+  it("should test that post /users/accept/id endpoint is OK and that it returns 409 if ID already accepted", async () => {
+    const henchman = await request.post("/users/register").send(jaws);
+    const henchman_id = henchman.body._id;
+    const henchman_token = henchman.body.accessToken;
+    const henchwoman = await request.post("/users/register").send(xenia);
+    const henchwoman_id = henchwoman.body._id;
+    const henchwoman_token = henchwoman.body.accessToken;
     await request
-      .post(`/users/request/${sendee_id}`)
-      .set({ Authorization: `Bearer ${sender_token}` });
-    await request
-      .post(`/users/reject/${sender_id}`)
-      .set({ Authorization: `Bearer ${sendee_token}` });
-    const response = await request
-      .post(`/users/request/${sendee_id}`)
-      .set({ Authorization: `Bearer ${sender_token}` });
-    expect(response.status).toBe(409);
+      .post(`/users/request/${henchwoman_id}`)
+      .set({ Authorization: `Bearer ${henchman_token}` });
+    const firstResponse = await request
+      .post(`/users/accept/${henchman_id}`)
+      .set({ Authorization: `Bearer ${henchwoman_token}` });
+    expect(firstResponse.status).toBe(201);
+    expect(firstResponse.body.accepted).toContain(henchman_id);
+    const secondResponse = await request
+      .post(`/users/accept/${henchman_id}`)
+      .set({ Authorization: `Bearer ${henchwoman_token}` });
+    expect(secondResponse.status).toBe(409);
+    expect(secondResponse.body.error).toBe(`User ID must exist in Awaited`);
   });
-
-  //   it("should test that post /users/accept/id endpoint is OK", async() => {})
-
-  //   it("should test that post /users/reject/id endpoint is OK", async() => {})
 });
