@@ -1,8 +1,53 @@
+// /features tests
+
+export const newFeature = {
+  month: "January",
+  descrip: "Here's the featured challenge of the month!",
+  level: 1,
+  value: 50,
+}
+
+// "should test that post /features admin endpoint is OK"
+export const bryanMills = {
+  first_name: "Bryan",
+  last_name: "Mills",
+  username: "bryanmills",
+  email: "bryanmills@mail.com",
+  password: "iwillfindyou",
+  admin: true,
+}
+
+// "should test that put /features admin endpoint returns updated"
+export const aliciaHuberman = {
+  first_name: "Alicia",
+  last_name: "Huberman",
+  username: "alicia",
+  email: "alicia@mail.com",
+  password: "notorious",
+  admin: true,
+}
+
+// "should test that delete /features admin endpoint is OK"
+export const ethanHunt = {
+  first_name: "Ethan",
+  last_name: "Hunt",
+  username: "ethanhunt",
+  email: "ethanhunt@mail.com",
+  password: "selfdestruct",
+  admin: true,
+}
+
+// users tests
+
 // "should test that post /users/register endpoint is OK"
 export const jamesBond = {
   first_name: "James",
   last_name: "Bond",
   username: "007",
+  email: "jamesbond@mail.com",
+  password: "shakennotstirred",
+};
+export const jamesBondLogin = {
   email: "jamesbond@mail.com",
   password: "shakennotstirred",
 };
@@ -64,7 +109,7 @@ export const vesperLynd = {
 };
 
 // "should test that post /users/request/id endpoint returns 409 if user requests own ID"
-export const goldfinger = {
+export const auricGoldfinger = {
   first_name: "Auric",
   last_name: "Goldfinger",
   username: "goldfinger",
@@ -80,7 +125,7 @@ export const doctorNo = {
   email: "drno@mail.com",
   password: "1962",
 };
-export const goldeneye = {
+export const alecTrevelyan = {
   first_name: "Alec",
   last_name: "Trevelyan",
   username: "trevelyan",
@@ -89,7 +134,7 @@ export const goldeneye = {
 };
 
 // "should test that post /users/accept/id endpoint is OK and that it returns 409 if ID already accepted"
-export const xenia = {
+export const xeniaOnatopp = {
   first_name: "Xenia",
   last_name: "Onatopp",
   username: "onatopp",
@@ -97,43 +142,43 @@ export const xenia = {
   password: "henchwoman",
 };
 export const jaws = {
-  first_name: "?",
-  last_name: "?",
+  first_name: "Zbigniew",
+  last_name: "Krycsiwiki",
   username: "jaws",
   email: "jaws@mail.com",
   password: "moonraker",
 };
 
 // "should test that post /users/request/:id endpoint is OK and that it returns 409 if duplicated"
-export const joeBloggs = {
-  first_name: "Joe",
-  last_name: "Bloggs",
-  username: "joebloggs",
-  email: "joebloggs@mail.com",
-  password: "password",
+export const austinPowers = {
+  first_name: "Austin",
+  last_name: "Powers",
+  username: "austinpowers",
+  email: "austinpowers@mail.com",
+  password: "shaggadelic",
 };
-export const janeDoe = {
-  first_name: "Jane",
-  last_name: "Doe",
-  username: "janedoe",
-  email: "janedoe@mail.com",
-  password: "password",
+export const nikitaMears = {
+  first_name: "Nikita",
+  last_name: "Mears",
+  username: "nikita",
+  email: "nikita@mail.com",
+  password: "lafemme",
 };
 
 // "should test that post /users/request/id endpoint returns 404 if user not found"
-export const janeBloggs = {
-  first_name: "Jan",
-  last_name: "Bloggs",
-  username: "janebloggs",
-  email: "janebloggs@mail.com",
-  password: "password",
+export const natashaRomanova = {
+  first_name: "Natasha",
+  last_name: "Romanova",
+  username: "natasha",
+  email: "natasha@mail.com",
+  password: "s.h.i.e.l.d.",
 };
 
 // "should test that post /users/request/id endpoint returns 401 if bad credentials"
-export const johnDoe = {
+export const johnWick = {
   first_name: "John",
-  last_name: "Doe",
-  username: "johndoe",
-  email: "johndoe@mail.com",
-  password: "password",
+  last_name: "Wick",
+  username: "johnwick",
+  email: "johnwick@mail.com",
+  password: "mydog",
 };

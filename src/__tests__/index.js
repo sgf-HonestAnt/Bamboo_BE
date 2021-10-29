@@ -9,30 +9,34 @@ import {
   jasonBourne,
   jasonBourneLogin,
   felixLeiter,
-  goldfinger,
+  auricGoldfinger,
   vesperLynd,
   jackRyan,
-  joeBloggs,
-  janeDoe,
-  janeBloggs,
-  johnDoe,
+  austinPowers,
+  natashaRomanova,
+  nikitaMears,
+  johnWick,
   doctorNo,
-  goldeneye,
-  xenia,
   jaws,
+  bryanMills,
+  ethanHunt,
+  aliciaHuberman,
+  xeniaOnatopp,
+  alecTrevelyan,
+  newFeature,
 } from "../utils/testConst.js";
 
 dotenv.config();
 
 const request = supertest(server);
 
-describe("Testing the testing environment", () => {
+describe("💪 Testing the testing environment", () => {
   it("should test that true is true", () => {
     expect(true).toBe(true);
   });
 });
 
-describe("Testing the server", () => {
+describe("💪 Testing the server", () => {
   beforeAll((done) => {
     mongoose.connect(process.env.MONGO_TEST).then(() => {
       console.log("Connected to Atlas");
@@ -61,7 +65,7 @@ describe("Testing the server", () => {
   });
 });
 
-describe("Testing basic user endpoints", () => {
+describe("💪 Testing basic user endpoints", () => {
   beforeAll((done) => {
     mongoose.connect(process.env.MONGO_TEST).then(() => {
       console.log("Connected to Atlas");
@@ -78,7 +82,7 @@ describe("Testing basic user endpoints", () => {
     });
   });
 
-  it("should test that post /users/register endpoint is OK", async () => {
+  it("should test that post /users/register endpoint is OK (BOND)", async () => {
     const response = await request.post("/users/register").send(jamesBond);
     expect(response.status).toBe(201);
     expect(response.body._id).toBeDefined();
@@ -86,7 +90,7 @@ describe("Testing basic user endpoints", () => {
     expect(response.body.refreshToken).toBeDefined();
   });
 
-  it("should test that post /users/register admin endpoint is OK", async () => {
+  it("should test that post /users/register admin endpoint is OK (MONEYPENNY)", async () => {
     const response = await request.post("/users/register").send(missMoneypenny);
     expect(response.status).toBe(201);
     expect(response.body._id).toBeDefined();
@@ -109,7 +113,7 @@ describe("Testing basic user endpoints", () => {
     expect(response.body.available).toBeDefined();
   });
 
-  it("should test that post /users/session endpoint is OK", async () => {
+  it("should test that post /users/session endpoint is OK (BOURNE)", async () => {
     await request.post("/users/register").send(jasonBourne);
     const response = await request
       .post("/users/session")
@@ -128,7 +132,7 @@ describe("Testing basic user endpoints", () => {
 
   // post "/users/session/refresh" tests
 
-  it("should test that post /users admin endpoint is OK", async () => {
+  it("should test that post /users admin endpoint is OK (FELIX)", async () => {
     const felix = await request.post("/users/register").send(felixLeiter);
     const felix_token = felix.body.accessToken;
     const response = await request
@@ -139,7 +143,7 @@ describe("Testing basic user endpoints", () => {
     expect(response.body._id).toBeDefined();
   });
 
-  it("should test that post /users admin endpoint returns 409 if email duplicate", async () => {
+  it("should test that post /users admin endpoint returns 409 if email duplicate (VESPER)", async () => {
     const email = jamesBond.email;
     const vesper = await request.post("/users/register").send(vesperLynd);
     const vesper_token = vesper.body.accessToken;
@@ -157,6 +161,7 @@ describe("Testing basic user endpoints", () => {
     expect(response.body.error).toBe("Email Exists");
   });
 
+  // if there is more time for testing, implement:-
   // it("should test that get /users/me endpoint is OK", async () => {});
   // it("should test that get /users endpoint is OK", async () => {});
   // it("should test that get /users/:id admin endpoint is OK", async () => {});
@@ -170,7 +175,7 @@ describe("Testing basic user endpoints", () => {
   // it("should test that delete /users/:id admin endpoint is OK", async () => {});
 });
 
-describe("Testing advanced user endpoints", () => {
+describe("💪 Testing advanced user endpoints", () => {
   beforeAll((done) => {
     mongoose.connect(process.env.MONGO_TEST).then(() => {
       console.log("Connected to Atlas");
@@ -188,10 +193,10 @@ describe("Testing advanced user endpoints", () => {
   });
 
   it("should test that post /users/request/:id endpoint is OK and that it returns 409 if duplicated or already rejected", async () => {
-    const joe = await request.post("/users/register").send(joeBloggs);
+    const joe = await request.post("/users/register").send(austinPowers);
     const joe_id = joe.body._id;
     const joe_token = joe.body.accessToken;
-    const jane = await request.post("/users/register").send(janeDoe);
+    const jane = await request.post("/users/register").send(natashaRomanova);
     const jane_id = jane.body._id;
     const jane_token = jane.body.accessToken;
     const firstResponse = await request
@@ -221,7 +226,7 @@ describe("Testing advanced user endpoints", () => {
 
   it("should test that post /users/request/id endpoint returns 401 if bad credentials", async () => {
     const badToken = "notAnAccessToken";
-    const john = await request.post("/users/register").send(johnDoe);
+    const john = await request.post("/users/register").send(johnWick);
     const john_id = john.body._id;
     const response = await request
       .post(`/users/request/${john_id}`)
@@ -232,7 +237,7 @@ describe("Testing advanced user endpoints", () => {
 
   it("should test that post /users/request/id endpoint returns 404 if user not found", async () => {
     const _id = "M";
-    const janeB = await request.post("/users/register").send(janeBloggs);
+    const janeB = await request.post("/users/register").send(nikitaMears);
     const janeB_token = janeB.body.accessToken;
     const response = await request
       .post(`/users/request/${_id}`)
@@ -242,7 +247,7 @@ describe("Testing advanced user endpoints", () => {
   });
 
   it("should test that post /users/request/id endpoint returns 409 if user requests own ID", async () => {
-    const mrGoldfinger = await request.post("/users/register").send(goldfinger);
+    const mrGoldfinger = await request.post("/users/register").send(auricGoldfinger);
     const { _id, accessToken } = mrGoldfinger.body;
     const response = await request
       .post(`/users/request/${_id}`)
@@ -255,11 +260,9 @@ describe("Testing advanced user endpoints", () => {
     const drNo = await request.post("/users/register").send(doctorNo);
     const drNo_id = drNo.body._id;
     const drNo_token = drNo.body.accessToken;
-    console.log(drNo);
-    const trevelyan = await request.post("/users/register").send(goldeneye);
+    const trevelyan = await request.post("/users/register").send(alecTrevelyan);
     const trevelyan_id = trevelyan.body._id;
     const trevelyan_token = trevelyan.body.accessToken;
-    console.log(trevelyan);
     await request
       .post(`/users/request/${drNo_id}`)
       .set({ Authorization: `Bearer ${trevelyan_token}` });
@@ -279,7 +282,7 @@ describe("Testing advanced user endpoints", () => {
     const henchman = await request.post("/users/register").send(jaws);
     const henchman_id = henchman.body._id;
     const henchman_token = henchman.body.accessToken;
-    const henchwoman = await request.post("/users/register").send(xenia);
+    const henchwoman = await request.post("/users/register").send(xeniaOnatopp);
     const henchwoman_id = henchwoman.body._id;
     const henchwoman_token = henchwoman.body.accessToken;
     await request
@@ -297,3 +300,129 @@ describe("Testing advanced user endpoints", () => {
     expect(secondResponse.body.error).toBe(`User ID must exist in Awaited`);
   });
 });
+
+// if there is more time for testing, implement:-
+describe("💪 Testing app-features endpoints", () => {
+  beforeAll((done) => {
+    mongoose.connect(process.env.MONGO_TEST).then(() => {
+      console.log("Connected to Atlas");
+      done();
+    });
+  });
+
+  afterAll((done) => {
+    mongoose.connection.dropDatabase().then(() => {
+      console.log("Test DB dropped");
+      mongoose.connection.close().then(() => {
+        done();
+      });
+    });
+  });
+
+  it("should test that get /features endpoint is OK", async () => {
+    const response = await request.get("/features");
+    expect(response.body.links).toBeDefined();
+    expect(response.body.total).toBeDefined();
+    expect(response.body.features).toBeDefined();
+    expect(response.body.pageTotal).toBeDefined();
+  });
+
+  it("should test that post /features admin endpoint is OK", async () => {
+    const mills = await request.post("/users/register").send(bryanMills);
+    const { accessToken } = mills.body;
+    const response = await request
+      .post("/features")
+      .send(newFeature)
+      .set({ Authorization: `Bearer ${accessToken}` });
+    expect(response.status).toBe(201);
+    expect(response.body._id).toBeDefined();
+  });
+
+  it("should test that put /features admin endpoint returns updated", async () => {
+    const huberman = await request.post("/users/register").send(aliciaHuberman);
+    const { accessToken } = huberman.body;
+    const feature = await request
+      .post("/features")
+      .send(newFeature)
+      .set({ Authorization: `Bearer ${accessToken}` });
+    const { _id } = feature.body;
+    const month = "February";
+    const response = await request
+      .put(`/features/${_id}`)
+      .send({ month })
+      .set({ Authorization: `Bearer ${accessToken}` });
+    expect(response.status).toBe(200);
+    expect(response.body.month).toBe(month);
+  });
+
+  it("should test that delete /features admin endpoint is OK", async () => {
+    const ethan = await request.post("/users/register").send(ethanHunt);
+    const { accessToken } = ethan.body;
+    const feature = await request
+      .post("/features")
+      .send(newFeature)
+      .set({ Authorization: `Bearer ${accessToken}` });
+    const { _id } = feature.body;
+    const response = await request
+      .delete(`/features/${_id}`)
+      .set({ Authorization: `Bearer ${accessToken}` });
+    expect(response.status).toBe(204);
+  });
+});
+
+// if there is more time for testing, implement:-
+// describe("💪 Testing tasks endpoints", () => {
+//   beforeAll((done) => {
+//     mongoose.connect(process.env.MONGO_TEST).then(() => {
+//       console.log("Connected to Atlas");
+//       done();
+//     });
+//   });
+
+//   afterAll((done) => {
+//     mongoose.connection.dropDatabase().then(() => {
+//       console.log("Test DB dropped");
+//       mongoose.connection.close().then(() => {
+//         done();
+//       });
+//     });
+//   });
+// });
+
+// if there is more time for testing, implement:-
+// describe("💪 Testing challenges endpoints", () => {
+//   beforeAll((done) => {
+//     mongoose.connect(process.env.MONGO_TEST).then(() => {
+//       console.log("Connected to Atlas");
+//       done();
+//     });
+//   });
+
+//   afterAll((done) => {
+//     mongoose.connection.dropDatabase().then(() => {
+//       console.log("Test DB dropped");
+//       mongoose.connection.close().then(() => {
+//         done();
+//       });
+//     });
+//   });
+// });
+
+// if there is more time for testing, implement:-
+// describe("💪 Testing achievements endpoints", () => {
+//   beforeAll((done) => {
+//     mongoose.connect(process.env.MONGO_TEST).then(() => {
+//       console.log("Connected to Atlas");
+//       done();
+//     });
+//   });
+
+//   afterAll((done) => {
+//     mongoose.connection.dropDatabase().then(() => {
+//       console.log("Test DB dropped");
+//       mongoose.connection.close().then(() => {
+//         done();
+//       });
+//     });
+//   });
+// });
