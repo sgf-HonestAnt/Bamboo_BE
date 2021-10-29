@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import UserModel from "../schemas/users.js";
 import generator from "../utils/generator.js";
 import shuffle from "../utils/shuffle.js";
+import TaskListModel from "../schemas/tasks.js";
 import { generateTokens, refreshTokens } from "../auth/tools.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../auth/jwt.js";
 
@@ -53,6 +54,8 @@ userRoute
         const { _id, admin } = await newUser.save();
         if (newUser) {
           const { accessToken, refreshToken } = await generateTokens(newUser);
+          const newTasklist = new TaskListModel({ user_id: _id });
+          await newTasklist.save();
           res.status(201).send({ _id, accessToken, refreshToken, admin });
         } else {
           console.log({ message: "💀USER NOT SAVED", user: req.body });
@@ -68,7 +71,6 @@ userRoute
     try {
       const { email, password } = req.body;
       const user = await UserModel.checkCredentials(email, password);
-      console.log(user);
       if (user !== null) {
         const { accessToken, refreshToken } = await generateTokens(user);
         const { admin, _id } = user;
@@ -101,10 +103,12 @@ userRoute
         const newUser = new UserModel(req.body);
         const { _id } = await newUser.save();
         if (_id) {
+          const newTasklist = new TaskListModel({ user_id: _id });
+          await newTasklist.save(); 
           res.status(201).send({ _id });
-        } else {
+        } else { 
           console.log({ message: "💀USER NOT SAVED", user: req.body });
-        }
+        } 
       }
     } catch (e) {
       next(e);
@@ -211,7 +215,8 @@ userRoute
       const idsMatch = req.user._id.toString() === u_id;
       const sendee = req.user;
       const sender = await UserModel.findById(u_id);
-      const idExistsInAwaited = sendee.followedUsers.response_awaited.includes(u_id);
+      const idExistsInAwaited =
+        sendee.followedUsers.response_awaited.includes(u_id);
       if (!mongoose.Types.ObjectId.isValid(u_id)) {
         res.status(404).send({ error: `User ID ${u_id} not found!` });
       } else if (idsMatch) {

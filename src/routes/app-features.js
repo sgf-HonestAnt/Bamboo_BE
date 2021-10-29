@@ -8,7 +8,7 @@ const featureRoute = express.Router();
 const route = " app-features";
 
 featureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
-  console.log("🔸POST", route);
+  console.log("◻️POST", route);
   try {
     const newFeature = new FeatureModel(req.body);
     const { _id } = await newFeature.save();
@@ -19,7 +19,7 @@ featureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
 });
 
 featureRoute.get("/", async (req, res, next) => {
-  console.log("🔸GET", route);
+  console.log("◻️GET", route);
   try {
     const query = q2m(req.query);
     const { total, features } = await FeatureModel.findFeatures(query);
@@ -34,7 +34,7 @@ featureRoute.get("/", async (req, res, next) => {
   }
 });
 featureRoute.put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-  console.log("🔸PUT", route);
+  console.log("◻️PUT", route);
   try {
     const { _id } = req.params;
     const update = { ...req.body };
@@ -53,7 +53,7 @@ featureRoute.put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
   }
 });
 featureRoute.delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-  console.log("🔸DELETE", route);
+  console.log("◻️DELETE", route);
   try {
     const { _id } = req.params;
     const deletedFeature = await FeatureModel.findByIdAndDelete(_id);

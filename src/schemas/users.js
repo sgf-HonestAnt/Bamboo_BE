@@ -1,12 +1,9 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import { LIGHT_MODE, NEW_BIO, THEMES, USER_AVATAR } from "../utils/const.js";
+import { taskListSchema } from "./tasks.js";
 
 const { Schema, model } = mongoose;
-
-const avatar =
-  "https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg";
-
-const bio = "Newbie";
 
 const userSchema = new Schema(
   {
@@ -21,18 +18,18 @@ const userSchema = new Schema(
       unique: true,
       required: true,
     },
-    avatar: { type: String, default: avatar, required: true },
-    bio: { type: String, default: bio, required: true },
+    avatar: { type: String, default: USER_AVATAR, required: true },
+    bio: { type: String, default: NEW_BIO, required: true },
     level: { type: Number, default: 0, required: true },
     xp: { type: Number, default: 0, required: true },
     password: { type: String, required: true },
-    admin: { type: Boolean, required: false },
+    admin: { type: Boolean, required: false }, 
     settings: {
       // difficulty: { type: Number },
       selectedTheme: {
         type: String,
-        default: "light-mode",
-        enum: ["light-mode", "dark-mode"],
+        default: LIGHT_MODE,
+        enum: THEMES,
         required: true,
       },
     },
@@ -64,20 +61,16 @@ const userSchema = new Schema(
         required: true,
       },
     },
-    //collection
-    // tasks: {
-    //   default:
-    //   type: Schema.Types.ObjectId,
-    //   ref: "TaskList",
-    //   required: true,
-    // },
+    tasklist: { default: [], type: [taskListSchema] },
+    // collection
+    // tasklist
     // challenges: {
     //   default: [],
     //   type: [{ type: Schema.Types.ObjectId, ref: "Challenge" }],
     //   required: true,
     // },
-    refreshToken: { type: String },
-  },
+    refreshToken: { type: String }, 
+  }, 
   { timestamps: true }
 );
 
@@ -85,7 +78,7 @@ userSchema.static("findUsers", async function (query) {
   const total = await this.countDocuments(query.criteria);
   const users = await this.find(query.criteria, query.options.fields)
     .limit(query.options.limit)
-    .skip(query.options.skip)
+    .skip(query.options.skip) 
     .sort(query.options.sort);
   return { total, users };
 });

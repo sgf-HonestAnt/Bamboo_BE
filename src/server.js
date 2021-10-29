@@ -21,15 +21,15 @@ server.get("/test", (req, res) => {
   res.status(200).send({ message: "Test success" });
 }); 
 
-server.use("/achievements", achievementRoute);
+server.use("/users", userRoute);
 
 server.use("/features", featureRoute);
 
-server.use("/challenges", challengeRoute);
-
 server.use("/tasks", taskRoute);
 
-server.use("/users", userRoute);
+server.use("/achievements", achievementRoute);
+
+server.use("/challenges", challengeRoute);
 
 server.use(err400)
 
