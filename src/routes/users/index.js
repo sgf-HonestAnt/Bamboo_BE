@@ -60,14 +60,21 @@ UserRoute
           const list = await newTaskList.save();
           const tasklist_id = list._id;
           if (!tasklist_id) {
-            console.log({ message: "💀TASKLIST NOT SAVED", tasks: newTaskList });
+            console.log({
+              message: "💀TASKLIST NOT SAVED",
+              tasks: newTaskList,
+            });
           } else {
             // update user in order to populate tasklist
             const update = { tasks: tasklist_id };
             const filter = { _id };
-            const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
-              returnOriginal: false,
-            });
+            const updatedUser = await UserModel.findOneAndUpdate(
+              filter,
+              update,
+              {
+                returnOriginal: false,
+              }
+            );
             await updatedUser.save();
             res.status(201).send({ _id, accessToken, refreshToken, admin });
           }
@@ -114,12 +121,32 @@ UserRoute
       } else {
         const newUser = new UserModel(req.body);
         const { _id } = await newUser.save();
-        if (_id) {
-          const newTasklist = new TaskListModel({ user: _id });
-          await newTasklist.save();
-          res.status(201).send({ _id });
-        } else {
+        if (!_id) {
           console.log({ message: "💀USER NOT SAVED", user: req.body });
+        } else {
+          // generate tasklist
+          const newTasklist = new TaskListModel({ user: _id });
+          const list = await newTasklist.save();
+          const tasklist_id = list._id;
+          if (!tasklist_id) {
+            console.log({
+              message: "💀TASKLIST NOT SAVED",
+              tasks: newTaskList,
+            });
+          } else {
+            // update user in order to populate tasklist
+            const update = { tasks: tasklist_id };
+            const filter = { _id };
+            const updatedUser = await UserModel.findOneAndUpdate(
+              filter,
+              update,
+              {
+                returnOriginal: false,
+              }
+            );
+            await updatedUser.save();
+            res.status(201).send({ _id });
+          }
         }
       }
     } catch (e) {
@@ -268,7 +295,10 @@ UserRoute
     console.log("🔸GET ME");
     try {
       const { _id } = req.user;
-      const me = await UserModel.findById(_id).populate("tasks", "completed awaited in_progress")
+      const me = await UserModel.findById(_id).populate(
+        "tasks",
+        "completed awaited in_progress"
+      );
       res.send(me);
     } catch (e) {
       next(e);
@@ -280,10 +310,20 @@ UserRoute
     try {
       const query = q2m(req.query);
       const { total, users } = await UserModel.findUsers(query);
+      // but I don't want to share their followedUsers, so:-
+      const publicUsers = await users.map((u) => ({
+        _id: u._id,
+        username: u.username,
+        avatar: u.avatar,
+        bio: u.bio,
+        level: u.level,
+        xp: u.xp,
+        joined: u.createdAt
+      }));
       res.send({
         links: query.links("/users", total),
         total,
-        users,
+        publicUsers,
         pageTotal: Math.ceil(total / query.options.limit),
       });
     } catch (e) {
@@ -295,8 +335,13 @@ UserRoute
     console.log("🔸GET", route);
     try {
       const { u_id } = req.params;
-      const users = await UserModel.find({ _id: u_id });
-      res.send(users);
+      const user = await UserModel.findById(u_id).populate(
+        "tasks",
+        "completed awaited in_progress"
+      );
+      // but I don't want to share their followedUsers, so:-
+      user.followedUsers = undefined;
+      res.send(user);
     } catch (e) {
       next(e);
     }

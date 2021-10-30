@@ -24,44 +24,29 @@ TaskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   console.log("💠 POST", route);
   try {
     const { _id } = req.user;
-    const newTask = await new TaskModel({ user: _id });
-    console.log(newTask);
-    // req.user.tasklist .....
-    // const newTaskAwaited = await UserModel.findOneAndUpdate(
-    //   { _id },
-    //   { $push: { tasklist: { awaited: newTask } } },
-    //   { new: true }
-    // );
-    // const task = await newTaskAwaited.save();
-    // const task_id = task._id;
-    // if (task_id) {
-    //   res.send(newTaskAwaited);
-    // }
+    const updatedTasks = await TaskListModel.findOneAndUpdate(
+      { user: _id },
+      { $push: { awaited: req.body } },
+      { new: true, runValidators: true }
+    );
+    if (updatedTasks) {
+      const newTask = updatedTasks.awaited[updatedTasks.awaited.length - 1];
+      res.send(newTask);
+    } else {
+      res.status(404).send(`Tasklist belonging to user ${_id} not found`);
+    }
   } catch (e) {
     next(e);
   }
-});
-// blogsRouter.post("/:id", async(req,res,next) => {
-//   try {
-//     const updatedBlog = await BlogModel.findByIdAndUpdate(
-//       req.params.id,
-//       { $push: { comments: req.body } },
-//       { new : true,
-//         runValidators: true
-//       }
-//     ).populate("author") // can be path: "comments.user", select: "name" <== what if more than 1 select?
-//     if (updatedBlog) {
-//       res.send(updatedBlog)
-//     } else {
-//       next(createError(404, `Blog Post with id ${req.params.id} not found`))
-//     }
-//   } catch (error) {
-//     next(error)
-//   }
-// })
-TaskRoute.get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
+}).get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   console.log("💠 GET", route);
   try {
+    const tasks = await TaskListModel.findOne({ user: req.user._id });
+    if (tasks) {
+      res.send(tasks);
+    } else {
+      res.status(404).send(`Tasklist belonging to user ${_id} not found`);
+    }
   } catch (e) {
     next(e);
   }

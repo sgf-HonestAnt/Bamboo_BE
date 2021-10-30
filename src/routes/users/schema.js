@@ -57,7 +57,7 @@ const UserSchema = new mongoose.Schema(
       },
     },
     tasks: { type: Schema.Types.ObjectId, ref: "TaskList" },
-    // tasklist: { 
+    // tasklist: {
     //   completed: { default: [], type: [TaskSchema], required: true },
     //   awaited: { default: [], type: [TaskSchema], required: true },
     //   in_progress: { default: [], type: [TaskSchema], required: true },
