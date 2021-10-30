@@ -47,7 +47,7 @@ UserRoute
       } else if (usernameDuplicate) {
         const available = await generateNames(username);
         res.status(409).send({ error: `Username Exists`, available });
-      } else {
+      } else { 
         const newUser = new UserModel(req.body);
         const { _id, admin } = await newUser.save();
         if (!newUser) {
@@ -295,10 +295,7 @@ UserRoute
     console.log("🔸GET ME");
     try {
       const { _id } = req.user;
-      const me = await UserModel.findById(_id).populate(
-        "tasks",
-        "completed awaited in_progress"
-      );
+      const me = await UserModel.findById(_id)
       res.send(me);
     } catch (e) {
       next(e);
@@ -335,10 +332,7 @@ UserRoute
     console.log("🔸GET", route);
     try {
       const { u_id } = req.params;
-      const user = await UserModel.findById(u_id).populate(
-        "tasks",
-        "completed awaited in_progress"
-      );
+      const user = await UserModel.findById(u_id)
       // but I don't want to share their followedUsers, so:-
       user.followedUsers = undefined;
       res.send(user);

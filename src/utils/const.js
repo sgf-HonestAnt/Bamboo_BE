@@ -5,7 +5,9 @@ export const LIGHT_MODE = "light-mode";
 export const DARK_MODE = "dark-mode";
 export const THEMES = [LIGHT_MODE, DARK_MODE];
 export const TASK_TYPES = [SOLO, TEAM];
-export const NONE = "none"
+export const NONE = "none";
+export const AWAITED = "awaited";
+export const TASK_STATUS_TYPES = ["awaited", "completed", "in_progress"];
 export const USER_AVATAR =
   "https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg";
 export const TASK_IMG =

@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { NONE, SOLO, TASK_IMG, TASK_TYPES } from "../../utils/const.js";
+import { AWAITED, NONE, SOLO, TASK_IMG, TASK_STATUS_TYPES, TASK_TYPES } from "../../utils/const.js";
 
 const { Schema } = mongoose;
 
-const TaskSchema = new mongoose.Schema(
+export const TaskSchema = new mongoose.Schema(
   {
     category: { type: String, required: true },
     title: { type: String, required: true },
@@ -15,10 +15,12 @@ const TaskSchema = new mongoose.Schema(
       enum: TASK_TYPES,
     },
     value: { type: Number, default: 0 },
+    createdBy: { type: Schema.Types.ObjectId, ref: "User" },
     sharedWith: {
       default: [],
       type: [{ type: Schema.Types.ObjectId, ref: "User" }],
     },
+    status: { type: String, default: AWAITED, enum: TASK_STATUS_TYPES },
     deadline: { type: String, default: NONE },
   },
   {
@@ -26,24 +28,19 @@ const TaskSchema = new mongoose.Schema(
   }
 );
 
+// TaskSchema.methods.toJSON = function () {
+//   const userDoc = this;
+//   const userObj = userDoc.toObject();
+//   delete userObj.__v;
+//   return userObj;
+// };
+
 const TaskListSchema = new mongoose.Schema({
   user: { type: Schema.Types.ObjectId, ref: "User" },
-  completed: { default: [], type: [TaskSchema] },
-  awaited: { default: [], type: [TaskSchema] },
-  in_progress: { default: [], type: [TaskSchema] },
+  completed: { default: [], type: [{ type: Schema.Types.ObjectId, ref: "Task" }] },
+  awaited: { default: [], type: [{ type: Schema.Types.ObjectId, ref: "Task" }] },
+  in_progress: { default: [], type: [{ type: Schema.Types.ObjectId, ref: "Task" }] },
 });
-
-// export const TaskListSchema = new Schema(
-//   {
-//     user_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
-//     tasklist: {
-//       completed: { default: [], type: [TaskSchema], required: true },
-//       awaited: { default: [], type: [TaskSchema], required: true },
-//       progress: { default: [], type: [TaskSchema], required: true },
-//     },
-//   },
-//   { timestamps: false }
-// );
 
 TaskListSchema.methods.toJSON = function () {
   const userDoc = this;
