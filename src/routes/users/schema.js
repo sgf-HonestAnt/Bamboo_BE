@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import { TaskListSchema } from "../tasks/schema.js";
+import { TaskSchema } from "../tasks/schema.js";
 import { LIGHT_MODE, NEW_BIO, THEMES, USER_AVATAR } from "../../utils/const.js";
 
 const { Schema } = mongoose;
@@ -61,7 +61,11 @@ const UserSchema = new mongoose.Schema(
         required: true,
       },
     },
-    tasklist: { default: [], type: [TaskListSchema] },
+    tasklist: { 
+      completed: { default: [], type: [TaskSchema], required: true },
+      awaited: { default: [], type: [TaskSchema], required: true },
+      in_progress: { default: [], type: [TaskSchema], required: true },
+    },
     // collection
     // tasklist
     // challenges: {

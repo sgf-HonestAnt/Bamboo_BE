@@ -1,7 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import UserModel from "./model.js";
-import TaskListModel, { TaskModel } from "../tasks/model.js";
+import TaskModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
 import createHttpError from "http-errors";
 import multer from "multer";
@@ -23,18 +23,19 @@ const route = "tasks";
 TaskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   console.log("💠 POST", route);
   try {
-    const user_id = req.user._id;
-    const newTask = await new TaskModel(req.body);
+    const { _id } = req.user;
+    const newTask = await new TaskModel({ ...req.body, belongsTo: _id });
     console.log(newTask);
-    // const addToTasklist = await TaskListModel.findOneAndUpdate(
-    //   { user_id },
-    //   { $push: { awaited: req.body } },
+    // req.user.tasklist .....
+    // const newTaskAwaited = await UserModel.findOneAndUpdate(
+    //   { _id },
+    //   { $push: { tasklist: { awaited: newTask } } },
     //   { new: true }
     // );
-    // console.log(req.body);
-    // console.log(addToTasklist);
-    // if (addToTaskList) { // ReferenceError: addToTaskList is not defined
-    //   res.send(addToTaskList);
+    // const task = await newTaskAwaited.save();
+    // const task_id = task._id;
+    // if (task_id) {
+    //   res.send(newTaskAwaited);
     // }
   } catch (e) {
     next(e);

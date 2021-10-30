@@ -1,8 +1,6 @@
-import TaskListSchema, { TaskSchema } from "./schema.js";
+import TaskSchema from "./schema.js";
 import mongoose from "mongoose";
 
-const TaskListModel = mongoose.model("TaskList", TaskListSchema);
+const TaskModel = mongoose.model("Task", TaskSchema);
 
-export const TaskModel = mongoose.model("Task", TaskSchema);
-
-export default TaskListModel;
+export default TaskModel;
