@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import { TaskSchema } from "../tasks/schema.js";
+// import { TaskSchema } from "../tasks/schema.js";
 import { LIGHT_MODE, NEW_BIO, THEMES, USER_AVATAR } from "../../utils/const.js";
 
 const { Schema } = mongoose;
@@ -45,11 +45,6 @@ const UserSchema = new mongoose.Schema(
         type: [{ type: String }],
         required: true,
       },
-      pending: {
-        default: [],
-        type: [{ type: String }],
-        required: true,
-      },
       accepted: {
         default: [],
         type: [{ type: Schema.Types.ObjectId, ref: "User" }],
@@ -61,11 +56,12 @@ const UserSchema = new mongoose.Schema(
         required: true,
       },
     },
-    tasklist: { 
-      completed: { default: [], type: [TaskSchema], required: true },
-      awaited: { default: [], type: [TaskSchema], required: true },
-      in_progress: { default: [], type: [TaskSchema], required: true },
-    },
+    tasks: { type: Schema.Types.ObjectId, ref: "TaskList" },
+    // tasklist: { 
+    //   completed: { default: [], type: [TaskSchema], required: true },
+    //   awaited: { default: [], type: [TaskSchema], required: true },
+    //   in_progress: { default: [], type: [TaskSchema], required: true },
+    // },
     // collection
     // tasklist
     // challenges: {

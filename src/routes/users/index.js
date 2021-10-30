@@ -12,8 +12,6 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { generateTokens, refreshTokens } from "../../auth/tools.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 
-// ❗ remove "pending" as is not in use
-
 const storage = new CloudinaryStorage({
   cloudinary,
   params: { folder: "capstone_users" },
@@ -52,13 +50,27 @@ UserRoute
       } else {
         const newUser = new UserModel(req.body);
         const { _id, admin } = await newUser.save();
-        if (newUser) {
-          const { accessToken, refreshToken } = await generateTokens(newUser);
-          const newTasklist = new TaskListModel({ user_id: _id });
-          await newTasklist.save();
-          res.status(201).send({ _id, accessToken, refreshToken, admin });
-        } else {
+        if (!newUser) {
           console.log({ message: "💀USER NOT SAVED", user: req.body });
+        } else {
+          // generate tokens
+          const { accessToken, refreshToken } = await generateTokens(newUser);
+          // generate tasklist
+          const newTaskList = new TaskListModel({ user: _id });
+          const list = await newTaskList.save();
+          const tasklist_id = list._id;
+          if (!tasklist_id) {
+            console.log({ message: "💀TASKLIST NOT SAVED", tasks: newTaskList });
+          } else {
+            // update user in order to populate tasklist
+            const update = { tasks: tasklist_id };
+            const filter = { _id };
+            const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
+              returnOriginal: false,
+            });
+            await updatedUser.save();
+            res.status(201).send({ _id, accessToken, refreshToken, admin });
+          }
         }
       }
     } catch (e) {
@@ -103,7 +115,7 @@ UserRoute
         const newUser = new UserModel(req.body);
         const { _id } = await newUser.save();
         if (_id) {
-          const newTasklist = new TaskListModel({ user_id: _id });
+          const newTasklist = new TaskListModel({ user: _id });
           await newTasklist.save();
           res.status(201).send({ _id });
         } else {
@@ -255,7 +267,9 @@ UserRoute
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸GET ME");
     try {
-      res.send(req.user);
+      const { _id } = req.user;
+      const me = await UserModel.findById(_id).populate("tasks", "completed awaited in_progress")
+      res.send(me);
     } catch (e) {
       next(e);
     }

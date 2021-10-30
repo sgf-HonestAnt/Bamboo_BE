@@ -1,7 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import UserModel from "./model.js";
-import TaskModel from "../tasks/model.js";
+import TaskListModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
 import createHttpError from "http-errors";
 import multer from "multer";
@@ -24,7 +24,7 @@ TaskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   console.log("💠 POST", route);
   try {
     const { _id } = req.user;
-    const newTask = await new TaskModel({ ...req.body, belongsTo: _id });
+    const newTask = await new TaskModel({ user: _id });
     console.log(newTask);
     // req.user.tasklist .....
     // const newTaskAwaited = await UserModel.findOneAndUpdate(

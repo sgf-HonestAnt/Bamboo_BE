@@ -9,8 +9,6 @@ const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
       ? await followedUsers.response_awaited.push(ID.toString())
       : addToList === "requested"
       ? await followedUsers.requested.push(ID.toString())
-      : addToList === "pending"
-      ? await followedUsers.pending.push(ID.toString())
       : addToList === "accepted"
       ? await followedUsers.accepted.push(ID)
       : // if all else fails, followedUsers must be "rejected"
@@ -26,10 +24,6 @@ const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
         ))
       : removeFromList === "requested"
       ? (list = await followedUsers.requested.filter(
-          (el) => el !== ID.toString()
-        ))
-      : removeFromList === "pending"
-      ? (list = await followedUsers.pending.filter(
           (el) => el !== ID.toString()
         ))
       : removeFromList === "accepted"
