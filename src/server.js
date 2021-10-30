@@ -1,11 +1,17 @@
 import express from "express";
 import cors from "cors";
-import achievementRoute from "./routes/achievements.js";
-import featureRoute from "./routes/app-features.js";
-import challengeRoute from "./routes/challenges.js";
-import taskRoute from "./routes/tasks.js";
-import userRoute from "./routes/users.js";
-import { err400, err401, err403, err404, err500 } from "./middlewares/errorHandlers.js";
+import AchievementRoute from "./routes/achievements/index.js";
+import FeatureRoute from "./routes/app-features/index.js";
+import ChallengeRoute from "./routes/challenges/index.js";
+import TaskRoute from "./routes/tasks/index.js";
+import UserRoute from "./routes/users/index.js";
+import {
+  err400,
+  err401,
+  err403,
+  err404,
+  err500,
+} from "./middlewares/errorHandlers.js";
 
 const server = express();
 
@@ -19,26 +25,26 @@ server.use(express.json());
 
 server.get("/test", (req, res) => {
   res.status(200).send({ message: "Test success" });
-}); 
+});
 
-server.use("/users", userRoute);
+server.use("/users", UserRoute);
 
-server.use("/features", featureRoute);
+server.use("/features", FeatureRoute);
 
-server.use("/tasks", taskRoute);
+server.use("/tasks", TaskRoute);
 
-server.use("/achievements", achievementRoute);
+server.use("/achievements", AchievementRoute);
 
-server.use("/challenges", challengeRoute);
+server.use("/challenges", ChallengeRoute);
 
-server.use(err400)
+server.use(err400);
 
-server.use(err401)
+server.use(err401);
 
-server.use(err403) 
+server.use(err403);
 
-server.use(err404)
+server.use(err404);
 
-server.use(err500)
+server.use(err500);
 
 export default server;

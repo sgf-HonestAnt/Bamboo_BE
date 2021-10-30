@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import { LIGHT_MODE, NEW_BIO, THEMES, USER_AVATAR } from "../utils/const.js";
-import { taskListSchema } from "./tasks.js";
+import { TaskListSchema } from "../tasks/schema.js";
+import { LIGHT_MODE, NEW_BIO, THEMES, USER_AVATAR } from "../../utils/const.js";
 
-const { Schema, model } = mongoose;
+const { Schema } = mongoose;
 
-const userSchema = new Schema(
+const UserSchema = new mongoose.Schema(
   {
     first_name: {
       type: String,
@@ -23,7 +23,7 @@ const userSchema = new Schema(
     level: { type: Number, default: 0, required: true },
     xp: { type: Number, default: 0, required: true },
     password: { type: String, required: true },
-    admin: { type: Boolean, required: false }, 
+    admin: { type: Boolean, required: false },
     settings: {
       // difficulty: { type: Number },
       selectedTheme: {
@@ -61,7 +61,7 @@ const userSchema = new Schema(
         required: true,
       },
     },
-    tasklist: { default: [], type: [taskListSchema] },
+    tasklist: { default: [], type: [TaskListSchema] },
     // collection
     // tasklist
     // challenges: {
@@ -69,21 +69,21 @@ const userSchema = new Schema(
     //   type: [{ type: Schema.Types.ObjectId, ref: "Challenge" }],
     //   required: true,
     // },
-    refreshToken: { type: String }, 
-  }, 
+    refreshToken: { type: String },
+  },
   { timestamps: true }
 );
 
-userSchema.static("findUsers", async function (query) {
+UserSchema.static("findUsers", async function (query) {
   const total = await this.countDocuments(query.criteria);
   const users = await this.find(query.criteria, query.options.fields)
     .limit(query.options.limit)
-    .skip(query.options.skip) 
+    .skip(query.options.skip)
     .sort(query.options.sort);
   return { total, users };
 });
 
-userSchema.pre("save", async function (next) {
+UserSchema.pre("save", async function (next) {
   const newUser = this;
   const plainPW = newUser.password;
   if (newUser.isModified("password")) {
@@ -92,7 +92,7 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-userSchema.methods.toJSON = function () {
+UserSchema.methods.toJSON = function () {
   const userDoc = this;
   const userObj = userDoc.toObject();
   delete userObj.settings;
@@ -102,7 +102,7 @@ userSchema.methods.toJSON = function () {
   return userObj;
 };
 
-userSchema.statics.checkCredentials = async function (email, plainPW) {
+UserSchema.statics.checkCredentials = async function (email, plainPW) {
   const user = await this.findOne({ email });
   if (user) {
     const isMatch = await bcrypt.compare(plainPW, user.password);
@@ -113,4 +113,4 @@ userSchema.statics.checkCredentials = async function (email, plainPW) {
   }
 };
 
-export default model("User", userSchema);
+export default UserSchema;

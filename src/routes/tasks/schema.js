@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { SOLO, TASK_IMG, TASK_TYPES } from "../utils/const.js";
+import { SOLO, TASK_IMG, TASK_TYPES } from "../../utils/const.js";
 
-const { Schema, model } = mongoose;
+const { Schema } = mongoose;
 
-export const taskSchema = new Schema(
+export const TaskSchema = new mongoose.Schema(
   {
     category: { type: String, required: true },
     title: { type: String, required: true },
@@ -26,19 +26,19 @@ export const taskSchema = new Schema(
   { timestamps: true }
 );
 
-export const taskListSchema = new Schema(
+export const TaskListSchema = new Schema(
   {
     user_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
     tasklist: {
-      completed: { default: [], type: [taskSchema], required: true },
-      awaited: { default: [], type: [taskSchema], required: true },
-      progress: { default: [], type: [taskSchema], required: true },
+      completed: { default: [], type: [TaskSchema], required: true },
+      awaited: { default: [], type: [TaskSchema], required: true },
+      progress: { default: [], type: [TaskSchema], required: true },
     },
   },
   { timestamps: false }
 );
 
-taskListSchema.methods.toJSON = function () {
+TaskListSchema.methods.toJSON = function () {
   const userDoc = this;
   const userObj = userDoc.toObject();
   delete userObj.createdAt;
@@ -47,4 +47,4 @@ taskListSchema.methods.toJSON = function () {
   return userObj;
 };
 
-export default model("TaskList", taskListSchema);
+export default TaskListSchema;

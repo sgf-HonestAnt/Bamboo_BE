@@ -1,6 +1,6 @@
 import createHttpError from "http-errors";
 import { verifyJWT } from "./tools.js";
-import UserModel from "../schemas/users.js";
+import UserModel from "../routes/users/model.js";
 
 export const JWT_MIDDLEWARE = async (req, res, next) => {
   if (!req.headers.authorization) {

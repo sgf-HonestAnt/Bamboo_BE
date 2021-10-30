@@ -1,16 +1,16 @@
 import express from "express";
+import mongoose from "mongoose";
+import UserModel from "./model.js";
+import TaskListModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
 import createHttpError from "http-errors";
 import multer from "multer";
+import generator from "../../utils/generator.js";
+import shuffle from "../../utils/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import mongoose from "mongoose";
-import UserModel from "../schemas/users.js";
-import generator from "../utils/generator.js";
-import shuffle from "../utils/shuffle.js";
-import TaskListModel from "../schemas/tasks.js";
-import { generateTokens, refreshTokens } from "../auth/tools.js";
-import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../auth/jwt.js";
+import { generateTokens, refreshTokens } from "../../auth/tools.js";
+import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 
 // ❗ remove "pending" as is not in use
 
@@ -32,11 +32,11 @@ const generateNames = async (username) => {
   return altNames;
 };
 
-const userRoute = express.Router();
+const UserRoute = express.Router();
 
 const route = "USER";
 
-userRoute
+UserRoute
   // ✅
   .post("/register", async (req, res, next) => {
     console.log("🔸REGISTER", route);
@@ -104,11 +104,11 @@ userRoute
         const { _id } = await newUser.save();
         if (_id) {
           const newTasklist = new TaskListModel({ user_id: _id });
-          await newTasklist.save(); 
+          await newTasklist.save();
           res.status(201).send({ _id });
-        } else { 
+        } else {
           console.log({ message: "💀USER NOT SAVED", user: req.body });
-        } 
+        }
       }
     } catch (e) {
       next(e);
@@ -434,4 +434,4 @@ userRoute
     }
   });
 
-export default userRoute;
+export default UserRoute;

@@ -1,38 +1,42 @@
 import express from "express";
+import mongoose from "mongoose";
+import UserModel from "./model.js";
+import TaskListModel, { TaskModel } from "../tasks/model.js";
 import q2m from "query-to-mongo";
 import createHttpError from "http-errors";
 import multer from "multer";
+// import generator from "../../utils/generator.js";
+// import shuffle from "../../utils/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import mongoose from "mongoose";
-import TaskListModel from "../schemas/tasks.js";
-import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../auth/jwt.js";
+import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
   params: { folder: "capstone_users" },
 });
 
-const taskRoute = express.Router();
+const TaskRoute = express.Router();
 
 const route = "tasks";
 
-taskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
+TaskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   console.log("💠 POST", route);
   try {
     const user_id = req.user._id;
-    //const addToTasklist = await TaskListModel.findOne({ user_id }); // this is found...
-    const addToTasklist = await TaskListModel.findOneAndUpdate(
-      { user_id },
-      { $push: { awaited: req.body } },
-      { new: true }
-    ); 
-    console.log(req.body);
-    console.log(addToTasklist);
-    if (addToTaskList) { // ReferenceError: addToTaskList is not defined
-      res.send(addToTaskList);
-    }
-  } catch (e) { 
+    const newTask = await new TaskModel(req.body);
+    console.log(newTask);
+    // const addToTasklist = await TaskListModel.findOneAndUpdate(
+    //   { user_id },
+    //   { $push: { awaited: req.body } },
+    //   { new: true }
+    // );
+    // console.log(req.body);
+    // console.log(addToTasklist);
+    // if (addToTaskList) { // ReferenceError: addToTaskList is not defined
+    //   res.send(addToTaskList);
+    // }
+  } catch (e) {
     next(e);
   }
 });
@@ -54,28 +58,28 @@ taskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
 //     next(error)
 //   }
 // })
-taskRoute.get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
+TaskRoute.get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   console.log("💠 GET", route);
   try {
   } catch (e) {
     next(e);
   }
 });
-taskRoute.get("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
+TaskRoute.get("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
   console.log("💠GET", route);
   try {
   } catch (e) {
     next(e);
   }
 });
-taskRoute.put("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
+TaskRoute.put("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
   console.log("💠 PUT", route);
   try {
   } catch (e) {
     next(e);
   }
 });
-taskRoute.delete("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
+TaskRoute.delete("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
   console.log("💠 DELETE", route);
   try {
   } catch (e) {
@@ -83,4 +87,4 @@ taskRoute.delete("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
   }
 });
 
-export default taskRoute;
+export default TaskRoute;

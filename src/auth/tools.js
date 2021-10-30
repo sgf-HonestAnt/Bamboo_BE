@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import createHttpError from "http-errors";
-import UserModel from "../schemas/users.js";
+import UserModel from "../routes/users/model.js";
 
 export const generateTokens = async (user) => {
   const accessToken = await generateJWT({ _id: user._id });

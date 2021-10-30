@@ -1,13 +1,20 @@
 import express from "express";
+import mongoose from "mongoose";
+import FeatureModel from "./model.js";
 import q2m from "query-to-mongo";
-import FeatureModel from "../schemas/app-features.js";
-import { ADMIN_MIDDLEWARE } from "../auth/jwt.js";
+import createHttpError from "http-errors";
+import multer from "multer";
+// import generator from "../../utils/generator.js";
+// import shuffle from "../../utils/shuffle.js";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 
-const featureRoute = express.Router();
+const FeatureRoute = express.Router();
 
 const route = " app-features";
 
-featureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
+FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
   console.log("◻️POST", route);
   try {
     const newFeature = new FeatureModel(req.body);
@@ -18,7 +25,7 @@ featureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
   }
 });
 
-featureRoute.get("/", async (req, res, next) => {
+FeatureRoute.get("/", async (req, res, next) => {
   console.log("◻️GET", route);
   try {
     const query = q2m(req.query);
@@ -33,7 +40,7 @@ featureRoute.get("/", async (req, res, next) => {
     next(e);
   }
 });
-featureRoute.put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
+FeatureRoute.put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
   console.log("◻️PUT", route);
   try {
     const { _id } = req.params;
@@ -52,7 +59,7 @@ featureRoute.put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
     next(e);
   }
 });
-featureRoute.delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
+FeatureRoute.delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
   console.log("◻️DELETE", route);
   try {
     const { _id } = req.params;
@@ -67,4 +74,4 @@ featureRoute.delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
   }
 });
 
-export default featureRoute;
+export default FeatureRoute;
