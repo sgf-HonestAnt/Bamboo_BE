@@ -10,8 +10,6 @@ import {
   updateTaskList,
   updateTaskListWithStatus,
 } from "../../utils/route-funcs/tasks.js";
-// import generator from "../../utils/generator.js";
-// import shuffle from "../../utils/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
