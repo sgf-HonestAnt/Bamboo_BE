@@ -8,12 +8,22 @@ import multer from "multer";
 // import shuffle from "../../utils/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
+import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
   params: { folder: "capstone_users" },
 });
+
+const updateTaskList = async (_id, status, task) => {
+  const updatedList = await TaskListModel.findOneAndUpdate(
+    { user: _id },
+    { $push: { [status]: task } },
+    { new: true, runValidators: true }
+  );
+  await updatedList.save();
+  return updatedList;
+};
 
 const TaskRoute = express.Router();
 
@@ -32,26 +42,39 @@ TaskRoute.post(
         ...req.body,
       });
       if (req.file) {
-        newTask.image = req.file.path
-      } 
+        newTask.image = req.file.path;
+      }
       const { _id } = await newTask.save();
       if (!_id) {
         console.log({
           message: "💀TASK NOT SAVED",
           task: newTask,
         });
-      // then add it to the user's tasklist
+        // then add it to the user's tasklist
       } else {
-        const updatedTaskList = await TaskListModel.findOneAndUpdate(
-          { user: req.user._id },
-          { $push: { [newTask.status]: newTask } },
-          { new: true, runValidators: true }
+        const sharedWith = req.body.sharedWith;
+        console.log(sharedWith);
+        const updatedTaskList = updateTaskList(
+          req.user._id,
+          newTask.status,
+          newTask
         );
-        await updatedTaskList.save();
         if (!updatedTaskList) {
           res
             .status(404)
             .send(`Tasklist belonging to user ${req.user._id} not found`);
+        } else if (sharedWith) {
+          console.log("THIS IS SHARED!");
+          const updateAllLists = await sharedWith.map((user_id) => {
+            console.log(user_id);
+            const updated = updateTaskList(user_id, newTask.status, newTask);
+            return updated;
+          });
+          if (updateAllLists) {
+            res.send(newTask);
+          } else {
+            console.log("Something went wrong...");
+          }
         } else {
           res.send(newTask);
         }
@@ -90,56 +113,66 @@ TaskRoute.post(
       next(e);
     }
   })
-  .put("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("💠 PUT", route);
-    try {
-      const { t_id } = req.params;
-      const { status } = req.body;
-      const foundTask = await TaskModel.findById(t_id);
-      console.log("task found...");
-      if (!foundTask) {
-        res.status(404).send(`Task with id ${t_id} not found`);
-      } else {
-        // check the status
-        const changeOfStatus = status ? status !== previousTask.status : false;
-        console.log("status changed:", changeOfStatus);
-        // update and save the task
-        const filter = { _id: t_id };
-        const update = { ...req.body };
-        const updatedTask = await TaskModel.findOneAndUpdate(filter, update, {
-          returnOriginal: false,
-        });
-        await updatedTask.save();
-        console.log("task updated...");
-        if (!updatedTask) {
-          console.log({ error: `Task with id ${t_id} was not updated` });
-        } else if (changeOfStatus) {
-          // I need to pull the task out of its current status and push it back into the new status
-          const updatedList = await TaskListModel.findOneAndUpdate(
-            { user: req.user._id },
-            {
-              $push: { [updatedTask.status]: updatedTask },
-              $pull: { [previousTask.status]: t_id },
-            },
-            { new: true, runValidators: true }
-          );
-          await updatedList.save();
-          console.log("task list updated...");
-          if (!updatedList) {
-            res
-              .status(404)
-              .send(`Tasklist belonging to user ${req.user._id} not updated`);
+  .put(
+    "/me/:t_id",
+    JWT_MIDDLEWARE,
+    multer({ storage }).single("image"),
+    async (req, res, next) => {
+      console.log("💠 PUT", route);
+      try {
+        const { t_id } = req.params;
+        const { status } = req.body;
+        const foundTask = await TaskModel.findById(t_id);
+        console.log("task found...");
+        if (!foundTask) {
+          res.status(404).send(`Task with id ${t_id} not found`);
+        } else {
+          // check the status
+          const changeOfStatus = status
+            ? status !== previousTask.status
+            : false;
+          console.log("status changed:", changeOfStatus);
+          // update and save the task
+          const filter = { _id: t_id };
+          const update = { ...req.body };
+          if (req.file) {
+            update.image = req.file.path;
+          }
+          const updatedTask = await TaskModel.findOneAndUpdate(filter, update, {
+            returnOriginal: false,
+          });
+          await updatedTask.save();
+          console.log("task updated...");
+          if (!updatedTask) {
+            console.log({ error: `Task with id ${t_id} was not updated` });
+          } else if (changeOfStatus) {
+            // I need to pull the task out of its current status and push it back into the new status
+            const updatedList = await TaskListModel.findOneAndUpdate(
+              { user: req.user._id },
+              {
+                $push: { [updatedTask.status]: updatedTask },
+                $pull: { [previousTask.status]: t_id },
+              },
+              { new: true, runValidators: true }
+            );
+            await updatedList.save();
+            console.log("task list updated...");
+            if (!updatedList) {
+              res
+                .status(404)
+                .send(`Tasklist belonging to user ${req.user._id} not updated`);
+            } else {
+              res.send(updatedTask);
+            }
           } else {
             res.send(updatedTask);
           }
-        } else {
-          res.send(updatedTask);
         }
+      } catch (e) {
+        next(e);
       }
-    } catch (e) {
-      next(e);
     }
-  })
+  )
   .delete("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("💠 DELETE", route);
     try {
