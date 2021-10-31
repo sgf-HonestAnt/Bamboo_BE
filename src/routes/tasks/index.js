@@ -1,9 +1,10 @@
 import express from "express";
 import mongoose from "mongoose";
-import UserModel, { TaskModel } from "./model.js";
+import { TaskModel } from "./model.js";
 import TaskListModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
 import multer from "multer";
+import { createSharedArray, updateTaskList, updateTaskListWithStatus } from "../../utils/taskUtils.js"
 // import generator from "../../utils/generator.js";
 // import shuffle from "../../utils/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -13,21 +14,11 @@ import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
 const storage = new CloudinaryStorage({
   cloudinary,
   params: { folder: "capstone_users" },
-});
-
-const updateTaskList = async (_id, status, task) => {
-  const updatedList = await TaskListModel.findOneAndUpdate(
-    { user: _id },
-    { $push: { [status]: task } },
-    { new: true, runValidators: true }
-  );
-  await updatedList.save();
-  return updatedList;
-};
+}); 
 
 const TaskRoute = express.Router();
 
-const route = "tasks";
+const route = "tasks"; 
 
 TaskRoute.post(
   "/me",
@@ -36,47 +27,36 @@ TaskRoute.post(
   async (req, res, next) => {
     console.log("💠 POST", route);
     try {
-      // first create the task
+      // first, let's deal with the sharedWith array
+      const sharedWith = createSharedArray(req.body.sharedWith, req.user._id);
+      // next, create the task
       const newTask = new TaskModel({
         createdBy: req.user._id,
         ...req.body,
+        sharedWith,
       });
+      // add file path if image was included
       if (req.file) {
         newTask.image = req.file.path;
       }
+      // check the task we created
+      console.log("TASK=>", newTask);
       const { _id } = await newTask.save();
       if (!_id) {
         console.log({
           message: "💀TASK NOT SAVED",
           task: newTask,
         });
-        // then add it to the user's tasklist
+        // then add it to ALL the users' tasklists
       } else {
-        const sharedWith = req.body.sharedWith;
-        console.log(sharedWith);
-        const updatedTaskList = updateTaskList(
-          req.user._id,
-          newTask.status,
-          newTask
-        );
-        if (!updatedTaskList) {
-          res
-            .status(404)
-            .send(`Tasklist belonging to user ${req.user._id} not found`);
-        } else if (sharedWith) {
-          console.log("THIS IS SHARED!");
-          const updateAllLists = await sharedWith.map((user_id) => {
-            console.log(user_id);
-            const updated = updateTaskList(user_id, newTask.status, newTask);
-            return updated;
-          });
-          if (updateAllLists) {
-            res.send(newTask);
-          } else {
-            console.log("Something went wrong...");
-          }
-        } else {
+        const updateAllLists = await newTask.sharedWith.map((user_id) => {
+          const updated = updateTaskList(user_id, newTask.status, newTask);
+          return updated;
+        });
+        if (updateAllLists) {
           res.send(newTask);
+        } else {
+          console.log("Something went wrong...", updateAllLists);
         }
       }
     } catch (e) {
@@ -127,10 +107,8 @@ TaskRoute.post(
         if (!foundTask) {
           res.status(404).send(`Task with id ${t_id} not found`);
         } else {
-          // check the status
-          const changeOfStatus = status
-            ? status !== previousTask.status
-            : false;
+          // check if the status has changed
+          const changeOfStatus = status ? status !== foundTask.status : false;
           console.log("status changed:", changeOfStatus);
           // update and save the task
           const filter = { _id: t_id };
@@ -145,27 +123,26 @@ TaskRoute.post(
           console.log("task updated...");
           if (!updatedTask) {
             console.log({ error: `Task with id ${t_id} was not updated` });
-          } else if (changeOfStatus) {
-            // I need to pull the task out of its current status and push it back into the new status
-            const updatedList = await TaskListModel.findOneAndUpdate(
-              { user: req.user._id },
-              {
-                $push: { [updatedTask.status]: updatedTask },
-                $pull: { [previousTask.status]: t_id },
-              },
-              { new: true, runValidators: true }
-            );
-            await updatedList.save();
-            console.log("task list updated...");
-            if (!updatedList) {
-              res
-                .status(404)
-                .send(`Tasklist belonging to user ${req.user._id} not updated`);
-            } else {
-              res.send(updatedTask);
-            }
-          } else {
+          } else if (!changeOfStatus) {
             res.send(updatedTask);
+          } else {
+            const updateAllListsWithStatus = await updatedTask.sharedWith.map(
+              (user_id) => {
+                const updated = updateTaskListWithStatus(
+                  user_id,
+                  t_id,
+                  foundTask.status,
+                  updatedTask.status,
+                  updatedTask
+                );
+                return updated;
+              }
+            );
+            if (updateAllListsWithStatus) {
+              res.send(updatedTask);
+            } else {
+              console.log("Something went wrong...", updateAllListsWithStatus);
+            }
           }
         }
       } catch (e) {
@@ -184,6 +161,7 @@ TaskRoute.post(
       } else {
         const deletedTask = await TaskModel.findByIdAndDelete(t_id);
         if (deletedTask) {
+          // need to delete it from all tasklists too!!!
           res.status(204).send();
         } else {
           res.status(404).send(`💀TASK ID_${t_id} NOT FOUND`);
