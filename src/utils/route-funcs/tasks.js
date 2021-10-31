@@ -19,6 +19,16 @@ export const updateTaskList = async (_id, status, task) => {
   return updatedList;
 };
 
+export const removeFromTaskList = async (_id, status, task_id) => {
+  const updatedList = await TaskListModel.findOneAndUpdate(
+    { user: _id },
+    { $pull: { [status]: task_id } },
+    { new: true, runValidators: true }
+  );
+  await updatedList.save();
+  return updatedList;
+};
+
 export const updateTaskListWithStatus = async (
   _id,
   task_id,

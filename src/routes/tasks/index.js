@@ -6,6 +6,7 @@ import q2m from "query-to-mongo";
 import multer from "multer";
 import {
   createSharedArray,
+  removeFromTaskList,
   updateTaskList,
   updateTaskListWithStatus,
 } from "../../utils/route-funcs/tasks.js";
@@ -58,7 +59,7 @@ TaskRoute.post(
           return updated;
         });
         if (updateAllLists) {
-          res.send(newTask);
+          res.send({ _id });
         } else {
           console.log("Something went wrong...", updateAllLists);
         }
@@ -158,15 +159,26 @@ TaskRoute.post(
     console.log("💠 DELETE", route);
     try {
       const { t_id } = req.params;
-      // const { _id } = req.body;
       const foundTask = await TaskModel.findById(t_id);
+      const { status } = foundTask;
+      console.log(t_id, status);
       if (!foundTask) {
         res.status(404).send(`Task with id ${t_id} not found`);
       } else {
         const deletedTask = await TaskModel.findByIdAndDelete(t_id);
+        console.log("deleted task...")
         if (deletedTask) {
-          // need to delete it from all tasklists too!!!
-          res.status(204).send();
+          // save change to DB
+          // I need to delete it from all tasklists too!!!
+          const updateAllLists = await foundTask.sharedWith.map((user_id) => {
+            const updated = removeFromTaskList(user_id, status, t_id);
+            return updated; // CastError: Cast to ObjectId failed for value "0" (type number) at path "completed"
+          });
+          if (updateAllLists) {
+            res.status(204).send();
+          } else {
+            console.log("Something went wrong...", updateAllLists);
+          }
         } else {
           res.status(404).send(`💀TASK ID_${t_id} NOT FOUND`);
         }
