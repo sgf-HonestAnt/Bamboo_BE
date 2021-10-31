@@ -1,4 +1,4 @@
-import { ADJECTIVES, NOUNS } from "./words.js";
+import { ADJECTIVES, NOUNS } from "./wordsArray.js";
 
 const generator = async () => {
   const nounsArray = NOUNS;

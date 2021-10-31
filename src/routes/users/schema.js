@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 // import { TaskSchema } from "../tasks/schema.js";
-import { LIGHT_MODE, NEW_BIO, THEMES, USER_AVATAR } from "../../utils/const.js";
+import { LIGHT_MODE, NEW_BIO, THEMES, USER_AVATAR } from "../../utils/constants.js";
 
 const { Schema } = mongoose;
 

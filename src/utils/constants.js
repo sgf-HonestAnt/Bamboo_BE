@@ -1,3 +1,18 @@
+export const NEW_BIO = "Newbie!";
+export const SOLO = "solo";
+export const TEAM = "team";
+export const LIGHT_MODE = "light-mode";
+export const DARK_MODE = "dark-mode";
+export const THEMES = [LIGHT_MODE, DARK_MODE];
+export const TASK_TYPES = [SOLO, TEAM];
+export const NONE = "none";
+export const AWAITED = "awaited";
+export const TASK_STATUS_TYPES = ["awaited", "completed", "in_progress"];
+export const USER_AVATAR =
+  "https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg";
+export const TASK_IMG =
+  "https://pmtips.net/Portals/0/EasyDNNNews/2137/700600p546EDNmainimg-3-types-of-tools-for-project-task-management1.jpg";
+
 // /features tests
 
 export const newFeature = {
@@ -5,7 +20,7 @@ export const newFeature = {
   descrip: "Here's the featured challenge of the month!",
   level: 1,
   value: 50,
-}
+};
 
 // "should test that post /features admin endpoint is OK"
 export const bryanMills = {
@@ -15,7 +30,7 @@ export const bryanMills = {
   email: "bryanmills@mail.com",
   password: "iwillfindyou",
   admin: true,
-}
+};
 
 // "should test that put /features admin endpoint returns updated"
 export const aliciaHuberman = {
@@ -25,7 +40,7 @@ export const aliciaHuberman = {
   email: "alicia@mail.com",
   password: "notorious",
   admin: true,
-}
+};
 
 // "should test that delete /features admin endpoint is OK"
 export const ethanHunt = {
@@ -35,7 +50,7 @@ export const ethanHunt = {
   email: "ethanhunt@mail.com",
   password: "selfdestruct",
   admin: true,
-}
+};
 
 // users tests
 

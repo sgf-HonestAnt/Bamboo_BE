@@ -24,7 +24,7 @@ import {
   xeniaOnatopp,
   alecTrevelyan,
   newFeature,
-} from "../utils/testConst.js";
+} from "../utils/constants.js";
 
 dotenv.config();
 
@@ -247,7 +247,9 @@ describe("💪 Testing advanced user endpoints", () => {
   });
 
   it("should test that post /users/request/id endpoint returns 409 if user requests own ID", async () => {
-    const mrGoldfinger = await request.post("/users/register").send(auricGoldfinger);
+    const mrGoldfinger = await request
+      .post("/users/register")
+      .send(auricGoldfinger);
     const { _id, accessToken } = mrGoldfinger.body;
     const response = await request
       .post(`/users/request/${_id}`)

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { AWAITED, NONE, SOLO, TASK_IMG, TASK_STATUS_TYPES, TASK_TYPES } from "../../utils/const.js";
+import { AWAITED, NONE, SOLO, TASK_IMG, TASK_STATUS_TYPES, TASK_TYPES } from "../../utils/constants.js";
 
 const { Schema } = mongoose;
 

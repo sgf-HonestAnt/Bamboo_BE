@@ -1,5 +1,4 @@
-// import mongoose from "mongoose";
-import TaskListModel from "../routes/tasks/model.js";
+import TaskListModel from "../../routes/tasks/model.js";
 
 export const createSharedArray = (array, _id) => {
   let sharedWith;

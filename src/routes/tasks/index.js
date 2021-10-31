@@ -4,7 +4,11 @@ import { TaskModel } from "./model.js";
 import TaskListModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
 import multer from "multer";
-import { createSharedArray, updateTaskList, updateTaskListWithStatus } from "../../utils/taskUtils.js"
+import {
+  createSharedArray,
+  updateTaskList,
+  updateTaskListWithStatus,
+} from "../../utils/route-funcs/tasks.js";
 // import generator from "../../utils/generator.js";
 // import shuffle from "../../utils/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -14,11 +18,11 @@ import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
 const storage = new CloudinaryStorage({
   cloudinary,
   params: { folder: "capstone_users" },
-}); 
+});
 
 const TaskRoute = express.Router();
 
-const route = "tasks"; 
+const route = "tasks";
 
 TaskRoute.post(
   "/me",
