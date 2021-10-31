@@ -19,39 +19,48 @@ const TaskRoute = express.Router();
 
 const route = "tasks";
 
-TaskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-  console.log("💠 POST", route);
-  try {
-    // first create the task
-    const newTask = new TaskModel({
-      createdBy: req.user._id,
-      ...req.body,
-    });
-    const { _id } = await newTask.save();
-    if (!_id) {
-      console.log({
-        message: "💀TASK NOT SAVED",
-        task: newTask,
+TaskRoute.post(
+  "/me",
+  JWT_MIDDLEWARE,
+  multer({ storage }).single("image"),
+  async (req, res, next) => {
+    console.log("💠 POST", route);
+    try {
+      // first create the task
+      const newTask = new TaskModel({
+        createdBy: req.user._id,
+        ...req.body,
       });
-    } else {
+      if (req.file) {
+        newTask.image = req.file.path
+      } 
+      const { _id } = await newTask.save();
+      if (!_id) {
+        console.log({
+          message: "💀TASK NOT SAVED",
+          task: newTask,
+        });
       // then add it to the user's tasklist
-      const updatedTaskList = await TaskListModel.findOneAndUpdate(
-        { user: req.user._id },
-        { $push: { [newTask.status]: newTask } },
-        { new: true, runValidators: true }
-      );
-      if (!updatedTaskList) {
-        res
-          .status(404)
-          .send(`Tasklist belonging to user ${req.user._id} not found`);
       } else {
-        res.send(newTask);
+        const updatedTaskList = await TaskListModel.findOneAndUpdate(
+          { user: req.user._id },
+          { $push: { [newTask.status]: newTask } },
+          { new: true, runValidators: true }
+        );
+        await updatedTaskList.save();
+        if (!updatedTaskList) {
+          res
+            .status(404)
+            .send(`Tasklist belonging to user ${req.user._id} not found`);
+        } else {
+          res.send(newTask);
+        }
       }
+    } catch (e) {
+      next(e);
     }
-  } catch (e) {
-    next(e);
   }
-})
+)
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("💠 GET", route);
     try {
@@ -140,12 +149,12 @@ TaskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
       if (!foundTask) {
         res.status(404).send(`Task with id ${t_id} not found`);
       } else {
-        const deletedTask = await TaskModel.findByIdAndDelete(t_id)
+        const deletedTask = await TaskModel.findByIdAndDelete(t_id);
         if (deletedTask) {
-          res.status(204).send()
+          res.status(204).send();
         } else {
-          res.status(404).send(`💀TASK ID_${t_id} NOT FOUND`)
-        }        
+          res.status(404).send(`💀TASK ID_${t_id} NOT FOUND`);
+        }
       }
     } catch (e) {
       next(e);

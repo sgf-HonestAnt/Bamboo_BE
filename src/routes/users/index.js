@@ -103,12 +103,10 @@ UserRoute
   //*********************************************************************
   .post("/session/refresh")
   //*********************************************************************
-
   // ✅
   .post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸POST", route);
     try {
-      console.log(req.user);
       const { email, username } = req.body;
       const emailDuplicate = await UserModel.findOne({ email });
       const usernameDuplicate = await UserModel.findOne({ username });
@@ -362,17 +360,11 @@ UserRoute
         ) {
           const available = await generateNames(username);
           res.status(409).send({ error: `Username Exists`, available });
-        } else if (req.file) {
-          console.log("Attempting file upload!");
-          const update = { ...req.body, avatar: req.file.path };
-          const filter = { _id: req.user._id };
-          const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
-            returnOriginal: false,
-          });
-          await updatedUser.save();
-          res.send(updatedUser);
         } else {
           const update = { ...req.body };
+          if (req.file) {
+            update.avatar = req.file.path;
+          }
           const filter = { _id: req.user._id };
           const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
             returnOriginal: false,
@@ -399,7 +391,7 @@ UserRoute
         const usernameDuplicate = await UserModel.find({ username });
         if (!mongoose.Types.ObjectId.isValid(u_id)) {
           res.status(404).send({ error: `User ID ${u_id} not found!` });
-        } else if ( 
+        } else if (
           emailDuplicate.length > 0 &&
           emailDuplicate[0]._id.toString() !== u_id
         ) {
@@ -410,18 +402,11 @@ UserRoute
         ) {
           const available = await generateNames(username);
           res.status(409).send({ error: `Username Exists`, available });
-        } else if (req.file) {
-          console.log("Attempting file upload!", req.file.path);
-          const update = { ...req.body, avatar: req.file.path };
-          const filter = { _id: u_id };
-          const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
-            returnOriginal: false,
-          });
-          await updatedUser.save();
-          res.send(updatedUser);
         } else {
-          console.log("No file upload");
           const update = { ...req.body };
+          if (req.file) {
+            update.avatar = req.file.path;
+          }
           const filter = { _id: u_id };
           const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
             returnOriginal: false,
