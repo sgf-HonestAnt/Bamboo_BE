@@ -3,14 +3,12 @@ import mongoose from "mongoose";
 import UserModel, { TaskModel } from "./model.js";
 import TaskListModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
-import createHttpError from "http-errors";
 import multer from "multer";
 // import generator from "../../utils/generator.js";
 // import shuffle from "../../utils/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
-import searchTasks from "../../utils/searchTasks.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -88,9 +86,9 @@ TaskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       const { t_id } = req.params;
       const { status } = req.body;
-      const previousTask = await TaskModel.findById(t_id);
+      const foundTask = await TaskModel.findById(t_id);
       console.log("task found...");
-      if (!previousTask) {
+      if (!foundTask) {
         res.status(404).send(`Task with id ${t_id} not found`);
       } else {
         // check the status
@@ -132,13 +130,26 @@ TaskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     } catch (e) {
       next(e);
     }
+  })
+  .delete("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
+    console.log("💠 DELETE", route);
+    try {
+      const { t_id } = req.params;
+      // const { _id } = req.body;
+      const foundTask = await TaskModel.findById(t_id);
+      if (!foundTask) {
+        res.status(404).send(`Task with id ${t_id} not found`);
+      } else {
+        const deletedTask = await TaskModel.findByIdAndDelete(t_id)
+        if (deletedTask) {
+          res.status(204).send()
+        } else {
+          res.status(404).send(`💀TASK ID_${t_id} NOT FOUND`)
+        }        
+      }
+    } catch (e) {
+      next(e);
+    }
   });
-TaskRoute.delete("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
-  console.log("💠 DELETE", route);
-  try {
-  } catch (e) {
-    next(e);
-  }
-});
 
 export default TaskRoute;

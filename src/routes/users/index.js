@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import UserModel from "./model.js";
 import TaskListModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
-import createHttpError from "http-errors";
 import multer from "multer";
 import generator from "../../utils/generator.js";
 import shuffle from "../../utils/shuffle.js";
@@ -441,7 +440,7 @@ UserRoute
         if (updatedUser) {
           res.send(updatedUser);
         } else {
-          next(createHttpError(404, `💀USER ID_${u_id} NOT FOUND`));
+          res.status(404).send(`💀USER ID_${u_id} NOT FOUND`)
         }
       }
     } catch (e) {
@@ -480,7 +479,7 @@ UserRoute
       if (deletedUser) {
         res.status(204).send();
       } else {
-        next(createHttpError(404, `💀USER ID_${u_id} NOT FOUND`));
+        res.status(404).send(`💀USER ID_${u_id} NOT FOUND`)
       }
     } catch (e) {
       next(e);
