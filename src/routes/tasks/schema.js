@@ -28,13 +28,6 @@ export const TaskSchema = new mongoose.Schema(
   }
 );
 
-// TaskSchema.methods.toJSON = function () {
-//   const userDoc = this;
-//   const userObj = userDoc.toObject();
-//   delete userObj.__v;
-//   return userObj;
-// };
-
 const TaskListSchema = new mongoose.Schema({
   user: { type: Schema.Types.ObjectId, ref: "User" },
   completed: { default: [], type: [{ type: Schema.Types.ObjectId, ref: "Task" }] },
@@ -43,11 +36,11 @@ const TaskListSchema = new mongoose.Schema({
 });
 
 TaskListSchema.methods.toJSON = function () {
-  const userDoc = this;
-  const userObj = userDoc.toObject();
-  delete userObj.user;
-  delete userObj.__v;
-  return userObj;
+  const taskListDoc = this;
+  const taskListObj = taskListDoc.toObject();
+  delete taskListObj.user;
+  delete taskListObj.__v;
+  return taskListObj;
 }; 
 
 export default TaskListSchema;

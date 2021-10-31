@@ -8,11 +8,11 @@ import multer from "multer";
 // import shuffle from "../../utils/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
+import { ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 
 const FeatureRoute = express.Router();
 
-const route = " app-features";
+const route = "app-features";
 
 FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
   console.log("◻️POST", route);

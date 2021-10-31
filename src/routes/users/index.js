@@ -10,6 +10,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { generateTokens, refreshTokens } from "../../auth/tools.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
+import AchievementModel from "../achievements/model.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -54,18 +55,29 @@ UserRoute
         } else {
           // generate tokens
           const { accessToken, refreshToken } = await generateTokens(newUser);
-          // generate tasklist
+          // generate tasklist and achievements
           const newTaskList = new TaskListModel({ user: _id });
-          const list = await newTaskList.save();
-          const tasklist_id = list._id;
-          if (!tasklist_id) {
+          const tasklist = await newTaskList.save();
+          //const tasklist_id = tasklist._id;
+          const newAchievements = new AchievementModel({ user: _id });
+          const achievements = await newAchievements.save()
+          //const achievements_id = achievements._id
+          if (!tasklist._id) {
             console.log({
-              message: "💀TASKLIST NOT SAVED",
+              message: "💀TASKLIST  NOT SAVED",
               tasks: newTaskList,
             });
+          } else if (!achievements._id) {
+            console.log({
+              message: "💀ACHIEVEMENTS NOT SAVED",
+              tasks: newAchievements,
+            });
           } else {
-            // update user in order to populate tasklist
-            const update = { tasks: tasklist_id };
+            // update user in order to populate tasklist and achievements
+            const update = {
+              tasks: tasklist._id,
+              achievements: achievements._id,
+            };
             const filter = { _id };
             const updatedUser = await UserModel.findOneAndUpdate(
               filter,
@@ -292,7 +304,13 @@ UserRoute
     console.log("🔸GET ME");
     try {
       const { _id } = req.user;
-      const me = await UserModel.findById(_id);
+      const me = await UserModel.findById(_id).populate("followedUsers.accepted"); 
+      // ❗
+      // CHANGE SO DOES NOT POPULATE
+      // followedUsers, settings, email, first_name, last_name, password, refreshToken, _v, or updatedAt
+      // CHANGE SO DOES POPULATE
+      // achievements
+      // tasks
       res.send(me);
     } catch (e) {
       next(e);

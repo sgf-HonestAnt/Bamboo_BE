@@ -1,7 +1,12 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 // import { TaskSchema } from "../tasks/schema.js";
-import { LIGHT_MODE, NEW_BIO, THEMES, USER_AVATAR } from "../../utils/constants.js";
+import {
+  LIGHT_MODE,
+  NEW_BIO,
+  THEMES,
+  USER_AVATAR,
+} from "../../utils/constants.js";
 
 const { Schema } = mongoose;
 
@@ -57,6 +62,7 @@ const UserSchema = new mongoose.Schema(
       },
     },
     tasks: { type: Schema.Types.ObjectId, ref: "TaskList" },
+    achievements: { type: Schema.Types.ObjectId, ref: "Achievement" },
     // tasklist: {
     //   completed: { default: [], type: [TaskSchema], required: true },
     //   awaited: { default: [], type: [TaskSchema], required: true },
@@ -96,6 +102,7 @@ UserSchema.methods.toJSON = function () {
   const userDoc = this;
   const userObj = userDoc.toObject();
   delete userObj.tasks;
+  delete userObj.achievements;
   delete userObj.settings;
   delete userObj.password;
   delete userObj.refreshToken;

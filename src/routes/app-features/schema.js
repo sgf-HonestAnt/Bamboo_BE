@@ -25,10 +25,10 @@ FeatureSchema.static("findFeatures", async function (query) {
 });
 
 FeatureSchema.methods.toJSON = function () {
-  const userDoc = this;
-  const userObj = userDoc.toObject();
-  delete userObj.__v;
-  return userObj;
+  const featureDoc = this;
+  const featureObj = featureDoc.toObject();
+  delete featureObj.__v;
+  return featureObj;
 };
 
 export default FeatureSchema;
