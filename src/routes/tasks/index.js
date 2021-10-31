@@ -107,21 +107,18 @@ TaskRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
         if (!updatedTask) {
           console.log({ error: `Task with id ${t_id} was not updated` });
         } else if (changeOfStatus) {
-          // I need to pull the task out of its current status
-          // and push it back into the new status
-          const updatedTaskList = await TaskListModel.findOneAndUpdate(
+          // I need to pull the task out of its current status and push it back into the new status
+          const updatedList = await TaskListModel.findOneAndUpdate(
             { user: req.user._id },
             {
               $push: { [updatedTask.status]: updatedTask },
-              $pull: { [previousTask.status]: { _id: t_id } },
-
-              // https://mongoosejs.com/docs/api/array.html#mongoosearray_MongooseArray-pull
+              $pull: { [previousTask.status]: t_id },
             },
             { new: true, runValidators: true }
           );
-          await updatedTaskList.save();
+          await updatedList.save();
           console.log("task list updated...");
-          if (!updatedTaskList) {
+          if (!updatedList) {
             res
               .status(404)
               .send(`Tasklist belonging to user ${req.user._id} not updated`);
