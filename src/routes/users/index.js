@@ -144,6 +144,7 @@ UserRoute
             });
           } else {
             // update user in order to populate tasklist
+            // ADD ACHIEVEMENTS AS IN /register!!!
             const update = { tasks: tasklist_id };
             const filter = { _id };
             const updatedUser = await UserModel.findOneAndUpdate(

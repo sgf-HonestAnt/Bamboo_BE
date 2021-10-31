@@ -10,19 +10,30 @@ const AchievementRoute = express.Router();
 
 const route = "achievements";
 
-AchievementRoute.post("/", JWT_MIDDLEWARE, async (req, res, next) => {
+AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   console.log("POST", route);
   try {
-    const newAchievement = new AchievementModel(req.body);
-    const { _id } = await newAchievement.save();
-    res.status(201).send({ _id });
+    const { _id } = await AchievementModel.findOne({ user: req.user._id });
+    if (_id) {
+      const updateAchievements = await AchievementModel.findByIdAndUpdate(
+        _id,
+        {
+          $push: { list: req.body.achievement },
+        },
+        { new: true, runValidators: true }
+      );
+      await updateAchievements.save();
+      res.status(201).send(updateAchievements);
+    }
   } catch (e) {
     next(e);
   }
 })
-  .get("/", async (req, res, next) => {
-    console.log("GET", route);
+  .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
+    console.log("GET", route); 
     try {
+      const achievements = await AchievementModel.findOne({user: req.user._id}).populate("user") // CHANGE TO POPULATE ONLY USERNAME
+      res.status(200).send(achievements)
     } catch (e) {
       next(e);
     }
