@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-// import { TaskSchema } from "../tasks/schema.js";
 import {
   DEFAULT_USER_IMG,
   LIGHT_MODE,
@@ -63,11 +62,6 @@ const UserSchema = new mongoose.Schema(
     },
     tasks: { type: Schema.Types.ObjectId, ref: "TaskList" },
     achievements: { type: Schema.Types.ObjectId, ref: "Achievement" },
-    // tasklist: {
-    //   completed: { default: [], type: [TaskSchema], required: true },
-    //   awaited: { default: [], type: [TaskSchema], required: true },
-    //   in_progress: { default: [], type: [TaskSchema], required: true },
-    // },
     // collection
     // tasklist
     // challenges: {

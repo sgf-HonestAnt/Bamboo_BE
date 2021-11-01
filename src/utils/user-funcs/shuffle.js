@@ -1,4 +1,4 @@
-import UserModel from "../routes/users/model.js";
+import UserModel from "../../routes/users/model.js";
 
 const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
   let { followedUsers } = user;

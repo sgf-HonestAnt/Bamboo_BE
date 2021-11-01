@@ -3,16 +3,14 @@
 // Photo by Maria R O [https://unsplash.com/@mariarui?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText] on Unsplash
 // cloudinary
 const squarecrop = "w_500,ar_1:1,c_fill,g_face";
-const scalew800 = "c_scale,w_800";
-const scaleh800 = "c_scale,h_800";
+const scalew800 = "w_800,ar_16:9,c_fill,g_auto,e_sharpen";
 const cloud = "https://res.cloudinary.com/dowvu52wz/image/upload";
 const FARM = "v1635752952/schrutefarms";
-const APP = "v1635757201/my-task-app"
-export const MY_FOLDER = "my-task-app"
+export const MY_FOLDER = "my-task-app";
 // users
 export const NEW_BIO = "Newbie!";
-export const USER_IMG = "default_avatar_rnmt6a.jpg"
-export const USER_CROP_IMG = `${cloud}/${squarecrop}`
+export const USER_IMG = "default_avatar_rnmt6a.jpg";
+export const USER_CROP_IMG = `${cloud}/${squarecrop}`;
 export const DEFAULT_USER_IMG = `${USER_CROP_IMG}/${FARM}/${USER_IMG}`;
 // tasks
 export const SOLO = "solo";
@@ -25,7 +23,7 @@ export const DAILY = "daily";
 export const WEEKLY = "weekly";
 export const BIMONTHLY = "bimonthly";
 export const MONTHLY = "monthly";
-export const NUMBER = `+${!NaN}`; 
+export const NUMBER = `+${!NaN}`;
 export const TASK_REPEAT_TYPES = [
   NEVER,
   DAILY,
@@ -34,7 +32,9 @@ export const TASK_REPEAT_TYPES = [
   MONTHLY,
   NUMBER,
 ];
-export const TASK_IMG = `${cloud}/${scalew800}/${FARM}/default_challenge_l4wlsq.jpg`;
+export const TASK_IMG = "default_task_nv0jcq.jpg";
+export const TASK_RESIZE_IMG = `${cloud}/${scalew800}`;
+export const DEFAULT_TASK_IMG = `${TASK_RESIZE_IMG}/${FARM}/${TASK_IMG}`;
 // challenges
 export const CHALL_IMG = `${cloud}/${scalew800}/${FARM}/default_task_nv0jcq.jpg`;
 // settings

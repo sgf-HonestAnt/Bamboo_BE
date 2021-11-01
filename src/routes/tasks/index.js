@@ -14,6 +14,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
 import { MY_FOLDER } from "../../utils/constants.js";
+import { getResizedFilePath } from "../../utils/task-funcs/taskFilePath.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -41,7 +42,8 @@ TaskRoute.post(
       });
       // add file path if image was included
       if (req.file) {
-        newTask.image = req.file.path;
+        const filePath = await getResizedFilePath(req.file.path)
+        newTask.image = filePath;
       }
       // check the task we created
       console.log("TASK=>", newTask);
@@ -118,7 +120,8 @@ TaskRoute.post(
           const filter = { _id: t_id };
           const update = { ...req.body };
           if (req.file) {
-            update.image = req.file.path;
+            const filePath = await getResizedFilePath(req.file.path)
+            update.image = filePath;
           }
           const updatedTask = await TaskModel.findOneAndUpdate(filter, update, {
             returnOriginal: false,

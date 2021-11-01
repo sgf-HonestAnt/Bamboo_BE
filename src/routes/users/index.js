@@ -4,15 +4,15 @@ import UserModel from "./model.js";
 import TaskListModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
 import multer from "multer";
-import generator from "../../utils/generator.js";
-import shuffle from "../../utils/shuffle.js";
+import generator from "../../utils/user-funcs/generator.js";
+import shuffle from "../../utils/user-funcs/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { generateTokens, refreshTokens } from "../../auth/tools.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 import AchievementModel from "../achievements/model.js";
 import { MY_FOLDER } from "../../utils/constants.js";
-import { getCroppedFilePath } from "../../utils/user-funcs/filePath.js";
+import { getCroppedFilePath } from "../../utils/user-funcs/userFilePath.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
