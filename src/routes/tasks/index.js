@@ -22,7 +22,7 @@ const storage = new CloudinaryStorage({
 
 const TaskRoute = express.Router();
 
-const route = "tasks";
+const route = "TASKS";
 
 TaskRoute.post(
   "/me",

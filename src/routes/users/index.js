@@ -39,7 +39,7 @@ const route = "USER";
 UserRoute
   // ✅
   .post("/register", async (req, res, next) => {
-    console.log("🔸REGISTER", route);
+    console.log("🟢 REGISTER", route);
     try {
       const { email, username } = req.body;
       const emailDuplicate = await UserModel.findOne({ email });
@@ -94,7 +94,7 @@ UserRoute
   })
   // ✅
   .post("/session", async (req, res, next) => {
-    console.log("🔸LOGIN", route);
+    console.log("🟢 LOGIN", route);
     try {
       const { email, password } = req.body;
       const user = await UserModel.checkCredentials(email, password);
@@ -110,11 +110,22 @@ UserRoute
     }
   })
   //*********************************************************************
-  .post("/session/refresh")
+  .post("/session/refresh", async (req, res, next) => {
+    console.log("🟢 REFRESH TOKEN OF", route);
+    try {
+      const { actualRefreshToken } = req.body;
+      const { accessToken, refreshToken } = await refreshTokens(
+        actualRefreshToken
+      );
+      res.send({ accessToken, refreshToken });
+    } catch (e) {
+      next(e);
+    }
+  })
   //*********************************************************************
   // ✅
   .post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log("🔸POST", route);
+    console.log(`🟢 POST ${route} (admin auth)`);
     try {
       const { email, username } = req.body;
       const emailDuplicate = await UserModel.findOne({ email });
@@ -168,7 +179,7 @@ UserRoute
   })
   // ✅
   .post("/request/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🔸REQUEST TO FOLLOW", route);
+    console.log("🟢 REQUEST TO FOLLOW", route);
     try {
       const sender = req.user;
       const { u_id } = req.params;
@@ -213,7 +224,7 @@ UserRoute
   })
   // ✅
   .post("/accept/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🔸ACCEPT FOLLOW BY", route);
+    console.log("🟢 ACCEPT FOLLOW BY", route);
     try {
       const sendee = req.user;
       const { u_id } = req.params;
@@ -257,7 +268,7 @@ UserRoute
   })
   // ✅
   .post("/reject/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🔸REJECT FOLLOW BY", route);
+    console.log("🟢 REJECT FOLLOW BY", route);
     try {
       const { u_id } = req.params;
       const idsMatch = req.user._id.toString() === u_id;
@@ -301,7 +312,7 @@ UserRoute
   })
   // ✅
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🔸GET ME");
+    console.log("🟢 GET ME");
     try {
       const { _id } = req.user;
       const me = await UserModel.findById(_id).populate(
@@ -320,7 +331,7 @@ UserRoute
   })
   // ✅
   .get("/", async (req, res, next) => {
-    console.log("🔸GET", `${route}S`);
+    console.log("🟢 GET", `${route}S`);
     try {
       const query = q2m(req.query);
       const { total, users } = await UserModel.findUsers(query);
@@ -345,7 +356,7 @@ UserRoute
   })
   // ✅
   .get("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log("🔸GET", route);
+    console.log(`🟢 GET ${route} (admin auth)`);
     try {
       const { u_id } = req.params;
       const user = await UserModel.findById(u_id);
@@ -361,7 +372,7 @@ UserRoute
     JWT_MIDDLEWARE,
     multer({ storage }).single("avatar"),
     async (req, res, next) => {
-      console.log("🔸PUT ME");
+      console.log("🟢 PUT ME");
       try {
         const { _id } = req.user;
         const { email, username } = req.body;
@@ -402,7 +413,7 @@ UserRoute
     ADMIN_MIDDLEWARE,
     multer({ storage }).single("avatar"),
     async (req, res, next) => {
-      console.log("🔸PUT", route);
+      console.log(`🟢 PUT ${route} (admin auth)`);
       try {
         const { u_id } = req.params;
         const { email, username } = req.body;
@@ -445,7 +456,7 @@ UserRoute
   )
   // ✅
   .delete("/session", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🔸LOGOUT", route);
+    console.log("🟢 LOGOUT", route);
     try {
       req.user.refreshToken = null;
       await req.user.save();
@@ -456,7 +467,7 @@ UserRoute
   })
   // ✅
   .delete("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🔸DELETE ME");
+    console.log("🟢 DELETE ME");
     try {
       const iAmDeleted = await UserModel.findByIdAndDelete(req.user._id);
       if (iAmDeleted) {
@@ -468,7 +479,7 @@ UserRoute
   })
   // ✅
   .delete("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log("🔸DELETE", route);
+    console.log(`🟢 DELETE ${route} (admin auth)`);
     try {
       const { u_id } = req.params;
       const deletedUser = await UserModel.findByIdAndDelete(u_id);

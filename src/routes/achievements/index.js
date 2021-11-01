@@ -4,10 +4,10 @@ import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
 
 const AchievementRoute = express.Router();
 
-const route = "achievements";
+const route = "ACHIEVEMENTS";
 
 AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-  console.log(`🔹POST ${route} (single achievement)`);
+  console.log(`🔹 POST ${route} (single achievement)`);
   try {
     const { _id } = await AchievementModel.findOne({ user: req.user._id });
     if (_id) {
@@ -28,7 +28,7 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   }
 })
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log(`🔹GET ${route} (all achievements)`);
+    console.log(`🔹 GET ${route} (all achievements)`);
     try {
       const achievements = await AchievementModel.findOne({
         user: req.user._id,
@@ -39,7 +39,7 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     }
   })
   .get("/:a_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log(`🔹GET ${route} (single achievement)`);
+    console.log(`🔹 GET ${route} (single achievement)`);
     try {
       const { a_id } = req.params;
       const { list } = await AchievementModel.findOne({

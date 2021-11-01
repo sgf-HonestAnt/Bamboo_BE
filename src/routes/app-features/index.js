@@ -16,7 +16,7 @@ const storage = new CloudinaryStorage({
 
 const FeatureRoute = express.Router();
 
-const route = "app-features";
+const route = "APP-FEATURES";
 
 FeatureRoute.post("/", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), async (req, res, next) => {
   console.log(`◻️ POST ${route} (single feature)`);
@@ -33,7 +33,7 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), as
   }
 })
   .get("/", async (req, res, next) => {
-    console.log(`◻️ GET ${route} (all features)`);
+    console.log(`🔴 GET ${route} (all features)`);
     try {
       const query = q2m(req.query);
       const { total, features } = await FeatureModel.findFeatures(query);
@@ -47,10 +47,10 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), as
       next(e);
     }
   })
-  .put("/:_id", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), async (req, res, next) => {
-    console.log(`◻️ PUT ${route} (single feature)`);
+  .put("/:f_id", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), async (req, res, next) => {
+    console.log(`🔴 PUT ${route} (single feature)`);
     try {
-      const { _id } = req.params;
+      const _id = req.params.f_id;
       const update = { ...req.body };
       if (req.file) {
         const filePath = await getResizedFilePath(req.file.path)
@@ -74,10 +74,10 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), as
       next(e);
     }
   })
-  .delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log(`◻️ DELETE ${route} (single feature)`);
+  .delete("/:f_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
+    console.log(`🔴 DELETE ${route} (single feature)`);
     try {
-      const { _id } = req.params;
+      const _id = req.params.f_id;
       const deletedFeature = await FeatureModel.findByIdAndDelete(_id);
       if (deletedFeature) {
         res.status(204).send();
