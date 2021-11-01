@@ -1,5 +1,4 @@
 import express from "express";
-import mongoose from "mongoose";
 import FeatureModel from "./model.js";
 import q2m from "query-to-mongo";
 import createHttpError from "http-errors";
@@ -14,8 +13,6 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: { folder: MY_FOLDER },
 });
-
-// ❗ add IMAGE capabilities
 
 const FeatureRoute = express.Router();
 

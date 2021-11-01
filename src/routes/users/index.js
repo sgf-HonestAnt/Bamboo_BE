@@ -135,19 +135,27 @@ UserRoute
         if (!_id) {
           console.log({ message: "💀USER NOT SAVED", user: req.body });
         } else {
-          // generate tasklist
+          // generate tasklist and achievements
           const newTasklist = new TaskListModel({ user: _id });
-          const list = await newTasklist.save();
-          const tasklist_id = list._id;
-          if (!tasklist_id) {
+          const tasklist = await newTasklist.save();
+          const newAchievements = new AchievementModel({ user: _id });
+          const achievements = await newAchievements.save();
+          if (!tasklist._id) {
             console.log({
               message: "💀TASKLIST NOT SAVED",
               tasks: newTaskList,
             });
+          } else if (!achievements._id) {
+            console.log({
+              message: "💀ACHIEVEMENTS NOT SAVED",
+              tasks: newAchievements,
+            });
           } else {
-            // update user in order to populate tasklist
-            // ❗ ADD ACHIEVEMENTS AS IN /register!!!
-            const update = { tasks: tasklist_id };
+            // update user in order to populate tasklist and achievements
+            const update = {
+              tasks: tasklist._id,
+              achievements: achievements._id,
+            };
             const filter = { _id };
             const updatedUser = await UserModel.findOneAndUpdate(
               filter,
