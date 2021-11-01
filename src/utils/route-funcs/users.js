@@ -14,6 +14,19 @@ export const generator = async () => {
   return username;
 };
 
+export const nameGenerator = async (username) => {
+  let altNames = [];
+  for (let i = 0; i < 5; i++) {
+    const generatedName = await generator();
+    const nameDoesNotExist =
+      (await UserModel.findOne({ username: generatedName })) === null;
+    if (nameDoesNotExist) {
+      altNames.push(generatedName);
+    }
+  }
+  return altNames;
+};
+
 export const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
   let { followedUsers } = user;
   console.log("🔸add ID To List", addToList);

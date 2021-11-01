@@ -9,26 +9,18 @@ import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 import { MY_FOLDER } from "../../utils/constants.js";
-import { generator, shuffle, getUserFilePath, getPublicUsers } from "../../utils/route-funcs/users.js";
+import {
+  nameGenerator,
+  shuffle,
+  getUserFilePath,
+  getPublicUsers,
+} from "../../utils/route-funcs/users.js";
 import { generateTokens, refreshTokens } from "../../auth/tools.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
   params: { folder: MY_FOLDER },
 });
-
-const generateNames = async (username) => {
-  let altNames = [];
-  for (let i = 0; i < 5; i++) {
-    const generatedName = await generator();
-    const nameDoesNotExist =
-      (await UserModel.findOne({ username: generatedName })) === null;
-    if (nameDoesNotExist) {
-      altNames.push(generatedName);
-    }
-  }
-  return altNames;
-};
 
 const UserRoute = express.Router();
 
@@ -40,38 +32,38 @@ UserRoute
     console.log("🟢 REGISTER", route);
     try {
       const { email, username } = req.body;
-      const emailDuplicate = await UserModel.findOne({ email });
-      const usernameDuplicate = await UserModel.findOne({ username });
-      if (emailDuplicate) {
-        res.status(409).send({ error: `Email Exists` });
-      } else if (usernameDuplicate) {
-        const available = await generateNames(username);
-        res.status(409).send({ error: `Username Exists`, available });
+      const emailIsDuplicate = await UserModel.findOne({ email });
+      const usernameIsDuplicate = await UserModel.findOne({ username });
+      if (emailIsDuplicate) {
+        res.status(409).send({ message: `Email Unavailable` });
+      } else if (usernameIsDuplicate) {
+        const available = await nameGenerator(username);
+        res.status(409).send({ message: `Username Unavailable`, available });
       } else {
         const newUser = new UserModel(req.body);
         const { _id, admin } = await newUser.save();
         if (!newUser) {
-          console.log({ message: "💀USER NOT SAVED", user: req.body });
+          console.log({ message: "User Not Saved", user: req.body });
         } else {
           const { accessToken, refreshToken } = await generateTokens(newUser);
-          const newTaskList = new TaskListModel({ user: _id });
-          const tasklist = await newTaskList.save();
-          const newAchievements = new AchievementModel({ user: _id });
-          const achievements = await newAchievements.save();
-          if (!tasklist._id) {
+          const newTaskList = await new TaskListModel({ user: _id }).save();
+          const newAchievements = await new AchievementModel({
+            user: _id,
+          }).save();
+          if (!newTaskList._id) {
             console.log({
-              message: "💀TASKLIST  NOT SAVED",
-              tasks: newTaskList,
+              message: "User Tasklist Not Saved",
+              user: _id,
             });
-          } else if (!achievements._id) {
+          } else if (!newAchievements._id) {
             console.log({
-              message: "💀ACHIEVEMENTS NOT SAVED",
-              tasks: newAchievements,
+              message: "User Achievements Not Saved",
+              user: _id,
             });
           } else {
             const update = {
-              tasks: tasklist._id,
-              achievements: achievements._id,
+              tasks: newTaskList._id,
+              achievements: newAchievements._id,
             };
             const filter = { _id };
             const updatedUser = await UserModel.findOneAndUpdate(
@@ -101,7 +93,7 @@ UserRoute
         const { admin, _id } = user;
         res.status(200).send({ _id, accessToken, refreshToken, admin });
       } else {
-        res.status(401).send({ error: `Credentials not accepted` });
+        res.status(401).send({ message: `Credentials Not Accepted` });
       }
     } catch (e) {
       next(e);
@@ -126,37 +118,35 @@ UserRoute
     console.log(`🟢 POST ${route} (admin auth)`);
     try {
       const { email, username } = req.body;
-      const emailDuplicate = await UserModel.findOne({ email });
-      const usernameDuplicate = await UserModel.findOne({ username });
-      if (emailDuplicate) {
+      const emailIsDuplicate = await UserModel.findOne({ email });
+      const usernameIsDuplicate = await UserModel.findOne({ username });
+      if (emailIsDuplicate) {
         res.status(409).send({ error: `Email Exists` });
-      } else if (usernameDuplicate) {
-        const available = await generateNames(username);
-        res.status(409).send({ error: `Username Exists`, available });
+      } else if (usernameIsDuplicate) {
+        const available = await nameGenerator(username);
+        res.status(409).send({ message: `Username Unavailable`, available });
       } else {
         const newUser = new UserModel(req.body);
         const { _id } = await newUser.save();
         if (!_id) {
-          console.log({ message: "💀USER NOT SAVED", user: req.body });
+          console.log({ message: "User Not Saved", user: req.body });
         } else {
           const newTasklist = new TaskListModel({ user: _id });
-          const tasklist = await newTasklist.save();
           const newAchievements = new AchievementModel({ user: _id });
-          const achievements = await newAchievements.save();
-          if (!tasklist._id) {
+          if (!newTaskList._id) {
             console.log({
-              message: "💀TASKLIST NOT SAVED",
-              tasks: newTaskList,
+              message: "User Tasklist Not Saved",
+              user: _id,
             });
-          } else if (!achievements._id) {
+          } else if (!newAchievements._id) {
             console.log({
-              message: "💀ACHIEVEMENTS NOT SAVED",
-              tasks: newAchievements,
+              message: "User Achievements Not Saved",
+              user: _id,
             });
           } else {
             const update = {
-              tasks: tasklist._id,
-              achievements: achievements._id,
+              tasks: newTaskList._id,
+              achievements: newAchievements._id,
             };
             const filter = { _id };
             const updatedUser = await UserModel.findOneAndUpdate(
@@ -313,14 +303,14 @@ UserRoute
     console.log("🟢 GET ME");
     try {
       const user_id = req.user._id;
-      const me = await UserModel.findById(user_id).populate(
+      const my_user = await UserModel.findById(user_id).populate(
         "followedUsers.accepted"
       );
-      const acceptedUsers = me.followedUsers.accepted;
+      const acceptedUsers = my_user.followedUsers.accepted;
       let arrayOfPublicUsers = [];
       await getPublicUsers(acceptedUsers, arrayOfPublicUsers);
-      me.followedUsers = undefined;
-      const meWithPublicUsers = { me, followedUsers: arrayOfPublicUsers }
+      my_user.followedUsers = undefined;
+      const meWithPublicUsers = { my_user, followedUsers: arrayOfPublicUsers };
       res.send(meWithPublicUsers);
     } catch (e) {
       next(e);
@@ -384,7 +374,7 @@ UserRoute
           usernameDuplicate.length > 0 &&
           usernameDuplicate[0]._id.toString() !== _id.toString()
         ) {
-          const available = await generateNames(username);
+          const available = await nameGenerator(username);
           res.status(409).send({ error: `Username Exists`, available });
         } else {
           const update = { ...req.body };
@@ -427,7 +417,7 @@ UserRoute
           usernameDuplicate.length > 0 &&
           usernameDuplicate[0]._id.toString() !== u_id
         ) {
-          const available = await generateNames(username);
+          const available = await nameGenerator(username);
           res.status(409).send({ error: `Username Exists`, available });
         } else {
           const update = { ...req.body };
@@ -479,8 +469,8 @@ UserRoute
     console.log(`🟢 DELETE ${route} (admin auth)`);
     try {
       const { u_id } = req.params;
-      const deletedUser = await UserModel.findByIdAndDelete(u_id);
-      if (deletedUser) {
+      const deleteUser = await UserModel.findByIdAndDelete(u_id);
+      if (deleteUser) {
         await TaskListModel.findOneAndDelete({ user: u_id });
         await AchievementModel.findOneAndDelete({ user: u_id });
         res.status(204).send();

@@ -30,10 +30,10 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log(`🔹 GET ${route} (all achievements)`);
     try {
-      const achievements = await AchievementModel.findOne({
+      const my_achievements = await AchievementModel.findOne({
         user: req.user._id,
       });
-      res.status(200).send(achievements);
+      res.status(200).send(my_achievements);
     } catch (e) {
       next(e);
     }

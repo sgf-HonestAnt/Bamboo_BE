@@ -67,11 +67,11 @@ TaskRoute.post(
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log(`💠 GET ${route} (all tasks)`);
     try {
-      const tasks = await TaskListModel.findOne({
+      const my_tasks = await TaskListModel.findOne({
         user: req.user._id,
       }).populate("completed awaited in_progress");
-      if (tasks) {
-        res.send(tasks);
+      if (my_tasks) {
+        res.send(my_tasks);
       } else {
         res.status(404).send(`Tasklist belonging to user ${_id} not found`);
       }

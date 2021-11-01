@@ -18,20 +18,25 @@ const FeatureRoute = express.Router();
 
 const route = "APP-FEATURES";
 
-FeatureRoute.post("/", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), async (req, res, next) => {
-  console.log(`◻️ POST ${route} (single feature)`);
-  try {
-    const newFeature = new FeatureModel(req.body);
-    if (req.file) {
-      const filePath = await getFeatureFilePath(req.file.path)
-      newFeature.image = filePath;
+FeatureRoute.post(
+  "/",
+  ADMIN_MIDDLEWARE,
+  multer({ storage }).single("image"),
+  async (req, res, next) => {
+    console.log(`◻️ POST ${route} (single feature)`);
+    try {
+      const newFeature = new FeatureModel(req.body);
+      if (req.file) {
+        const filePath = await getFeatureFilePath(req.file.path);
+        newFeature.image = filePath;
+      }
+      const { _id } = await newFeature.save();
+      res.status(201).send({ _id });
+    } catch (e) {
+      next(e);
     }
-    const { _id } = await newFeature.save();
-    res.status(201).send({ _id });
-  } catch (e) {
-    next(e);
   }
-})
+)
   .get("/", async (req, res, next) => {
     console.log(`🔴 GET ${route} (all features)`);
     try {
@@ -47,42 +52,47 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), as
       next(e);
     }
   })
-  .put("/:f_id", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), async (req, res, next) => {
-    console.log(`🔴 PUT ${route} (single feature)`);
-    try {
-      const _id = req.params.f_id;
-      const update = { ...req.body };
-      if (req.file) {
-        const filePath = await getFeatureFilePath(req.file.path)
-        update.image = filePath;
-      }
-      const filter = { _id };
-      const updatedFeature = await FeatureModel.findOneAndUpdate(
-        filter,
-        update,
-        {
-          returnOriginal: false,
+  .put(
+    "/:f_id",
+    ADMIN_MIDDLEWARE,
+    multer({ storage }).single("image"),
+    async (req, res, next) => {
+      console.log(`🔴 PUT ${route} (single feature)`);
+      try {
+        const _id = req.params.f_id;
+        const update = { ...req.body };
+        if (req.file) {
+          const filePath = await getFeatureFilePath(req.file.path);
+          update.image = filePath;
         }
-      );
-      await updatedFeature.save();
-      if (updatedFeature) {
-        res.status(200).send(updatedFeature);
-      } else {
-        next(createHttpError(404, `💀FEATURE ID_${_id} NOT FOUND`));
+        const filter = { _id };
+        const updatedFeature = await FeatureModel.findOneAndUpdate(
+          filter,
+          update,
+          {
+            returnOriginal: false,
+          }
+        );
+        await updatedFeature.save();
+        if (updatedFeature) {
+          res.status(200).send(updatedFeature);
+        } else {
+          res.status(404).send({ message: `FEATURE ID_${_id} NOT FOUND` });
+        }
+      } catch (e) {
+        next(e);
       }
-    } catch (e) {
-      next(e);
     }
-  })
+  )
   .delete("/:f_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
     console.log(`🔴 DELETE ${route} (single feature)`);
     try {
       const _id = req.params.f_id;
-      const deletedFeature = await FeatureModel.findByIdAndDelete(_id);
-      if (deletedFeature) {
+      const deleteFeature = await FeatureModel.findByIdAndDelete(_id);
+      if (deleteFeature) {
         res.status(204).send();
       } else {
-        next(createHttpError(404, `💀FEATURE ID_${_id} NOT FOUND`));
+        res.status(404).send({ message: `FEATURE ID_${_id} NOT FOUND` });
       }
     } catch (e) {
       next(e);
