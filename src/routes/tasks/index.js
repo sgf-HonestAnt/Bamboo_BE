@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import { TaskModel } from "./model.js";
 import TaskListModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
@@ -7,8 +8,8 @@ import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
 import { MY_FOLDER } from "../../utils/constants.js";
-import { getResizedFilePath } from "../../utils/task-funcs/taskFilePath.js";
 import {
+  getTaskFilePath,
   createSharedArray,
   removeFromTaskList,
   updateTaskList,
@@ -38,7 +39,7 @@ TaskRoute.post(
         sharedWith,
       });
       if (req.file) {
-        const filePath = await getResizedFilePath(req.file.path)
+        const filePath = await getTaskFilePath(req.file.path);
         newTask.image = filePath;
       }
       const { _id } = await newTask.save();
@@ -111,7 +112,7 @@ TaskRoute.post(
           const filter = { _id: t_id };
           const update = { ...req.body };
           if (req.file) {
-            const filePath = await getResizedFilePath(req.file.path)
+            const filePath = await getTaskFilePath(req.file.path);
             update.image = filePath;
           }
           const updatedTask = await TaskModel.findOneAndUpdate(filter, update, {
@@ -153,25 +154,22 @@ TaskRoute.post(
     try {
       const { t_id } = req.params;
       const foundTask = await TaskModel.findById(t_id);
-      const { status } = foundTask;
-      console.log(t_id, status);
-      if (!foundTask) {
-        res.status(404).send(`Task with id ${t_id} not found`);
+      if (!foundTask || !mongoose.Types.ObjectId.isValid(t_id)) {
+        res.status(404).send({ error: `Task ID ${t_id} not found!` });
       } else {
+        const { status, sharedWith } = foundTask;
         const deletedTask = await TaskModel.findByIdAndDelete(t_id);
-        console.log("deleted task...")
         if (deletedTask) {
-          const updateAllLists = await foundTask.sharedWith.map((user_id) => {
-            const updated = removeFromTaskList(user_id, status, t_id);
-            return updated; // ❗ CastError: Cast to ObjectId failed for value "0" (type number) at path "completed"
-          });
-          if (updateAllLists) {
-            res.status(204).send();
-          } else {
-            console.log("Something went wrong...", updateAllLists);
-          }
+          const updateAllLists = async (list) => {
+            for (let i = 0; i < list.length; i++) {
+              await removeFromTaskList(list, status, t_id);
+              return;
+            }
+          };
+          await updateAllLists(sharedWith);
+          res.status(204).send();
         } else {
-          res.status(404).send(`💀TASK ID_${t_id} NOT FOUND`);
+          console.log("Something went wrong...");
         }
       }
     } catch (e) {

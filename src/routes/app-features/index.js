@@ -7,7 +7,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 import { MY_FOLDER } from "../../utils/constants.js";
-import { getResizedFilePath } from "../../utils/feature-funcs/featureFilePath.js";
+import { getFeatureFilePath } from "../../utils/route-funcs/features.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -23,7 +23,7 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), as
   try {
     const newFeature = new FeatureModel(req.body);
     if (req.file) {
-      const filePath = await getResizedFilePath(req.file.path)
+      const filePath = await getFeatureFilePath(req.file.path)
       newFeature.image = filePath;
     }
     const { _id } = await newFeature.save();
@@ -53,7 +53,7 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), as
       const _id = req.params.f_id;
       const update = { ...req.body };
       if (req.file) {
-        const filePath = await getResizedFilePath(req.file.path)
+        const filePath = await getFeatureFilePath(req.file.path)
         update.image = filePath;
       }
       const filter = { _id };

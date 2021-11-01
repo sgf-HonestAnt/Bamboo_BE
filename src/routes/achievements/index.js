@@ -32,7 +32,7 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       const achievements = await AchievementModel.findOne({
         user: req.user._id,
-      }); //.populate("user"); // ❗ CHANGE TO POPULATE ONLY USERNAME
+      });
       res.status(200).send(achievements);
     } catch (e) {
       next(e);

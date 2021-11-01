@@ -9,9 +9,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 import { MY_FOLDER } from "../../utils/constants.js";
-import generator from "../../utils/user-funcs/generator.js";
-import shuffle from "../../utils/user-funcs/shuffle.js";
-import { getCroppedFilePath } from "../../utils/user-funcs/userFilePath.js";
+import { generator, shuffle, getUserFilePath, getPublicUsers } from "../../utils/route-funcs/users.js";
 import { generateTokens, refreshTokens } from "../../auth/tools.js";
 
 const storage = new CloudinaryStorage({
@@ -320,23 +318,6 @@ UserRoute
       );
       const acceptedUsers = me.followedUsers.accepted;
       let arrayOfPublicUsers = [];
-      const getPublicUsers = async (users, array) => {
-        for (let i = 0; i < users.length; i++) {
-          const user = await UserModel.findById(users[i]._id).populate(
-            "achievements"
-          );
-          array.push({
-            _id: user._id,
-            username: user.username,
-            avatar: user.avatar,
-            bio: user.bio,
-            level: user.level,
-            xp: user.xp,
-            achievements: user.achievements.list,
-          });
-          return;
-        }
-      };
       await getPublicUsers(acceptedUsers, arrayOfPublicUsers);
       me.followedUsers = undefined;
       const meWithPublicUsers = { me, followedUsers: arrayOfPublicUsers }
@@ -408,7 +389,7 @@ UserRoute
         } else {
           const update = { ...req.body };
           if (req.file) {
-            const filePath = await getCroppedFilePath(req.file.path);
+            const filePath = await getUserFilePath(req.file.path);
             update.avatar = filePath;
           }
           const filter = { _id: req.user._id };
@@ -451,7 +432,7 @@ UserRoute
         } else {
           const update = { ...req.body };
           if (req.file) {
-            const filePath = await getCroppedFilePath(req.file.path);
+            const filePath = await getUserFilePath(req.file.path);
             update.avatar = filePath;
           }
           const filter = { _id: u_id };

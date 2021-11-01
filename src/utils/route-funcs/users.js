@@ -1,6 +1,20 @@
 import UserModel from "../../routes/users/model.js";
+import { USER_CROP_IMG } from "../constants.js";
+import { ADJECTIVES, NOUNS } from "../wordsArray.js";
 
-const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
+export const generator = async () => {
+  const nounsArray = NOUNS;
+  const adjectivesArray = ADJECTIVES;
+  const noun = nounsArray[Math.floor(Math.random() * nounsArray.length)];
+  const adjective =
+    adjectivesArray[Math.floor(Math.random() * adjectivesArray.length)];
+  const number = Math.floor(Math.random() * 100);
+  const adjNounNum = adjective + noun + number;
+  const username = adjNounNum.replace(" ", "");
+  return username;
+};
+
+export const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
   let { followedUsers } = user;
   console.log("🔸add ID To List", addToList);
   // add to list
@@ -42,4 +56,27 @@ const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
   return updatedUser;
 };
 
-export default shuffle;
+export const getPublicUsers = async (users, array) => {
+  for (let i = 0; i < users.length; i++) {
+    const user = await UserModel.findById(users[i]._id).populate(
+      "achievements"
+    );
+    array.push({
+      _id: user._id,
+      username: user.username,
+      avatar: user.avatar,
+      bio: user.bio,
+      level: user.level,
+      xp: user.xp,
+      achievements: user.achievements.list,
+    });
+    return;
+  }
+};
+
+export const getUserFilePath = (path) => {
+  let filePath = path;
+  const filePathSplit = filePath.split("/upload/", 2);
+  filePath = `${USER_CROP_IMG}/${filePathSplit[1]}`;
+  return filePath;
+};
