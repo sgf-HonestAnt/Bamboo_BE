@@ -5,10 +5,8 @@ import TaskListModel from "../tasks/model.js";
 import AchievementModel from "../achievements/model.js";
 import q2m from "query-to-mongo";
 import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
-import { MY_FOLDER } from "../../utils/constants.js";
+import { storage } from "../../utils/constants.js";
 import {
   nameGenerator,
   shuffle,
@@ -17,83 +15,69 @@ import {
 } from "../../utils/route-funcs/users.js";
 import { generateTokens, refreshTokens } from "../../auth/tools.js";
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: { folder: MY_FOLDER },
-});
-
 const UserRoute = express.Router();
 
-const route = "USER";
-
-UserRoute
-  // ✅
-  .post("/register", async (req, res, next) => {
-    console.log("🟢 REGISTER", route);
-    try {
-      const { email, username } = req.body;
-      const emailIsDuplicate = await UserModel.findOne({ email });
-      const usernameIsDuplicate = await UserModel.findOne({ username });
-      if (emailIsDuplicate) {
-        res.status(409).send({ message: `Email Unavailable` });
-      } else if (usernameIsDuplicate) {
-        const available = await nameGenerator(username);
-        res.status(409).send({ message: `Username Unavailable`, available });
+UserRoute.post("/register", async (req, res, next) => {
+  try {
+    const { email, username } = req.body;
+    const emailIsDuplicate = await UserModel.findOne({ email });
+    const usernameIsDuplicate = await UserModel.findOne({ username });
+    if (emailIsDuplicate) {
+      res.status(409).send({ message: `EMAIL NOT AVAILABLE` });
+    } else if (usernameIsDuplicate) {
+      const available = await nameGenerator(username);
+      res.status(409).send({ message: `USERNAME NOT AVAILABLE`, available });
+    } else {
+      const newUser = new UserModel(req.body);
+      const { _id, admin } = await newUser.save();
+      if (!newUser) {
+        console.log({ message: "USER NOT SAVED", user: req.body });
       } else {
-        const newUser = new UserModel(req.body);
-        const { _id, admin } = await newUser.save();
-        if (!newUser) {
-          console.log({ message: "User Not Saved", user: req.body });
-        } else {
-          const { accessToken, refreshToken } = await generateTokens(newUser);
-          const newTaskList = await new TaskListModel({ user: _id }).save();
-          const newAchievements = await new AchievementModel({
+        const { accessToken, refreshToken } = await generateTokens(newUser);
+        const newTaskList = await new TaskListModel({ user: _id }).save();
+        const newAchievements = await new AchievementModel({
+          user: _id,
+        }).save();
+        if (!newTaskList._id) {
+          console.log({
+            message: "TASKLIST NOT SAVED",
             user: _id,
-          }).save();
-          if (!newTaskList._id) {
-            console.log({
-              message: "User Tasklist Not Saved",
-              user: _id,
-            });
-          } else if (!newAchievements._id) {
-            console.log({
-              message: "User Achievements Not Saved",
-              user: _id,
-            });
-          } else {
-            const update = {
-              tasks: newTaskList._id,
-              achievements: newAchievements._id,
-            };
-            const filter = { _id };
-            const updatedUser = await UserModel.findOneAndUpdate(
-              filter,
-              update,
-              {
-                returnOriginal: false,
-              }
-            );
-            await updatedUser.save();
-            res.status(201).send({ _id, accessToken, refreshToken, admin });
-          }
+          });
+        } else if (!newAchievements._id) {
+          console.log({
+            message: "ACHIEVEMENTS NOT SAVED",
+            user: _id,
+          });
+        } else {
+          const update = {
+            tasks: newTaskList._id,
+            achievements: newAchievements._id,
+          };
+          const filter = { _id };
+          const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
+            returnOriginal: false,
+          });
+          await updatedUser.save();
+          console.log("NEW USER SUCCESSFULLY CREATED");
+          res.status(201).send({ _id, accessToken, refreshToken, admin });
         }
       }
-    } catch (e) {
-      next(e);
     }
-  })
-  // ✅
+  } catch (e) {
+    next(e);
+  }
+})
   .post("/session", async (req, res, next) => {
-    console.log("🟢 LOGIN", route);
     try {
       const { email, password } = req.body;
       const user = await UserModel.checkCredentials(email, password);
       if (user !== null) {
         const { accessToken, refreshToken } = await generateTokens(user);
         const { admin, _id } = user;
+        console.log("LOGGED IN");
         res.status(200).send({ _id, accessToken, refreshToken, admin });
       } else {
-        res.status(401).send({ message: `Credentials Not Accepted` });
+        res.status(401).send({ message: `CREDENTIALS NOT ACCEPTED` });
       }
     } catch (e) {
       next(e);
@@ -101,37 +85,35 @@ UserRoute
   })
   //*********************************************************************
   .post("/session/refresh", async (req, res, next) => {
-    console.log("🟢 REFRESH TOKEN OF", route);
     try {
       const { actualRefreshToken } = req.body;
       const { accessToken, refreshToken } = await refreshTokens(
         actualRefreshToken
       );
+      console.log("REFRESHED TOKENS");
       res.send({ accessToken, refreshToken });
     } catch (e) {
       next(e);
     }
   })
   //*********************************************************************
-  // ✅
   .post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log(`🟢 POST ${route} (admin auth)`);
     try {
       const { email, username } = req.body;
       const emailIsDuplicate = await UserModel.findOne({ email });
       const usernameIsDuplicate = await UserModel.findOne({ username });
       if (emailIsDuplicate) {
-        res.status(409).send({ error: `Email Exists` });
+        res.status(409).send({ error: `EMAIL NOT AVAILABLE` });
       } else if (usernameIsDuplicate) {
         const available = await nameGenerator(username);
-        res.status(409).send({ message: `Username Unavailable`, available });
+        res.status(409).send({ message: `USERNAME NOT AVAILABLE`, available });
       } else {
         const newUser = new UserModel(req.body);
         const { _id } = await newUser.save();
         if (!_id) {
-          console.log({ message: "User Not Saved", user: req.body });
+          console.log({ message: "USER NOT SAVED", user: req.body });
         } else {
-          const newTasklist = new TaskListModel({ user: _id });
+          const newTaskList = new TaskListModel({ user: _id });
           const newAchievements = new AchievementModel({ user: _id });
           if (!newTaskList._id) {
             console.log({
@@ -157,6 +139,7 @@ UserRoute
               }
             );
             await updatedUser.save();
+            console.log("NEW USER SUCCESSFULLY CREATED");
             res.status(201).send({ _id });
           }
         }
@@ -165,27 +148,27 @@ UserRoute
       next(e);
     }
   })
-  // ✅
   .post("/request/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🟢 REQUEST TO FOLLOW", route);
     try {
       const sender = req.user;
       const { u_id } = req.params;
       if (!mongoose.Types.ObjectId.isValid(u_id)) {
-        res.status(404).send({ error: `User ID ${u_id} not found!` });
+        res.status(404).send({ message: `USER ${u_id} NOT FOUND` });
       } else {
         const sendee = await UserModel.findById(u_id);
         const idsMatch = req.user._id.toString() === u_id;
         if (idsMatch) {
-          res.status(409).send({ error: `User IDs cannot be a match!` });
+          res.status(409).send({ message: `USERS IDS CANNOT MATCH` });
         } else if (sender.followedUsers.requested.includes(sendee._id)) {
-          res.status(409).send({ error: `Duplicated requests are forbidden!` });
+          res
+            .status(409)
+            .send({ message: `DUPLICATE REQUESTS ARE NOT ALLOWED` });
         } else if (sender.followedUsers.accepted.includes(sendee._id)) {
-          res.status(409).send({ error: `User already accepted!` });
+          res.status(409).send({ message: `USER ALREADY ACCEPTED` });
         } else if (sender.followedUsers.rejected.includes(sendee._id)) {
           res
             .status(409)
-            .send({ error: `Rejected users can't request again!` });
+            .send({ message: `REJECTED USERS CANNOT MAKE REQUEST` });
         } else {
           const shuffleSenderList = await shuffle(
             sendee._id,
@@ -200,9 +183,10 @@ UserRoute
             "response_awaited"
           );
           if (shuffleSenderList && shuffleSendeeList) {
+            console.log(`${sender._id} REQUESTED ${sendee._id}`);
             res.status(201).send(shuffleSenderList.followedUsers);
           } else {
-            console.log("something went wrong...");
+            console.log("💀SOMETHING WENT WRONG...");
           }
         }
       }
@@ -210,9 +194,7 @@ UserRoute
       next(e);
     }
   })
-  // ✅
   .post("/accept/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🟢 ACCEPT FOLLOW BY", route);
     try {
       const sendee = req.user;
       const { u_id } = req.params;
@@ -220,11 +202,11 @@ UserRoute
       const idExistsInAwaited =
         sendee.followedUsers.response_awaited.includes(u_id);
       if (!mongoose.Types.ObjectId.isValid(u_id)) {
-        res.status(404).send({ error: `User ID ${u_id} not found!` });
+        res.status(404).send({ message: `USER ${u_id} NOT FOUND` });
       } else if (idsMatch) {
-        res.status(409).send({ error: `User IDs cannot be a match` });
+        res.status(409).send({ message: `USERS IDS CANNOT MATCH` });
       } else if (!idExistsInAwaited) {
-        res.status(409).send({ error: `User ID must exist in Awaited` });
+        res.status(409).send({ message: `USER ID MUST EXIST IN AWAITED` });
       } else {
         const sender = await UserModel.findById(u_id);
         const moveIDFromSendeeAwaitedToAccepted = await shuffle(
@@ -245,18 +227,17 @@ UserRoute
           moveIDFromSendeeAwaitedToAccepted &&
           moveIDFromSenderRequestedToAccepted;
         if (complete) {
+          console.log(`${sendee._id} ACCEPTED ${sender._id}`);
           res.status(201).send(moveIDFromSendeeAwaitedToAccepted.followedUsers);
         } else {
-          console.log("something went wrong...");
+          console.log("💀SOMETHING WENT WRONG...");
         }
       }
     } catch (e) {
       next(e);
     }
   })
-  // ✅
   .post("/reject/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🟢 REJECT FOLLOW BY", route);
     try {
       const { u_id } = req.params;
       const idsMatch = req.user._id.toString() === u_id;
@@ -265,11 +246,11 @@ UserRoute
       const idExistsInAwaited =
         sendee.followedUsers.response_awaited.includes(u_id);
       if (!mongoose.Types.ObjectId.isValid(u_id)) {
-        res.status(404).send({ error: `User ID ${u_id} not found!` });
+        res.status(404).send({ message: `USER ${u_id} NOT FOUND` });
       } else if (idsMatch) {
-        res.status(409).send({ error: `User IDs cannot be a match` });
+        res.status(409).send({ message: `USERS IDS CANNOT MATCH` });
       } else if (!idExistsInAwaited) {
-        res.status(409).send({ error: `User ID must exist in Awaited` });
+        res.status(409).send({ message: `USER ID MUST BE AWAITED` });
       } else {
         const removeIDFromSendeeResponseAwaited = await shuffle(
           sender._id,
@@ -289,18 +270,17 @@ UserRoute
           removeIDFromSendeeResponseAwaited &&
           moveIDFromSenderRequestedToRejected;
         if (complete) {
+          console.log(`${sendee._id} REJECTED ${sender._id}`);
           res.status(201).send(removeIDFromSendeeResponseAwaited.followedUsers);
         } else {
-          console.log("something went wrong...");
+          console.log("💀SOMETHING WENT WRONG...");
         }
       }
     } catch (e) {
       next(e);
     }
   })
-  // ✅
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🟢 GET ME");
     try {
       const user_id = req.user._id;
       const my_user = await UserModel.findById(user_id).populate(
@@ -310,15 +290,14 @@ UserRoute
       let arrayOfPublicUsers = [];
       await getPublicUsers(acceptedUsers, arrayOfPublicUsers);
       my_user.followedUsers = undefined;
-      const meWithPublicUsers = { my_user, followedUsers: arrayOfPublicUsers };
-      res.send(meWithPublicUsers);
+      const self = { my_user, followedUsers: arrayOfPublicUsers };
+      console.log("FETCHED USER");
+      res.send(self);
     } catch (e) {
       next(e);
     }
   })
-  // ✅
   .get("/", async (req, res, next) => {
-    console.log("🟢 GET", `${route}S`);
     try {
       const query = q2m(req.query);
       const { total, users } = await UserModel.findUsers(query);
@@ -331,6 +310,7 @@ UserRoute
         xp: u.xp,
         joined: u.createdAt,
       }));
+      console.log("FETCHED ALL USERS / BY QUERY");
       res.send({
         links: query.links("/users", total),
         total,
@@ -341,25 +321,26 @@ UserRoute
       next(e);
     }
   })
-  // ✅
   .get("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log(`🟢 GET ${route} (admin auth)`);
     try {
       const { u_id } = req.params;
       const user = await UserModel.findById(u_id);
-      user.followedUsers = undefined;
-      res.send(user);
+      if (!user) {
+        res.status(404).send({ message: `USER ${u_id} NOT FOUND` });
+      } else {
+        user.followedUsers = undefined;
+        console.log("FETCHED USER BY ID");
+        res.send(user);
+      }
     } catch (e) {
       next(e);
     }
   })
-  // ✅
   .put(
     "/me",
     JWT_MIDDLEWARE,
     multer({ storage }).single("avatar"),
     async (req, res, next) => {
-      console.log("🟢 PUT ME");
       try {
         const { _id } = req.user;
         const { email, username } = req.body;
@@ -375,7 +356,7 @@ UserRoute
           usernameDuplicate[0]._id.toString() !== _id.toString()
         ) {
           const available = await nameGenerator(username);
-          res.status(409).send({ error: `Username Exists`, available });
+          res.status(409).send({ message: `Username Exists`, available });
         } else {
           const update = { ...req.body };
           if (req.file) {
@@ -386,6 +367,7 @@ UserRoute
           const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
             returnOriginal: false,
           });
+          console.log("UPDATED USER");
           await updatedUser.save();
           res.send(updatedUser);
         }
@@ -394,13 +376,11 @@ UserRoute
       }
     }
   )
-  // ✅
   .put(
     "/:u_id",
     ADMIN_MIDDLEWARE,
     multer({ storage }).single("avatar"),
     async (req, res, next) => {
-      console.log(`🟢 PUT ${route} (admin auth)`);
       try {
         const { u_id } = req.params;
         const { email, username } = req.body;
@@ -418,7 +398,7 @@ UserRoute
           usernameDuplicate[0]._id.toString() !== u_id
         ) {
           const available = await nameGenerator(username);
-          res.status(409).send({ error: `Username Exists`, available });
+          res.status(409).send({ message: `Username Exists`, available });
         } else {
           const update = { ...req.body };
           if (req.file) {
@@ -431,9 +411,10 @@ UserRoute
           });
           await updatedUser.save();
           if (updatedUser) {
+            console.log("UPDATED USER BY ID");
             res.send(updatedUser);
           } else {
-            res.status(404).send(`💀USER ID_${u_id} NOT FOUND`);
+            res.status(404).send({ message: `USER ${u_id} NOT FOUND` });
           }
         }
       } catch (e) {
@@ -441,41 +422,38 @@ UserRoute
       }
     }
   )
-  // ✅
   .delete("/session", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🟢 LOGOUT", route);
     try {
       req.user.refreshToken = null;
       await req.user.save();
+      console.log("LOGGED OUT");
       res.send();
     } catch (e) {
       next(e);
     }
   })
-  // ✅
   .delete("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("🟢 DELETE ME");
     try {
-      const iAmDeleted = await UserModel.findByIdAndDelete(req.user._id);
-      if (iAmDeleted) {
+      const userDeleted = await UserModel.findByIdAndDelete(req.user._id);
+      if (userDeleted) {
+        console.log("DELETED USER");
         res.status(204).send();
       }
     } catch (e) {
       next(e);
     }
   })
-  // ✅
   .delete("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log(`🟢 DELETE ${route} (admin auth)`);
     try {
       const { u_id } = req.params;
       const deleteUser = await UserModel.findByIdAndDelete(u_id);
       if (deleteUser) {
         await TaskListModel.findOneAndDelete({ user: u_id });
         await AchievementModel.findOneAndDelete({ user: u_id });
+        console.log("DELETED USER BY ID");
         res.status(204).send();
       } else {
-        res.status(404).send(`💀USER ID_${u_id} NOT FOUND`);
+        res.status(404).send({ message: `USER ${u_id} NOT FOUND` });
       }
     } catch (e) {
       next(e);

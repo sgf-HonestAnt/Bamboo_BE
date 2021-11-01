@@ -29,7 +29,6 @@ export const nameGenerator = async (username) => {
 
 export const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
   let { followedUsers } = user;
-  console.log("🔸add ID To List", addToList);
   // add to list
   if (addToList) {
     addToList === "response_awaited"
@@ -41,7 +40,6 @@ export const shuffle = async (ID, _id, user, addToList, removeFromList = null) =
       : await followedUsers.rejected.push(ID.toString());
   }
   if (removeFromList) {
-    console.log("🔸remove ID From List", removeFromList);
     let list;
     removeFromList === "response_awaited"
       ? (list = await followedUsers.response_awaited.filter(

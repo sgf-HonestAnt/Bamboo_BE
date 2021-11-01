@@ -4,10 +4,7 @@ import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
 
 const AchievementRoute = express.Router();
 
-const route = "ACHIEVEMENTS";
-
 AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-  console.log(`🔹 POST ${route} (single achievement)`);
   try {
     const { _id } = await AchievementModel.findOne({ user: req.user._id });
     if (_id) {
@@ -21,6 +18,7 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
         { new: true, runValidators: true }
       );
       await updateAchievements.save();
+      console.log("NEW ACHIEVEMENT SUCCESSFULLY CREATED");
       res.status(201).send(item);
     }
   } catch (e) {
@@ -28,18 +26,17 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   }
 })
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log(`🔹 GET ${route} (all achievements)`);
     try {
-      const my_achievements = await AchievementModel.findOne({
+      const achievements = await AchievementModel.findOne({
         user: req.user._id,
       });
-      res.status(200).send(my_achievements);
+      console.log("FETCHED ACHIEVEMENTS");
+      res.status(200).send({ achievements });
     } catch (e) {
       next(e);
     }
   })
   .get("/:a_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log(`🔹 GET ${route} (single achievement)`);
     try {
       const { a_id } = req.params;
       const { list } = await AchievementModel.findOne({
@@ -49,11 +46,12 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
       if (!achievement) {
         res.status(404).send(`Achievement with id ${a_id} not found`);
       } else {
+        console.log(`FETCHED ACHIEVEMENT BY ID`);
         res.status(200).send(achievement);
       }
     } catch (e) {
       next(e);
     }
-  })
+  });
 
 export default AchievementRoute;

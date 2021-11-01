@@ -23,7 +23,7 @@ export const updateTaskList = async (_id, status, task) => {
     { $push: { [status]: task } },
     { new: true, runValidators: true }
   );
-  await updatedList.save();
+  // await updatedList.save();
   return updatedList;
 };
 

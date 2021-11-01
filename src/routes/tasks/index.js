@@ -4,10 +4,8 @@ import { TaskModel } from "./model.js";
 import TaskListModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
 import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
-import { MY_FOLDER } from "../../utils/constants.js";
+import { storage } from "../../utils/constants.js";
 import {
   getTaskFilePath,
   createSharedArray,
@@ -16,21 +14,13 @@ import {
   updateTaskListWithStatus,
 } from "../../utils/route-funcs/tasks.js";
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: { folder: MY_FOLDER },
-});
-
 const TaskRoute = express.Router();
-
-const route = "TASKS";
 
 TaskRoute.post(
   "/me",
   JWT_MIDDLEWARE,
   multer({ storage }).single("image"),
   async (req, res, next) => {
-    console.log(`💠 POST ${route} (single task)`);
     try {
       const sharedWith = createSharedArray(req.body.sharedWith, req.user._id);
       const newTask = new TaskModel({
@@ -54,9 +44,10 @@ TaskRoute.post(
           return updated;
         });
         if (updateAllLists) {
+          console.log("NEW TASK SUCCESSFULLY CREATED");
           res.send({ _id });
         } else {
-          console.log("Something went wrong...", updateAllLists);
+          console.log("💀SOMETHING WENT WRONG...");
         }
       }
     } catch (e) {
@@ -65,28 +56,28 @@ TaskRoute.post(
   }
 )
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log(`💠 GET ${route} (all tasks)`);
     try {
       const my_tasks = await TaskListModel.findOne({
         user: req.user._id,
       }).populate("completed awaited in_progress");
       if (my_tasks) {
+        console.log("FETCHED TASKS");
         res.send(my_tasks);
       } else {
-        res.status(404).send(`Tasklist belonging to user ${_id} not found`);
+        res.status(404).send({ message: `USER ${_id} TASKLIST NOT FOUND` });
       }
     } catch (e) {
       next(e);
     }
   })
   .get("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log(`💠GET ${route} (single task)`);
     try {
       const { t_id } = req.params;
       const task = await TaskModel.findById(t_id);
       if (!task) {
-        res.status(404).send(`Task with id ${t_id} not found`);
+        res.status(404).send({ message: `TASK ${t_id} NOT FOUND` });
       } else {
+        console.log("FETCHED TASK BY ID");
         res.send(task);
       }
     } catch (e) {
@@ -98,17 +89,14 @@ TaskRoute.post(
     JWT_MIDDLEWARE,
     multer({ storage }).single("image"),
     async (req, res, next) => {
-      console.log(`💠 PUT ${route} (single task)`);
       try {
         const { t_id } = req.params;
         const { status } = req.body;
         const foundTask = await TaskModel.findById(t_id);
-        console.log("task found...");
         if (!foundTask) {
           res.status(404).send(`Task with id ${t_id} not found`);
         } else {
           const changeOfStatus = status ? status !== foundTask.status : false;
-          console.log("status changed:", changeOfStatus);
           const filter = { _id: t_id };
           const update = { ...req.body };
           if (req.file) {
@@ -119,10 +107,10 @@ TaskRoute.post(
             returnOriginal: false,
           });
           await updatedTask.save();
-          console.log("task updated...");
           if (!updatedTask) {
-            console.log({ error: `Task with id ${t_id} was not updated` });
+            console.log("💀SOMETHING WENT WRONG...");
           } else if (!changeOfStatus) {
+            console.log("UPDATED TASK BY ID");
             res.send(updatedTask);
           } else {
             const updateAllListsWithStatus = await updatedTask.sharedWith.map(
@@ -138,9 +126,10 @@ TaskRoute.post(
               }
             );
             if (updateAllListsWithStatus) {
+              console.log("UPDATED TASK BY ID");
               res.send(updatedTask);
             } else {
-              console.log("Something went wrong...", updateAllListsWithStatus);
+              console.log("💀SOMETHING WENT WRONG...");
             }
           }
         }
@@ -150,12 +139,11 @@ TaskRoute.post(
     }
   )
   .delete("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log(`💠 DELETE ${route} (single task)`);
     try {
       const { t_id } = req.params;
       const foundTask = await TaskModel.findById(t_id);
       if (!foundTask || !mongoose.Types.ObjectId.isValid(t_id)) {
-        res.status(404).send({ error: `Task ID ${t_id} not found!` });
+        res.status(404).send({ message: `TASK ${t_id} NOT FOUND` });
       } else {
         const { status, sharedWith } = foundTask;
         const deletedTask = await TaskModel.findByIdAndDelete(t_id);
@@ -167,9 +155,10 @@ TaskRoute.post(
             }
           };
           await updateAllLists(sharedWith);
-          res.status(204).send();
+          console.log("DELETED TASK BY ID");
+          res.status(204).send(`TASK ${t_id} SUCCESSFULLY DELETED`);
         } else {
-          console.log("Something went wrong...");
+          console.log("💀SOMETHING WENT WRONG...");
         }
       }
     } catch (e) {

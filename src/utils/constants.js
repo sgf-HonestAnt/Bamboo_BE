@@ -1,3 +1,5 @@
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 // ***** unsplash *****
 // Photos by Michael Dziedzic [https://unsplash.com/@lazycreekimages] on Unsplash
 // Photo by Maria R O [https://unsplash.com/@mariarui?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText] on Unsplash
@@ -7,6 +9,10 @@ const scalew800 = "w_800,ar_16:9,c_fill,g_auto,e_sharpen";
 const cloud = "https://res.cloudinary.com/dowvu52wz/image/upload";
 const FARM = "v1635752952/schrutefarms";
 export const MY_FOLDER = "my-task-app";
+export const storage = new CloudinaryStorage({
+  cloudinary,
+  params: { folder: "my-task-app" },
+});
 // ***** users *****
 export const NEW_BIO = "Newbie!";
 export const USER_IMG = "default_avatar_rnmt6a.jpg";

@@ -1,29 +1,18 @@
 import express from "express";
 import FeatureModel from "./model.js";
 import q2m from "query-to-mongo";
-import createHttpError from "http-errors";
 import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
-import { MY_FOLDER } from "../../utils/constants.js";
+import { storage } from "../../utils/constants.js";
 import { getFeatureFilePath } from "../../utils/route-funcs/features.js";
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: { folder: MY_FOLDER },
-});
-
 const FeatureRoute = express.Router();
-
-const route = "APP-FEATURES";
 
 FeatureRoute.post(
   "/",
   ADMIN_MIDDLEWARE,
   multer({ storage }).single("image"),
   async (req, res, next) => {
-    console.log(`◻️ POST ${route} (single feature)`);
     try {
       const newFeature = new FeatureModel(req.body);
       if (req.file) {
@@ -31,6 +20,7 @@ FeatureRoute.post(
         newFeature.image = filePath;
       }
       const { _id } = await newFeature.save();
+      console.log("NEW FEATURE SUCCESSFULLY CREATED");
       res.status(201).send({ _id });
     } catch (e) {
       next(e);
@@ -38,10 +28,10 @@ FeatureRoute.post(
   }
 )
   .get("/", async (req, res, next) => {
-    console.log(`🔴 GET ${route} (all features)`);
     try {
       const query = q2m(req.query);
       const { total, features } = await FeatureModel.findFeatures(query);
+      console.log("FETCHED FEATURES");
       res.send({
         links: query.links("/features", total),
         total,
@@ -57,7 +47,6 @@ FeatureRoute.post(
     ADMIN_MIDDLEWARE,
     multer({ storage }).single("image"),
     async (req, res, next) => {
-      console.log(`🔴 PUT ${route} (single feature)`);
       try {
         const _id = req.params.f_id;
         const update = { ...req.body };
@@ -75,9 +64,10 @@ FeatureRoute.post(
         );
         await updatedFeature.save();
         if (updatedFeature) {
+          console.log(`FEATURE ${_id} SUCCESSFULLY UPDATED`);
           res.status(200).send(updatedFeature);
         } else {
-          res.status(404).send({ message: `FEATURE ID_${_id} NOT FOUND` });
+          res.status(404).send({ message: `FEATURE ${_id} NOT FOUND` });
         }
       } catch (e) {
         next(e);
@@ -85,14 +75,14 @@ FeatureRoute.post(
     }
   )
   .delete("/:f_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log(`🔴 DELETE ${route} (single feature)`);
     try {
       const _id = req.params.f_id;
       const deleteFeature = await FeatureModel.findByIdAndDelete(_id);
       if (deleteFeature) {
+        console.log(`FEATURE ${_id} SUCCESSFULLY DELETED`);
         res.status(204).send();
       } else {
-        res.status(404).send({ message: `FEATURE ID_${_id} NOT FOUND` });
+        res.status(404).send({ message: `FEATURE ${_id} NOT FOUND` });
       }
     } catch (e) {
       next(e);
