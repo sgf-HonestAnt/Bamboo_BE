@@ -33,7 +33,7 @@ export const removeFromTaskList = async (_id, status, task_id) => {
     { $pull: { [status]: task_id } },
     { new: true, runValidators: true }
   );
-  await updatedList.save();
+  // await updatedList.save();
   return updatedList;
 };
 
@@ -52,6 +52,19 @@ export const updateTaskListWithStatus = async (
     },
     { new: true, runValidators: true }
   );
-  await updatedList.save();
+  // await updatedList.save();
   return updatedList;
+};
+
+export const addXP = async (_id, taskValue) => {
+  const user = await UserModel.findById(_id);
+  console.log(user)
+  const xp = user.xp + taskValue;
+  console.log(xp)
+  const updatedUser = await UserModel.findByIdAndUpdate(
+    _id,
+    { xp },
+    { new: true, runValidators: true }
+  );
+  return updatedUser
 };
