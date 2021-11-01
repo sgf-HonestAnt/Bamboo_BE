@@ -314,17 +314,33 @@ UserRoute
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🟢 GET ME");
     try {
-      const { _id } = req.user;
-      const me = await UserModel.findById(_id).populate(
+      const user_id = req.user._id;
+      const me = await UserModel.findById(user_id).populate(
         "followedUsers.accepted"
       );
-      // ❗
-      // CHANGE SO DOES NOT POPULATE
-      // followedUsers, settings, email, first_name, last_name, password, refreshToken, _v, or updatedAt
-      // CHANGE SO DOES POPULATE
-      // achievements
-      // tasks
-      res.send(me);
+      const acceptedUsers = me.followedUsers.accepted;
+      let arrayOfPublicUsers = [];
+      const getPublicUsers = async (users, array) => {
+        for (let i = 0; i < users.length; i++) {
+          const user = await UserModel.findById(users[i]._id).populate(
+            "achievements"
+          );
+          array.push({
+            _id: user._id,
+            username: user.username,
+            avatar: user.avatar,
+            bio: user.bio,
+            level: user.level,
+            xp: user.xp,
+            achievements: user.achievements.list,
+          });
+          return;
+        }
+      };
+      await getPublicUsers(acceptedUsers, arrayOfPublicUsers);
+      me.followedUsers = undefined;
+      const meWithPublicUsers = { me, followedUsers: arrayOfPublicUsers }
+      res.send(meWithPublicUsers);
     } catch (e) {
       next(e);
     }
