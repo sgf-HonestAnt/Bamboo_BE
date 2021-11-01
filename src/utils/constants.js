@@ -1,27 +1,64 @@
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+// ***** unsplash *****
+// Photos by Michael Dziedzic [https://unsplash.com/@lazycreekimages] on Unsplash
+// Photo by Maria R O [https://unsplash.com/@mariarui?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText] on Unsplash
+// ***** cloudinary *****
+const squarecrop = "w_500,ar_1:1,c_fill,g_face";
+const scalew800 = "w_800,ar_16:9,c_fill,g_auto,e_sharpen";
+const cloud = "https://res.cloudinary.com/dowvu52wz/image/upload";
+const FARM = "v1635752952/schrutefarms";
+export const MY_FOLDER = "my-task-app";
+export const storage = new CloudinaryStorage({
+  cloudinary,
+  params: { folder: "my-task-app" },
+});
+// ***** users *****
 export const NEW_BIO = "Newbie!";
+export const USER_IMG = "default_avatar_rnmt6a.jpg";
+export const USER_CROP_IMG = `${cloud}/${squarecrop}`;
+export const DEFAULT_USER_IMG = `${USER_CROP_IMG}/${FARM}/${USER_IMG}`;
+// ***** tasks *****
 export const SOLO = "solo";
 export const TEAM = "team";
+export const TASK_TYPES = [SOLO, TEAM];
+export const AWAITED = "awaited";
+export const TASK_STATUS_TYPES = ["awaited", "completed", "in_progress"];
+export const NEVER = "never";
+export const DAILY = "daily";
+export const WEEKLY = "weekly";
+export const BIMONTHLY = "bimonthly";
+export const MONTHLY = "monthly";
+export const NUMBER = `+${!NaN}`;
+export const TASK_REPEAT_TYPES = [
+  NEVER,
+  DAILY,
+  WEEKLY,
+  BIMONTHLY,
+  MONTHLY,
+  NUMBER,
+];
+export const TASK_IMG = "default_task_nv0jcq.jpg";
+export const TASK_RESIZE_IMG = `${cloud}/${scalew800}`;
+export const DEFAULT_TASK_IMG = `${TASK_RESIZE_IMG}/${FARM}/${TASK_IMG}`;
+// ***** features *****
+export const FEATURE_RESIZE_IMG = `${cloud}/${scalew800}`;
+// ***** challenges *****
+export const CHALL_IMG = `${cloud}/${scalew800}/${FARM}/default_task_nv0jcq.jpg`;
+// ***** settings *****
 export const LIGHT_MODE = "light-mode";
 export const DARK_MODE = "dark-mode";
 export const THEMES = [LIGHT_MODE, DARK_MODE];
-export const TASK_TYPES = [SOLO, TEAM];
+
 export const NONE = "none";
-export const AWAITED = "awaited";
-export const TASK_STATUS_TYPES = ["awaited", "completed", "in_progress"];
-export const USER_AVATAR =
-  "https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg";
-export const TASK_IMG =
-  "https://pmtips.net/Portals/0/EasyDNNNews/2137/700600p546EDNmainimg-3-types-of-tools-for-project-task-management1.jpg";
 
-// /features tests
-
+// ***** features tests *****
 export const newFeature = {
   month: "January",
   descrip: "Here's the featured challenge of the month!",
   level: 1,
   value: 50,
 };
-
 // "should test that post /features admin endpoint is OK"
 export const bryanMills = {
   first_name: "Bryan",
@@ -31,7 +68,6 @@ export const bryanMills = {
   password: "iwillfindyou",
   admin: true,
 };
-
 // "should test that put /features admin endpoint returns updated"
 export const aliciaHuberman = {
   first_name: "Alicia",
@@ -41,7 +77,6 @@ export const aliciaHuberman = {
   password: "notorious",
   admin: true,
 };
-
 // "should test that delete /features admin endpoint is OK"
 export const ethanHunt = {
   first_name: "Ethan",
@@ -52,8 +87,7 @@ export const ethanHunt = {
   admin: true,
 };
 
-// users tests
-
+// ***** users tests *****
 // "should test that post /users/register endpoint is OK"
 export const jamesBond = {
   first_name: "James",
@@ -66,13 +100,11 @@ export const jamesBondLogin = {
   email: "jamesbond@mail.com",
   password: "shakennotstirred",
 };
-
 // "should test that post /users/session endpoint returns 401 if bad credentials"
 export const badBondLogin = {
   email: "jamesbond@mail.com",
   password: "password",
 };
-
 // "should test that post /users/register admin endpoint is OK"
 export const missMoneypenny = {
   first_name: "Jane",
@@ -82,7 +114,6 @@ export const missMoneypenny = {
   password: "littleblackbook",
   admin: true,
 };
-
 // "should test that post /users/session endpoint returns 401 if bad credentials"
 export const jasonBourne = {
   first_name: "Jason",
@@ -95,7 +126,6 @@ export const jasonBourneLogin = {
   email: "jasonbourne@mail.com",
   password: "whatsmyidentity",
 };
-
 // "should test that post /users admin endpoint returns 409 if email duplicate"
 export const felixLeiter = {
   first_name: "Felix",
@@ -112,7 +142,6 @@ export const jackRyan = {
   email: "jackryan@mail.com",
   password: "jackryan",
 };
-
 // "should test that post /users admin endpoint returns 409 if email duplicate"
 export const vesperLynd = {
   first_name: "Vesper",
@@ -122,7 +151,6 @@ export const vesperLynd = {
   password: "iamnotacar",
   admin: true,
 };
-
 // "should test that post /users/request/id endpoint returns 409 if user requests own ID"
 export const auricGoldfinger = {
   first_name: "Auric",
@@ -131,7 +159,6 @@ export const auricGoldfinger = {
   email: "goldfinger@mail.com",
   password: "1964",
 };
-
 // "should test that post /users/reject/id endpoint is OK and that it returns 409 if ID already rejected"
 export const doctorNo = {
   first_name: "Doctor",
@@ -147,7 +174,6 @@ export const alecTrevelyan = {
   email: "trevelyan@mail.com",
   password: "1995t ",
 };
-
 // "should test that post /users/accept/id endpoint is OK and that it returns 409 if ID already accepted"
 export const xeniaOnatopp = {
   first_name: "Xenia",
@@ -163,7 +189,6 @@ export const jaws = {
   email: "jaws@mail.com",
   password: "moonraker",
 };
-
 // "should test that post /users/request/:id endpoint is OK and that it returns 409 if duplicated"
 export const austinPowers = {
   first_name: "Austin",
@@ -179,7 +204,6 @@ export const nikitaMears = {
   email: "nikita@mail.com",
   password: "lafemme",
 };
-
 // "should test that post /users/request/id endpoint returns 404 if user not found"
 export const natashaRomanova = {
   first_name: "Natasha",
@@ -188,7 +212,6 @@ export const natashaRomanova = {
   email: "natasha@mail.com",
   password: "s.h.i.e.l.d.",
 };
-
 // "should test that post /users/request/id endpoint returns 401 if bad credentials"
 export const johnWick = {
   first_name: "John",

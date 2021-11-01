@@ -1,5 +1,5 @@
-import TaskListSchema, { TaskSchema } from "./schema.js";
 import mongoose from "mongoose";
+import TaskListSchema, { TaskSchema } from "./schema.js";
 
 const TaskListModel = mongoose.model("TaskList", TaskListSchema);
 

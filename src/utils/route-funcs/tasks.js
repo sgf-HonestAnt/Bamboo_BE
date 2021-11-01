@@ -1,4 +1,13 @@
 import TaskListModel from "../../routes/tasks/model.js";
+import UserModel from "../../routes/users/model.js";
+import { TASK_RESIZE_IMG } from "../constants.js";
+
+export const getTaskFilePath = (path) => {
+  let filePath = path;
+  const filePathSplit = filePath.split("/upload/", 2);
+  filePath = `${TASK_RESIZE_IMG}/${filePathSplit[1]}`;
+  return filePath;
+};
 
 export const createSharedArray = (array, _id) => {
   let sharedWith;
@@ -15,7 +24,7 @@ export const updateTaskList = async (_id, status, task) => {
     { $push: { [status]: task } },
     { new: true, runValidators: true }
   );
-  await updatedList.save();
+  // await updatedList.save();
   return updatedList;
 };
 
@@ -25,7 +34,7 @@ export const removeFromTaskList = async (_id, status, task_id) => {
     { $pull: { [status]: task_id } },
     { new: true, runValidators: true }
   );
-  await updatedList.save();
+  // await updatedList.save();
   return updatedList;
 };
 
@@ -44,6 +53,17 @@ export const updateTaskListWithStatus = async (
     },
     { new: true, runValidators: true }
   );
-  await updatedList.save();
+  // await updatedList.save();
   return updatedList;
+};
+
+export const addXP = async (_id, taskValue) => {
+  const user = await UserModel.findById(_id);
+  const xp = user.xp + taskValue;
+  const updatedUser = await UserModel.findByIdAndUpdate(
+    _id,
+    { xp },
+    { new: true, runValidators: true }
+  );
+  return updatedUser
 };

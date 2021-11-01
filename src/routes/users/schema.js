@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-// import { TaskSchema } from "../tasks/schema.js";
-import { LIGHT_MODE, NEW_BIO, THEMES, USER_AVATAR } from "../../utils/constants.js";
+import {
+  DEFAULT_USER_IMG,
+  LIGHT_MODE,
+  NEW_BIO,
+  THEMES,
+} from "../../utils/constants.js";
 
 const { Schema } = mongoose;
 
@@ -18,14 +22,13 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
-    avatar: { type: String, default: USER_AVATAR, required: true },
+    avatar: { type: String, default: DEFAULT_USER_IMG, required: true },
     bio: { type: String, default: NEW_BIO, required: true },
     level: { type: Number, default: 0, required: true },
     xp: { type: Number, default: 0, required: true },
     password: { type: String, required: true },
     admin: { type: Boolean, required: false },
     settings: {
-      // difficulty: { type: Number },
       selectedTheme: {
         type: String,
         default: LIGHT_MODE,
@@ -33,7 +36,6 @@ const UserSchema = new mongoose.Schema(
         required: true,
       },
     },
-    // achievements
     followedUsers: {
       response_awaited: {
         default: [],
@@ -57,18 +59,7 @@ const UserSchema = new mongoose.Schema(
       },
     },
     tasks: { type: Schema.Types.ObjectId, ref: "TaskList" },
-    // tasklist: {
-    //   completed: { default: [], type: [TaskSchema], required: true },
-    //   awaited: { default: [], type: [TaskSchema], required: true },
-    //   in_progress: { default: [], type: [TaskSchema], required: true },
-    // },
-    // collection
-    // tasklist
-    // challenges: {
-    //   default: [],
-    //   type: [{ type: Schema.Types.ObjectId, ref: "Challenge" }],
-    //   required: true,
-    // },
+    achievements: { type: Schema.Types.ObjectId, ref: "Achievement" },
     refreshToken: { type: String },
   },
   { timestamps: true }
@@ -96,6 +87,7 @@ UserSchema.methods.toJSON = function () {
   const userDoc = this;
   const userObj = userDoc.toObject();
   delete userObj.tasks;
+  delete userObj.achievements;
   delete userObj.settings;
   delete userObj.password;
   delete userObj.refreshToken;

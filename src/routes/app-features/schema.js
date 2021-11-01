@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 
-// const { Schema } = mongoose;
-
 const FeatureSchema = new mongoose.Schema(
   {
     month: {
@@ -11,6 +9,7 @@ const FeatureSchema = new mongoose.Schema(
     descrip: { type: String, required: true },
     level: { type: Number, default: 0, required: true },
     value: { type: Number, default: 0, required: true },
+    image: { type: String }, // required: true when in production
   },
   { timestamps: true }
 );
@@ -25,10 +24,10 @@ FeatureSchema.static("findFeatures", async function (query) {
 });
 
 FeatureSchema.methods.toJSON = function () {
-  const userDoc = this;
-  const userObj = userDoc.toObject();
-  delete userObj.__v;
-  return userObj;
+  const featureDoc = this;
+  const featureObj = featureDoc.toObject();
+  delete featureObj.__v;
+  return featureObj;
 };
 
 export default FeatureSchema;

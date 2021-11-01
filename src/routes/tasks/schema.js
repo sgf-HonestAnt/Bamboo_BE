@@ -1,5 +1,12 @@
 import mongoose from "mongoose";
-import { AWAITED, NONE, SOLO, TASK_IMG, TASK_STATUS_TYPES, TASK_TYPES } from "../../utils/constants.js";
+import {
+  AWAITED,
+  NONE,
+  SOLO,
+  DEFAULT_TASK_IMG,
+  TASK_STATUS_TYPES,
+  TASK_TYPES,
+} from "../../utils/constants.js";
 
 const { Schema } = mongoose;
 
@@ -7,7 +14,7 @@ export const TaskSchema = new mongoose.Schema(
   {
     category: { type: String, required: true },
     title: { type: String, required: true },
-    image: { type: String, default: TASK_IMG },
+    image: { type: String, default: DEFAULT_TASK_IMG },
     desc: { type: String, required: true },
     type: {
       type: String,
@@ -28,26 +35,28 @@ export const TaskSchema = new mongoose.Schema(
   }
 );
 
-// TaskSchema.methods.toJSON = function () {
-//   const userDoc = this;
-//   const userObj = userDoc.toObject();
-//   delete userObj.__v;
-//   return userObj;
-// };
-
 const TaskListSchema = new mongoose.Schema({
   user: { type: Schema.Types.ObjectId, ref: "User" },
-  completed: { default: [], type: [{ type: Schema.Types.ObjectId, ref: "Task" }] },
-  awaited: { default: [], type: [{ type: Schema.Types.ObjectId, ref: "Task" }] },
-  in_progress: { default: [], type: [{ type: Schema.Types.ObjectId, ref: "Task" }] },
+  completed: {
+    default: [],
+    type: [{ type: Schema.Types.ObjectId, ref: "Task" }],
+  },
+  awaited: {
+    default: [],
+    type: [{ type: Schema.Types.ObjectId, ref: "Task" }],
+  },
+  in_progress: {
+    default: [],
+    type: [{ type: Schema.Types.ObjectId, ref: "Task" }],
+  },
 });
 
 TaskListSchema.methods.toJSON = function () {
-  const userDoc = this;
-  const userObj = userDoc.toObject();
-  delete userObj.user;
-  delete userObj.__v;
-  return userObj;
-}; 
+  const taskListDoc = this;
+  const taskListObj = taskListDoc.toObject();
+  delete taskListObj.user;
+  delete taskListObj.__v;
+  return taskListObj;
+};
 
 export default TaskListSchema;

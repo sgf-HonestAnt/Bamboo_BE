@@ -109,7 +109,7 @@ describe("💪 Testing basic user endpoints", () => {
       password: "jackryan",
     });
     expect(response.status).toBe(409);
-    expect(response.body.error).toBeDefined();
+    expect(response.body.message).toBe("USERNAME NOT AVAILABLE");
     expect(response.body.available).toBeDefined();
   });
 
@@ -127,7 +127,7 @@ describe("💪 Testing basic user endpoints", () => {
   it("should test that post /users/session endpoint returns 401 if bad credentials", async () => {
     const response = await request.post("/users/session").send(badBondLogin);
     expect(response.status).toBe(401);
-    expect(response.body.error).toBe("Credentials not accepted");
+    expect(response.body.message).toBe("CREDENTIALS NOT ACCEPTED");
   });
 
   // post "/users/session/refresh" tests
@@ -158,7 +158,7 @@ describe("💪 Testing basic user endpoints", () => {
       })
       .set({ Authorization: `Bearer ${vesper_token}` });
     expect(response.status).toBe(409);
-    expect(response.body.error).toBe("Email Exists");
+    expect(response.body.message).toBe("EMAIL NOT AVAILABLE");
   });
 
   // if there is more time for testing, implement:-
@@ -209,8 +209,8 @@ describe("💪 Testing advanced user endpoints", () => {
       .post(`/users/request/${joe_id}`)
       .set({ Authorization: `Bearer ${jane_token}` });
     expect(secondResponse.status).toBe(409);
-    expect(secondResponse.body.error).toBe(
-      "Duplicated requests are forbidden!"
+    expect(secondResponse.body.message).toBe(
+      "DUPLICATE REQUESTS ARE NOT ALLOWED"
     );
     await request
       .post(`/users/reject/${jane_id}`)
@@ -219,8 +219,8 @@ describe("💪 Testing advanced user endpoints", () => {
       .post(`/users/request/${joe_id}`)
       .set({ Authorization: `Bearer ${jane_token}` });
     expect(thirdResponse.status).toBe(409);
-    expect(thirdResponse.body.error).toBe(
-      "Rejected users can't request again!"
+    expect(thirdResponse.body.message).toBe(
+      "REJECTED USERS CANNOT MAKE REQUEST"
     );
   });
 
@@ -243,7 +243,7 @@ describe("💪 Testing advanced user endpoints", () => {
       .post(`/users/request/${_id}`)
       .set({ Authorization: `Bearer ${janeB_token}` });
     expect(response.status).toBe(404);
-    expect(response.body.error).toBe(`User ID ${_id} not found!`);
+    expect(response.body.message).toBe(`USER ${_id} NOT FOUND`);
   });
 
   it("should test that post /users/request/id endpoint returns 409 if user requests own ID", async () => {
@@ -255,7 +255,7 @@ describe("💪 Testing advanced user endpoints", () => {
       .post(`/users/request/${_id}`)
       .set({ Authorization: `Bearer ${accessToken}` });
     expect(response.status).toBe(409);
-    expect(response.body.error).toBe(`User IDs cannot be a match!`);
+    expect(response.body.message).toBe(`USERS IDS CANNOT MATCH`);
   });
 
   it("should test that post /users/reject/id endpoint is OK and that it returns 409 if ID not awaited", async () => {
@@ -277,7 +277,7 @@ describe("💪 Testing advanced user endpoints", () => {
       .post(`/users/reject/${trevelyan_id}`)
       .set({ Authorization: `Bearer ${drNo_token}` });
     expect(secondResponse.status).toBe(409);
-    expect(secondResponse.body.error).toBe(`User ID must exist in Awaited`);
+    expect(secondResponse.body.message).toBe(`USER ID MUST BE AWAITED`);
   });
 
   it("should test that post /users/accept/id endpoint is OK and that it returns 409 if ID already accepted", async () => {
@@ -299,7 +299,7 @@ describe("💪 Testing advanced user endpoints", () => {
       .post(`/users/accept/${henchman_id}`)
       .set({ Authorization: `Bearer ${henchwoman_token}` });
     expect(secondResponse.status).toBe(409);
-    expect(secondResponse.body.error).toBe(`User ID must exist in Awaited`);
+    expect(secondResponse.body.message).toBe(`USER ID MUST EXIST IN AWAITED`);
   });
 });
 
