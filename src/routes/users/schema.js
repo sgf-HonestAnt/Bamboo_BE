@@ -29,7 +29,6 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true },
     admin: { type: Boolean, required: false },
     settings: {
-      // difficulty: { type: Number },
       selectedTheme: {
         type: String,
         default: LIGHT_MODE,
@@ -37,7 +36,6 @@ const UserSchema = new mongoose.Schema(
         required: true,
       },
     },
-    // achievements
     followedUsers: {
       response_awaited: {
         default: [],
@@ -62,13 +60,6 @@ const UserSchema = new mongoose.Schema(
     },
     tasks: { type: Schema.Types.ObjectId, ref: "TaskList" },
     achievements: { type: Schema.Types.ObjectId, ref: "Achievement" },
-    // collection
-    // tasklist
-    // challenges: {
-    //   default: [],
-    //   type: [{ type: Schema.Types.ObjectId, ref: "Challenge" }],
-    //   required: true,
-    // },
     refreshToken: { type: String },
   },
   { timestamps: true }

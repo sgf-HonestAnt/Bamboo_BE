@@ -11,10 +11,8 @@ const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
       ? await followedUsers.requested.push(ID.toString())
       : addToList === "accepted"
       ? await followedUsers.accepted.push(ID)
-      : // if all else fails, followedUsers must be "rejected"
-        await followedUsers.rejected.push(ID.toString());
+      : await followedUsers.rejected.push(ID.toString());
   }
-  // optionally, remove from second list
   if (removeFromList) {
     console.log("🔸remove ID From List", removeFromList);
     let list;
@@ -28,8 +26,7 @@ const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
         ))
       : removeFromList === "accepted"
       ? (list = await followedUsers.accepted.filter((el) => el !== ID))
-      : // if all else fails, followedUsers must be "rejected"
-        (list = await followedUsers.rejected.filter(
+      : (list = await followedUsers.rejected.filter(
           (el) => el !== ID.toString()
         ));
     followedUsers = { ...followedUsers, [removeFromList]: list };

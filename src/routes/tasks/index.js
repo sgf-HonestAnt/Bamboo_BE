@@ -1,20 +1,19 @@
 import express from "express";
-import mongoose from "mongoose";
 import { TaskModel } from "./model.js";
 import TaskListModel from "../tasks/model.js";
 import q2m from "query-to-mongo";
 import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
+import { MY_FOLDER } from "../../utils/constants.js";
+import { getResizedFilePath } from "../../utils/task-funcs/taskFilePath.js";
 import {
   createSharedArray,
   removeFromTaskList,
   updateTaskList,
   updateTaskListWithStatus,
 } from "../../utils/route-funcs/tasks.js";
-import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
-import { MY_FOLDER } from "../../utils/constants.js";
-import { getResizedFilePath } from "../../utils/task-funcs/taskFilePath.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -32,28 +31,22 @@ TaskRoute.post(
   async (req, res, next) => {
     console.log(`💠 POST ${route} (single task)`);
     try {
-      // first, let's deal with the sharedWith array
       const sharedWith = createSharedArray(req.body.sharedWith, req.user._id);
-      // next, create the task
       const newTask = new TaskModel({
         createdBy: req.user._id,
         ...req.body,
         sharedWith,
       });
-      // add file path if image was included
       if (req.file) {
         const filePath = await getResizedFilePath(req.file.path)
         newTask.image = filePath;
       }
-      // check the task we created
-      console.log("TASK=>", newTask);
       const { _id } = await newTask.save();
       if (!_id) {
         console.log({
           message: "💀TASK NOT SAVED",
           task: newTask,
         });
-        // then add it to ALL the users' tasklists
       } else {
         const updateAllLists = await newTask.sharedWith.map((user_id) => {
           const updated = updateTaskList(user_id, newTask.status, newTask);
@@ -113,10 +106,8 @@ TaskRoute.post(
         if (!foundTask) {
           res.status(404).send(`Task with id ${t_id} not found`);
         } else {
-          // check if the status has changed
           const changeOfStatus = status ? status !== foundTask.status : false;
           console.log("status changed:", changeOfStatus);
-          // update and save the task
           const filter = { _id: t_id };
           const update = { ...req.body };
           if (req.file) {
@@ -170,8 +161,6 @@ TaskRoute.post(
         const deletedTask = await TaskModel.findByIdAndDelete(t_id);
         console.log("deleted task...")
         if (deletedTask) {
-          // save change to DB
-          // I need to delete it from all tasklists too!!!
           const updateAllLists = await foundTask.sharedWith.map((user_id) => {
             const updated = removeFromTaskList(user_id, status, t_id);
             return updated; // ❗ CastError: Cast to ObjectId failed for value "0" (type number) at path "completed"

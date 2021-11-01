@@ -1,11 +1,8 @@
 import express from "express";
-import mongoose from "mongoose";
 // import ChallengeModel from "./model.js";
 import q2m from "query-to-mongo";
 import createHttpError from "http-errors";
 import multer from "multer";
-// import generator from "../../utils/generator.js";
-// import shuffle from "../../utils/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
@@ -15,8 +12,6 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: { folder: MY_FOLDER },
 });
-
-// add image capability
 
 const ChallengeRoute = express.Router();
 

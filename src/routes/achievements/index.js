@@ -1,5 +1,4 @@
 import express from "express";
-import mongoose from "mongoose";
 import AchievementModel from "./model.js";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
 
@@ -56,20 +55,5 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
       next(e);
     }
   })
-// ARE THERE ANY CIRCUMSTANCES WHERE THESE WILL BE NECESSARY?
-// .put("/", async (req, res, next) => {
-//   console.log("PUT", route);
-//   try {
-//   } catch (e) {
-//     next(e);
-//   }
-// })
-// .delete("/", async (req, res, next) => {
-//   console.log("DELETE", route);
-//   try {
-//   } catch (e) {
-//     next(e);
-//   }
-// });
 
 export default AchievementRoute;

@@ -2,17 +2,17 @@ import express from "express";
 import mongoose from "mongoose";
 import UserModel from "./model.js";
 import TaskListModel from "../tasks/model.js";
+import AchievementModel from "../achievements/model.js";
 import q2m from "query-to-mongo";
 import multer from "multer";
-import generator from "../../utils/user-funcs/generator.js";
-import shuffle from "../../utils/user-funcs/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import { generateTokens, refreshTokens } from "../../auth/tools.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
-import AchievementModel from "../achievements/model.js";
 import { MY_FOLDER } from "../../utils/constants.js";
+import generator from "../../utils/user-funcs/generator.js";
+import shuffle from "../../utils/user-funcs/shuffle.js";
 import { getCroppedFilePath } from "../../utils/user-funcs/userFilePath.js";
+import { generateTokens, refreshTokens } from "../../auth/tools.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -55,15 +55,11 @@ UserRoute
         if (!newUser) {
           console.log({ message: "💀USER NOT SAVED", user: req.body });
         } else {
-          // generate tokens
           const { accessToken, refreshToken } = await generateTokens(newUser);
-          // generate tasklist and achievements
           const newTaskList = new TaskListModel({ user: _id });
           const tasklist = await newTaskList.save();
-          //const tasklist_id = tasklist._id;
           const newAchievements = new AchievementModel({ user: _id });
           const achievements = await newAchievements.save();
-          //const achievements_id = achievements._id
           if (!tasklist._id) {
             console.log({
               message: "💀TASKLIST  NOT SAVED",
@@ -75,7 +71,6 @@ UserRoute
               tasks: newAchievements,
             });
           } else {
-            // update user in order to populate tasklist and achievements
             const update = {
               tasks: tasklist._id,
               achievements: achievements._id,
@@ -135,7 +130,6 @@ UserRoute
         if (!_id) {
           console.log({ message: "💀USER NOT SAVED", user: req.body });
         } else {
-          // generate tasklist and achievements
           const newTasklist = new TaskListModel({ user: _id });
           const tasklist = await newTasklist.save();
           const newAchievements = new AchievementModel({ user: _id });
@@ -151,7 +145,6 @@ UserRoute
               tasks: newAchievements,
             });
           } else {
-            // update user in order to populate tasklist and achievements
             const update = {
               tasks: tasklist._id,
               achievements: achievements._id,
@@ -176,10 +169,6 @@ UserRoute
   // ✅
   .post("/request/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     console.log("🔸REQUEST TO FOLLOW", route);
-    // the sender wants to send a 'follow' request to sendee
-    // they can only do this if sendee's id is not in their rejected list
-    // in sender's list, sendee's id will be added to "requested"
-    // in sendee's list, sender's id will be added to "response_awaited"
     try {
       const sender = req.user;
       const { u_id } = req.params;
@@ -335,7 +324,6 @@ UserRoute
     try {
       const query = q2m(req.query);
       const { total, users } = await UserModel.findUsers(query);
-      // but I don't want to share their followedUsers, so:-
       const publicUsers = await users.map((u) => ({
         _id: u._id,
         username: u.username,
@@ -361,7 +349,6 @@ UserRoute
     try {
       const { u_id } = req.params;
       const user = await UserModel.findById(u_id);
-      // but I don't want to share their followedUsers, so:-
       user.followedUsers = undefined;
       res.send(user);
     } catch (e) {
