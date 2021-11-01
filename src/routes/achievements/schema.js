@@ -5,8 +5,9 @@ const { Schema } = mongoose;
 const SingleAchievementSchema = new mongoose.Schema(
   {
     item: { type: String },
+    createdAt: { type: Date }
   },
-  { timestamps: true }
+  { timestamps: false }
 );
 
 const AchievementSchema = new mongoose.Schema(
@@ -19,10 +20,20 @@ const AchievementSchema = new mongoose.Schema(
   }
 );
 
+SingleAchievementSchema.methods.toJSON = function () {
+  const singleAchievementDoc = this;
+  const singleAchievementObj = singleAchievementDoc.toObject();
+  delete singleAchievementObj.updatedAt;
+  return singleAchievementObj;
+};
+
 AchievementSchema.methods.toJSON = function () {
   const achievementDoc = this;
   const achievementObj = achievementDoc.toObject();
+  delete achievementObj.createdAt;
+  delete achievementObj.updatedAt;
   delete achievementObj._v;
+  delete achievementObj.__v;
   return achievementObj;
 };
 

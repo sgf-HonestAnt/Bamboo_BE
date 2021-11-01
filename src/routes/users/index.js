@@ -146,7 +146,7 @@ UserRoute
             });
           } else {
             // update user in order to populate tasklist
-            // ADD ACHIEVEMENTS AS IN /register!!!
+            // ❗ ADD ACHIEVEMENTS AS IN /register!!!
             const update = { tasks: tasklist_id };
             const filter = { _id };
             const updatedUser = await UserModel.findOneAndUpdate(
@@ -386,7 +386,7 @@ UserRoute
         } else {
           const update = { ...req.body };
           if (req.file) {
-            const filePath = await getCroppedFilePath(req.file.path)
+            const filePath = await getCroppedFilePath(req.file.path);
             update.avatar = filePath;
           }
           const filter = { _id: req.user._id };
@@ -429,7 +429,7 @@ UserRoute
         } else {
           const update = { ...req.body };
           if (req.file) {
-            const filePath = await getCroppedFilePath(req.file.path)
+            const filePath = await getCroppedFilePath(req.file.path);
             update.avatar = filePath;
           }
           const filter = { _id: u_id };
@@ -478,6 +478,8 @@ UserRoute
       const { u_id } = req.params;
       const deletedUser = await UserModel.findByIdAndDelete(u_id);
       if (deletedUser) {
+        await TaskListModel.findOneAndDelete({ user: u_id });
+        await AchievementModel.findOneAndDelete({ user: u_id });
         res.status(204).send();
       } else {
         res.status(404).send(`💀USER ID_${u_id} NOT FOUND`);

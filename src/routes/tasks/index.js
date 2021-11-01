@@ -30,7 +30,7 @@ TaskRoute.post(
   JWT_MIDDLEWARE,
   multer({ storage }).single("image"),
   async (req, res, next) => {
-    console.log("💠 POST", route);
+    console.log(`💠 POST ${route} (single task)`);
     try {
       // first, let's deal with the sharedWith array
       const sharedWith = createSharedArray(req.body.sharedWith, req.user._id);
@@ -71,7 +71,7 @@ TaskRoute.post(
   }
 )
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("💠 GET", route);
+    console.log(`💠 GET ${route} (all tasks)`);
     try {
       const tasks = await TaskListModel.findOne({
         user: req.user._id,
@@ -86,7 +86,7 @@ TaskRoute.post(
     }
   })
   .get("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("💠GET", route);
+    console.log(`💠GET ${route} (single task)`);
     try {
       const { t_id } = req.params;
       const task = await TaskModel.findById(t_id);
@@ -104,7 +104,7 @@ TaskRoute.post(
     JWT_MIDDLEWARE,
     multer({ storage }).single("image"),
     async (req, res, next) => {
-      console.log("💠 PUT", route);
+      console.log(`💠 PUT ${route} (single task)`);
       try {
         const { t_id } = req.params;
         const { status } = req.body;
@@ -158,7 +158,7 @@ TaskRoute.post(
     }
   )
   .delete("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
-    console.log("💠 DELETE", route);
+    console.log(`💠 DELETE ${route} (single task)`);
     try {
       const { t_id } = req.params;
       const foundTask = await TaskModel.findById(t_id);
@@ -174,7 +174,7 @@ TaskRoute.post(
           // I need to delete it from all tasklists too!!!
           const updateAllLists = await foundTask.sharedWith.map((user_id) => {
             const updated = removeFromTaskList(user_id, status, t_id);
-            return updated; // CastError: Cast to ObjectId failed for value "0" (type number) at path "completed"
+            return updated; // ❗ CastError: Cast to ObjectId failed for value "0" (type number) at path "completed"
           });
           if (updateAllLists) {
             res.status(204).send();

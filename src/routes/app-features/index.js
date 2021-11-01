@@ -4,8 +4,6 @@ import FeatureModel from "./model.js";
 import q2m from "query-to-mongo";
 import createHttpError from "http-errors";
 import multer from "multer";
-// import generator from "../../utils/generator.js";
-// import shuffle from "../../utils/shuffle.js";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
@@ -16,14 +14,14 @@ const storage = new CloudinaryStorage({
   params: { folder: MY_FOLDER },
 });
 
-// add IMAGE capabilities
+// ❗ add IMAGE capabilities
 
 const FeatureRoute = express.Router();
 
 const route = "app-features";
 
 FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
-  console.log("◻️POST", route);
+  console.log(`◻️POST ${route} (single feature)`);
   try {
     const newFeature = new FeatureModel(req.body);
     const { _id } = await newFeature.save();
@@ -33,7 +31,7 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
   }
 })
   .get("/", async (req, res, next) => {
-    console.log("◻️GET", route);
+    console.log(`◻️GET ${route} (all features)`);
     try {
       const query = q2m(req.query);
       const { total, features } = await FeatureModel.findFeatures(query);
@@ -48,7 +46,7 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
     }
   })
   .put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log("◻️PUT", route);
+    console.log(`◻️PUT ${route} (single feature)`);
     try {
       const { _id } = req.params;
       const update = { ...req.body };
@@ -71,7 +69,7 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
     }
   })
   .delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log("◻️DELETE", route);
+    console.log(`◻️DELETE ${route} (single feature)`);
     try {
       const { _id } = req.params;
       const deletedFeature = await FeatureModel.findByIdAndDelete(_id);
