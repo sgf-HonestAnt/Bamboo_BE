@@ -12,6 +12,7 @@ import { generateTokens, refreshTokens } from "../../auth/tools.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 import AchievementModel from "../achievements/model.js";
 import { MY_FOLDER } from "../../utils/constants.js";
+import { getCroppedFilePath } from "../../utils/user-funcs/filePath.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -61,7 +62,7 @@ UserRoute
           const tasklist = await newTaskList.save();
           //const tasklist_id = tasklist._id;
           const newAchievements = new AchievementModel({ user: _id });
-          const achievements = await newAchievements.save()
+          const achievements = await newAchievements.save();
           //const achievements_id = achievements._id
           if (!tasklist._id) {
             console.log({
@@ -306,7 +307,9 @@ UserRoute
     console.log("🔸GET ME");
     try {
       const { _id } = req.user;
-      const me = await UserModel.findById(_id).populate("followedUsers.accepted"); 
+      const me = await UserModel.findById(_id).populate(
+        "followedUsers.accepted"
+      );
       // ❗
       // CHANGE SO DOES NOT POPULATE
       // followedUsers, settings, email, first_name, last_name, password, refreshToken, _v, or updatedAt
@@ -383,7 +386,8 @@ UserRoute
         } else {
           const update = { ...req.body };
           if (req.file) {
-            update.avatar = req.file.path;
+            const filePath = await getCroppedFilePath(req.file.path)
+            update.avatar = filePath;
           }
           const filter = { _id: req.user._id };
           const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
@@ -425,7 +429,8 @@ UserRoute
         } else {
           const update = { ...req.body };
           if (req.file) {
-            update.avatar = req.file.path;
+            const filePath = await getCroppedFilePath(req.file.path)
+            update.avatar = filePath;
           }
           const filter = { _id: u_id };
           const updatedUser = await UserModel.findOneAndUpdate(filter, update, {

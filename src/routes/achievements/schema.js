@@ -2,10 +2,17 @@ import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
+const SingleAchievementSchema = new mongoose.Schema(
+  {
+    item: { type: String },
+  },
+  { timestamps: true }
+);
+
 const AchievementSchema = new mongoose.Schema(
   {
     user: { type: Schema.Types.ObjectId, ref: "User" },
-    list: { default: [], type: [{ type: String }] },
+    list: { default: [], type: [SingleAchievementSchema] },
   },
   {
     timestamps: false,

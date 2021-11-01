@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 // import { TaskSchema } from "../tasks/schema.js";
 import {
+  DEFAULT_USER_IMG,
   LIGHT_MODE,
   NEW_BIO,
   THEMES,
-  USER_IMG,
 } from "../../utils/constants.js";
 
 const { Schema } = mongoose;
@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
-    avatar: { type: String, default: USER_IMG, required: true },
+    avatar: { type: String, default: DEFAULT_USER_IMG, required: true },
     bio: { type: String, default: NEW_BIO, required: true },
     level: { type: Number, default: 0, required: true },
     xp: { type: Number, default: 0, required: true },
