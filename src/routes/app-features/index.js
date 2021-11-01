@@ -8,6 +8,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 import { MY_FOLDER } from "../../utils/constants.js";
+import { getResizedFilePath } from "../../utils/feature-funcs/featureFilePath.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -20,10 +21,14 @@ const FeatureRoute = express.Router();
 
 const route = "app-features";
 
-FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
-  console.log(`◻️POST ${route} (single feature)`);
+FeatureRoute.post("/", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), async (req, res, next) => {
+  console.log(`◻️ POST ${route} (single feature)`);
   try {
     const newFeature = new FeatureModel(req.body);
+    if (req.file) {
+      const filePath = await getResizedFilePath(req.file.path)
+      newFeature.image = filePath;
+    }
     const { _id } = await newFeature.save();
     res.status(201).send({ _id });
   } catch (e) {
@@ -31,7 +36,7 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
   }
 })
   .get("/", async (req, res, next) => {
-    console.log(`◻️GET ${route} (all features)`);
+    console.log(`◻️ GET ${route} (all features)`);
     try {
       const query = q2m(req.query);
       const { total, features } = await FeatureModel.findFeatures(query);
@@ -45,11 +50,15 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
       next(e);
     }
   })
-  .put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log(`◻️PUT ${route} (single feature)`);
+  .put("/:_id", ADMIN_MIDDLEWARE, multer({ storage }).single("image"), async (req, res, next) => {
+    console.log(`◻️ PUT ${route} (single feature)`);
     try {
       const { _id } = req.params;
       const update = { ...req.body };
+      if (req.file) {
+        const filePath = await getResizedFilePath(req.file.path)
+        update.image = filePath;
+      }
       const filter = { _id };
       const updatedFeature = await FeatureModel.findOneAndUpdate(
         filter,
@@ -69,7 +78,7 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
     }
   })
   .delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-    console.log(`◻️DELETE ${route} (single feature)`);
+    console.log(`◻️ DELETE ${route} (single feature)`);
     try {
       const { _id } = req.params;
       const deletedFeature = await FeatureModel.findByIdAndDelete(_id);

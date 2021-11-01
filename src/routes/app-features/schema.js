@@ -11,6 +11,7 @@ const FeatureSchema = new mongoose.Schema(
     descrip: { type: String, required: true },
     level: { type: Number, default: 0, required: true },
     value: { type: Number, default: 0, required: true },
+    image: { type: String }, // required: true when in production
   },
   { timestamps: true }
 );

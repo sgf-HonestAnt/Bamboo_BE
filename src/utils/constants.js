@@ -35,6 +35,8 @@ export const TASK_REPEAT_TYPES = [
 export const TASK_IMG = "default_task_nv0jcq.jpg";
 export const TASK_RESIZE_IMG = `${cloud}/${scalew800}`;
 export const DEFAULT_TASK_IMG = `${TASK_RESIZE_IMG}/${FARM}/${TASK_IMG}`;
+// features
+export const FEATURE_RESIZE_IMG = `${cloud}/${scalew800}`;
 // challenges
 export const CHALL_IMG = `${cloud}/${scalew800}/${FARM}/default_task_nv0jcq.jpg`;
 // settings
