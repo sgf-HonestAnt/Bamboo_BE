@@ -13,10 +13,11 @@ import {
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
+import { MY_FOLDER } from "../../utils/constants.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: { folder: "capstone_users" },
+  params: { folder: MY_FOLDER },
 });
 
 const TaskRoute = express.Router();

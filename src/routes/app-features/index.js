@@ -9,6 +9,14 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
+import { MY_FOLDER } from "../../utils/constants.js";
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: { folder: MY_FOLDER },
+});
+
+// add IMAGE capabilities
 
 const FeatureRoute = express.Router();
 
@@ -23,55 +31,58 @@ FeatureRoute.post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
   } catch (e) {
     next(e);
   }
-});
-
-FeatureRoute.get("/", async (req, res, next) => {
-  console.log("◻️GET", route);
-  try {
-    const query = q2m(req.query);
-    const { total, features } = await FeatureModel.findFeatures(query);
-    res.send({
-      links: query.links("/features", total),
-      total,
-      features,
-      pageTotal: Math.ceil(total / query.options.limit),
-    });
-  } catch (e) {
-    next(e);
-  }
-});
-FeatureRoute.put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-  console.log("◻️PUT", route);
-  try {
-    const { _id } = req.params;
-    const update = { ...req.body };
-    const filter = { _id };
-    const updatedFeature = await FeatureModel.findOneAndUpdate(filter, update, {
-      returnOriginal: false,
-    });
-    await updatedFeature.save();
-    if (updatedFeature) {
-      res.status(200).send(updatedFeature);
-    } else {
-      next(createHttpError(404, `💀FEATURE ID_${_id} NOT FOUND`));
+})
+  .get("/", async (req, res, next) => {
+    console.log("◻️GET", route);
+    try {
+      const query = q2m(req.query);
+      const { total, features } = await FeatureModel.findFeatures(query);
+      res.send({
+        links: query.links("/features", total),
+        total,
+        features,
+        pageTotal: Math.ceil(total / query.options.limit),
+      });
+    } catch (e) {
+      next(e);
     }
-  } catch (e) {
-    next(e);
-  }
-});
-FeatureRoute.delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
-  console.log("◻️DELETE", route);
-  try {
-    const { _id } = req.params;
-    const deletedFeature = await FeatureModel.findByIdAndDelete(_id);
-    if (deletedFeature) {
-      res.status(204).send();
-    } else {
-      next(createHttpError(404, `💀FEATURE ID_${_id} NOT FOUND`));
+  })
+  .put("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
+    console.log("◻️PUT", route);
+    try {
+      const { _id } = req.params;
+      const update = { ...req.body };
+      const filter = { _id };
+      const updatedFeature = await FeatureModel.findOneAndUpdate(
+        filter,
+        update,
+        {
+          returnOriginal: false,
+        }
+      );
+      await updatedFeature.save();
+      if (updatedFeature) {
+        res.status(200).send(updatedFeature);
+      } else {
+        next(createHttpError(404, `💀FEATURE ID_${_id} NOT FOUND`));
+      }
+    } catch (e) {
+      next(e);
     }
-  } catch (e) {
-    next(e);
-  }
-});
+  })
+  .delete("/:_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
+    console.log("◻️DELETE", route);
+    try {
+      const { _id } = req.params;
+      const deletedFeature = await FeatureModel.findByIdAndDelete(_id);
+      if (deletedFeature) {
+        res.status(204).send();
+      } else {
+        next(createHttpError(404, `💀FEATURE ID_${_id} NOT FOUND`));
+      }
+    } catch (e) {
+      next(e);
+    }
+  });
 
 export default FeatureRoute;

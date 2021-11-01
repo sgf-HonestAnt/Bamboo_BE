@@ -11,10 +11,11 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { generateTokens, refreshTokens } from "../../auth/tools.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 import AchievementModel from "../achievements/model.js";
+import { MY_FOLDER } from "../../utils/constants.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: { folder: "capstone_users" },
+  params: { folder: MY_FOLDER },
 });
 
 const generateNames = async (username) => {

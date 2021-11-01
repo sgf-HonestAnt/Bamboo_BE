@@ -9,6 +9,14 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
+import { MY_FOLDER } from "../../utils/constants.js";
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: { folder: MY_FOLDER },
+});
+
+// add image capability
 
 const ChallengeRoute = express.Router();
 
