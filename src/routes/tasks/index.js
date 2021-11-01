@@ -1,7 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
-import { TaskModel } from "./model.js";
 import TaskListModel from "../tasks/model.js";
+import { TaskModel } from "./model.js";
 import q2m from "query-to-mongo";
 import multer from "multer";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
@@ -12,7 +12,7 @@ import {
   removeFromTaskList,
   updateTaskList,
   updateTaskListWithStatus,
-  addXP,
+  addXP
 } from "../../utils/route-funcs/tasks.js";
 
 const TaskRoute = express.Router();
@@ -128,19 +128,6 @@ TaskRoute.post(
             );
             if (updateAllListsWithStatus) {
               if (updatedTask.status === "completed") {
-                console.log("COMPLETED!")
-                const addXP = async (_id, taskValue) => {
-                  const user = await UserModel.findById(_id);
-                  console.log(user) 
-                  const xp = user.xp + taskValue;
-                  console.log(xp)
-                  const updatedUser = await UserModel.findByIdAndUpdate(
-                    _id,
-                    { xp },
-                    { new: true, runValidators: true }
-                  );
-                  return updatedUser
-                };
                 await addXP(req.user._id, foundTask.value);
               }
               console.log("UPDATED TASK BY ID");

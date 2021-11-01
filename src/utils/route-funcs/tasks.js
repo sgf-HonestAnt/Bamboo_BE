@@ -1,4 +1,5 @@
 import TaskListModel from "../../routes/tasks/model.js";
+import UserModel from "../../routes/users/model.js";
 import { TASK_RESIZE_IMG } from "../constants.js";
 
 export const getTaskFilePath = (path) => {
@@ -58,9 +59,7 @@ export const updateTaskListWithStatus = async (
 
 export const addXP = async (_id, taskValue) => {
   const user = await UserModel.findById(_id);
-  console.log(user)
   const xp = user.xp + taskValue;
-  console.log(xp)
   const updatedUser = await UserModel.findByIdAndUpdate(
     _id,
     { xp },
