@@ -286,9 +286,9 @@ UserRoute.post("/register", async (req, res, next) => {
       );
       const acceptedUsers = my_user.followedUsers.accepted;
       let arrayOfPublicUsers = [];
-      await getPublicUsers(acceptedUsers, arrayOfPublicUsers);
+      const array = await getPublicUsers(acceptedUsers, arrayOfPublicUsers);
       my_user.followedUsers = undefined;
-      const self = { my_user, followedUsers: arrayOfPublicUsers };
+      const self = { my_user, followedUsers: array };
       console.log("FETCHED USER");
       res.send(self);
     } catch (e) {
