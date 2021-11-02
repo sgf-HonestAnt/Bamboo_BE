@@ -27,7 +27,13 @@ export const nameGenerator = async (username) => {
   return altNames;
 };
 
-export const shuffle = async (ID, _id, user, addToList, removeFromList = null) => {
+export const shuffle = async (
+  ID,
+  _id,
+  user,
+  addToList,
+  removeFromList = null
+) => {
   let { followedUsers } = user;
   // add to list
   if (addToList) {
@@ -68,6 +74,8 @@ export const shuffle = async (ID, _id, user, addToList, removeFromList = null) =
 };
 
 export const getPublicUsers = async (users, array) => {
+  console.log(users.length);
+  console.log(array.length);
   for (let i = 0; i < users.length; i++) {
     const user = await UserModel.findById(users[i]._id).populate(
       "achievements"
@@ -81,8 +89,9 @@ export const getPublicUsers = async (users, array) => {
       xp: user.xp,
       achievements: user.achievements.list,
     });
-    return;
   }
+  console.log(array.length);
+  return array;
 };
 
 export const getUserFilePath = (path) => {

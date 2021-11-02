@@ -22,7 +22,7 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
-    avatar: { type: String, default: DEFAULT_USER_IMG, required: true },
+    avatar: { type: String, default: DEFAULT_USER_IMG, required: true }, 
     bio: { type: String, default: NEW_BIO, required: true },
     level: { type: Number, default: 0, required: true },
     xp: { type: Number, default: 0, required: true },
@@ -90,7 +90,6 @@ UserSchema.methods.toJSON = function () {
   delete userObj.achievements;
   delete userObj.settings;
   delete userObj.password;
-  delete userObj.refreshToken;
   delete userObj.__v;
   return userObj;
 };
