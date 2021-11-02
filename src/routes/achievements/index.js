@@ -31,7 +31,7 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
         user: req.user._id,
       });
       console.log("FETCHED ACHIEVEMENTS");
-      res.status(200).send({ achievements });
+      res.status(200).send(achievements);
     } catch (e) {
       next(e);
     }
