@@ -83,7 +83,6 @@ UserRoute.post("/register", async (req, res, next) => {
       next(e);
     }
   })
-  //*********************************************************************
   .post("/session/refresh", async (req, res, next) => {
     try {
       const { actualRefreshToken } = req.body;
@@ -96,14 +95,13 @@ UserRoute.post("/register", async (req, res, next) => {
       next(e);
     }
   })
-  //*********************************************************************
   .post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
     try {
       const { email, username } = req.body;
       const emailIsDuplicate = await UserModel.findOne({ email });
       const usernameIsDuplicate = await UserModel.findOne({ username });
       if (emailIsDuplicate) {
-        res.status(409).send({ error: `EMAIL NOT AVAILABLE` });
+        res.status(409).send({ message: `EMAIL NOT AVAILABLE` });
       } else if (usernameIsDuplicate) {
         const available = await nameGenerator(username);
         res.status(409).send({ message: `USERNAME NOT AVAILABLE`, available });
@@ -297,6 +295,17 @@ UserRoute.post("/register", async (req, res, next) => {
       next(e);
     }
   })
+  .get("/me/settings", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      const user_id = req.user._id;
+      const my_user = await UserModel.findById(user_id);
+      const settings = my_user.settings;
+      console.log("FETCHED USER SETTINGS");
+      res.send(settings);
+    } catch (e) {
+      next(e);
+    }
+  })
   .get("/", async (req, res, next) => {
     try {
       const query = q2m(req.query);
@@ -376,6 +385,19 @@ UserRoute.post("/register", async (req, res, next) => {
       }
     }
   )
+  .put("/me/settings", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      const { _id } = req.user;
+      const update = { settings: req.body };
+      const { settings } = await UserModel.findByIdAndUpdate(_id, update, {
+        returnOriginal: false,
+      });
+      console.log("UPDATED USER SETTINGS");
+      res.send(settings);
+    } catch (e) {
+      next(e);
+    }
+  })
   .put(
     "/:u_id",
     ADMIN_MIDDLEWARE,
