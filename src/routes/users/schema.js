@@ -90,7 +90,6 @@ UserSchema.methods.toJSON = function () {
   delete userObj.achievements;
   delete userObj.settings;
   delete userObj.password;
-  delete userObj.refreshToken;
   delete userObj.__v;
   return userObj;
 };
