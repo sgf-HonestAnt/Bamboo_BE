@@ -4,8 +4,9 @@ const { Schema } = mongoose;
 
 const SingleAchievementSchema = new mongoose.Schema(
   {
+    username: { type: String },
     item: { type: String },
-    createdAt: { type: Date }
+    createdAt: { type: Date },
   },
   { timestamps: false }
 );

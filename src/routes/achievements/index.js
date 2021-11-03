@@ -6,10 +6,14 @@ const AchievementRoute = express.Router();
 
 AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   try {
-    const { _id } = await AchievementModel.findOne({ user: req.user._id });
+    const { username } = req.user;
+    const { _id } = await AchievementModel.findOne({
+      user: req.user._id,
+    });
     if (_id) {
-      const dateTime = new Date();
-      const item = { item: req.body.item, createdAt: dateTime };
+      const createdAt = new Date();
+      const item = { username, item: req.body.item, createdAt };
+      console.log(username);
       const updateAchievements = await AchievementModel.findByIdAndUpdate(
         _id,
         {
