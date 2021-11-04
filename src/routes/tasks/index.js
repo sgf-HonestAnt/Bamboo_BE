@@ -99,7 +99,7 @@ TaskRoute.post(
         } else {
           const changeOfStatus = status ? status !== foundTask.status : false;
           const filter = { _id: t_id };
-          const update = { ...req.body };
+          const update = { ...req.body }; 
           if (req.file) {
             const filePath = await getTaskFilePath(req.file.path);
             update.image = filePath;
@@ -108,6 +108,7 @@ TaskRoute.post(
             returnOriginal: false,
           });
           await updatedTask.save();
+          console.log(updatedTask)
           if (!updatedTask) {
             console.log("💀SOMETHING WENT WRONG...");
           } else if (!changeOfStatus) {
