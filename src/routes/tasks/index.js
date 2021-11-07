@@ -12,7 +12,7 @@ import {
   removeFromTaskList,
   updateTaskList,
   updateTaskListWithStatus,
-  addXP
+  addXP,
 } from "../../utils/route-funcs/tasks.js";
 
 const TaskRoute = express.Router();
@@ -23,6 +23,7 @@ TaskRoute.post(
   multer({ storage }).single("image"),
   async (req, res, next) => {
     try {
+      console.log("💠 POST TASK");
       const sharedWith = createSharedArray(req.body.sharedWith, req.user._id);
       const newTask = new TaskModel({
         createdBy: req.user._id,
@@ -33,15 +34,34 @@ TaskRoute.post(
         const filePath = await getTaskFilePath(req.file.path);
         newTask.image = filePath;
       }
-      const { _id } = await newTask.save();
+      const { _id, category } = await newTask.save();
       if (!_id) {
         console.log({
           message: "💀TASK NOT SAVED",
           task: newTask,
         });
       } else {
+        // add category to array if it doesn't already exist
+        const { categories } = await TaskListModel.findOne({
+          user: req.user._id,
+        });
+        if (!categories.includes(category)) {
+          const filter = { user: req.user._id };
+          const update = {
+            $push: { categories: category },
+          };
+          await TaskListModel.findOneAndUpdate(filter, update, {
+            returnOriginal: false,
+          });
+        }
+        // update all lists
         const updateAllLists = await newTask.sharedWith.map((user_id) => {
-          const updated = updateTaskList(user_id, newTask.status, newTask);
+          const updated = updateTaskList(
+            user_id,
+            newTask.status,
+            newTask,
+            category
+          );
           return updated;
         });
         if (updateAllLists) {
@@ -58,6 +78,7 @@ TaskRoute.post(
 )
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 GET TASKS");
       const my_tasks = await TaskListModel.findOne({
         user: req.user._id,
       }).populate("completed awaited in_progress");
@@ -73,6 +94,7 @@ TaskRoute.post(
   })
   .get("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 GET TASK");
       const { t_id } = req.params;
       const task = await TaskModel.findById(t_id);
       if (!task) {
@@ -91,6 +113,7 @@ TaskRoute.post(
     multer({ storage }).single("image"),
     async (req, res, next) => {
       try {
+        console.log("💠 PUT TASK");
         const { t_id } = req.params;
         const { status } = req.body;
         const foundTask = await TaskModel.findById(t_id);
@@ -99,7 +122,7 @@ TaskRoute.post(
         } else {
           const changeOfStatus = status ? status !== foundTask.status : false;
           const filter = { _id: t_id };
-          const update = { ...req.body }; 
+          const update = { ...req.body };
           if (req.file) {
             const filePath = await getTaskFilePath(req.file.path);
             update.image = filePath;
@@ -108,7 +131,7 @@ TaskRoute.post(
             returnOriginal: false,
           });
           await updatedTask.save();
-          console.log(updatedTask)
+          console.log(updatedTask);
           if (!updatedTask) {
             console.log("💀SOMETHING WENT WRONG...");
           } else if (!changeOfStatus) {
@@ -145,6 +168,7 @@ TaskRoute.post(
   )
   .delete("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 DELETE TASK");
       const { t_id } = req.params;
       const foundTask = await TaskModel.findById(t_id);
       if (!foundTask || !mongoose.Types.ObjectId.isValid(t_id)) {

@@ -18,14 +18,28 @@ export const createSharedArray = (array, _id) => {
   return sharedWith;
 };
 
-export const updateTaskList = async (_id, status, task) => {
-  const updatedList = await TaskListModel.findOneAndUpdate(
-    { user: _id },
-    { $push: { [status]: task } },
-    { new: true, runValidators: true }
-  );
-  // await updatedList.save();
-  return updatedList;
+export const updateTaskList = async (_id, status, task, category) => {
+  const { categories } = await TaskListModel.findOne({
+    user: _id,
+  });
+  if (!categories.includes(category)) {
+    const updatedList = await TaskListModel.findOneAndUpdate(
+      { user: _id },
+      {
+        $push: { [status]: task },
+        $push: { categories: category },
+      },
+      { new: true, runValidators: true }
+    );
+    return updatedList;
+  } else {
+    const updatedList = await TaskListModel.findOneAndUpdate(
+      { user: _id },
+      { $push: { [status]: task } },
+      { new: true, runValidators: true }
+    );
+    return updatedList;
+  }
 };
 
 export const removeFromTaskList = async (_id, status, task_id) => {
@@ -65,5 +79,5 @@ export const addXP = async (_id, taskValue) => {
     { xp },
     { new: true, runValidators: true }
   );
-  return updatedUser
+  return updatedUser;
 };

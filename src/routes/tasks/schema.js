@@ -12,7 +12,7 @@ const { Schema } = mongoose;
 
 export const TaskSchema = new mongoose.Schema(
   {
-    category: { type: String, required: true },
+    category: { type: String, default: NONE, required: true },
     title: { type: String, required: true },
     image: { type: String, default: DEFAULT_TASK_IMG },
     desc: { type: String, required: true },
@@ -37,6 +37,7 @@ export const TaskSchema = new mongoose.Schema(
 
 const TaskListSchema = new mongoose.Schema({
   user: { type: Schema.Types.ObjectId, ref: "User" },
+  categories: { default: [NONE], type: [{ type: String }] },
   completed: {
     default: [],
     type: [{ type: Schema.Types.ObjectId, ref: "Task" }],

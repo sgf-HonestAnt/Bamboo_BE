@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-// ***** unsplash *****
+// ***** unsplash ***** //
 // Photos by Michael Dziedzic [https://unsplash.com/@lazycreekimages] on Unsplash
 // Photo by Maria R O [https://unsplash.com/@mariarui?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText] on Unsplash
 // ***** cloudinary *****
@@ -13,12 +13,14 @@ export const storage = new CloudinaryStorage({
   cloudinary,
   params: { folder: "my-task-app" },
 });
-// ***** users *****
+// ***** users ***** //
 export const NEW_BIO = "Newbie!";
 export const USER_IMG = "default_avatar_rnmt6a.jpg";
 export const USER_CROP_IMG = `${cloud}/${squarecrop}`;
 export const DEFAULT_USER_IMG = `${USER_CROP_IMG}/${FARM}/${USER_IMG}`;
-// ***** tasks *****
+// ***** categories ***** //
+export const NONE = "none";
+// ***** tasks ***** //
 export const SOLO = "solo";
 export const TEAM = "team";
 export const TASK_TYPES = [SOLO, TEAM];
@@ -43,18 +45,17 @@ export const TASK_REPEAT_TYPES = [
 export const TASK_IMG = "default_task_nv0jcq.jpg";
 export const TASK_RESIZE_IMG = `${cloud}/${scalew800}`;
 export const DEFAULT_TASK_IMG = `${TASK_RESIZE_IMG}/${FARM}/${TASK_IMG}`;
-// ***** features *****
+// ***** features ***** //
 export const FEATURE_RESIZE_IMG = `${cloud}/${scalew800}`;
-// ***** challenges *****
+// ***** challenges ***** //
 export const CHALL_IMG = `${cloud}/${scalew800}/${FARM}/default_task_nv0jcq.jpg`;
-// ***** settings *****
+// ***** settings ***** //
 export const LIGHT_MODE = "light-mode";
 export const DARK_MODE = "dark-mode";
 export const THEMES = [LIGHT_MODE, DARK_MODE];
 
-export const NONE = "none";
 
-// ***** features tests *****
+// ***** features tests ***** // 
 export const newFeature = {
   month: "January",
   descrip: "Here's the featured challenge of the month!",
@@ -89,7 +90,7 @@ export const ethanHunt = {
   admin: true,
 };
 
-// ***** users tests *****
+// ***** users tests ***** //
 // "should test that post /users/register endpoint is OK"
 export const jamesBond = {
   first_name: "James",

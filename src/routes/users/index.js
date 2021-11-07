@@ -19,6 +19,7 @@ const UserRoute = express.Router();
 
 UserRoute.post("/register", async (req, res, next) => {
   try {
+    console.log("💠 REGISTER USER");
     const { email, username } = req.body;
     const emailIsDuplicate = await UserModel.findOne({ email });
     const usernameIsDuplicate = await UserModel.findOne({ username });
@@ -69,6 +70,7 @@ UserRoute.post("/register", async (req, res, next) => {
 })
   .post("/session", async (req, res, next) => {
     try {
+      console.log("💠 LOG IN");
       const { email, password } = req.body;
       const user = await UserModel.checkCredentials(email, password);
       if (user !== null) {
@@ -85,6 +87,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .post("/session/refresh", async (req, res, next) => {
     try {
+      console.log("💠 REFRESH SESSION");
       const { actualRefreshToken } = req.body;
       const { accessToken, refreshToken } = await refreshTokens(
         actualRefreshToken
@@ -97,6 +100,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .post("/", ADMIN_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 POST USER [ADMIN]");
       const { email, username } = req.body;
       const emailIsDuplicate = await UserModel.findOne({ email });
       const usernameIsDuplicate = await UserModel.findOne({ username });
@@ -148,6 +152,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .post("/request/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 REQUEST FOLLOW");
       const sender = req.user;
       const { u_id } = req.params;
       if (!mongoose.Types.ObjectId.isValid(u_id)) {
@@ -194,6 +199,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .post("/accept/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 ACCEPT FOLLOW");
       const sendee = req.user;
       const { u_id } = req.params;
       const idsMatch = req.user._id.toString() === u_id;
@@ -237,6 +243,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .post("/reject/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 REJECT FOLLOW");
       const { u_id } = req.params;
       const idsMatch = req.user._id.toString() === u_id;
       const sendee = req.user;
@@ -280,6 +287,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 GET USER [ME]");
       const user_id = req.user._id;
       const my_user = await UserModel.findById(user_id).populate(
         "followedUsers.accepted"
@@ -297,6 +305,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .get("/me/settings", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 GET USER SETTINGS [ME]");
       const user_id = req.user._id;
       const my_user = await UserModel.findById(user_id);
       const settings = my_user.settings;
@@ -308,6 +317,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .get("/", async (req, res, next) => {
     try {
+      console.log("💠 GET USERS QUERY");
       const query = q2m(req.query);
       const { total, users } = await UserModel.findUsers(query);
       const publicUsers = await users.map((u) => ({
@@ -332,6 +342,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .get("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 GET USER [ADMIN]");
       const { u_id } = req.params;
       const user = await UserModel.findById(u_id);
       if (!user) {
@@ -351,6 +362,7 @@ UserRoute.post("/register", async (req, res, next) => {
     multer({ storage }).single("avatar"),
     async (req, res, next) => {
       try {
+        console.log("💠 PUT USER [ME]");
         const { _id } = req.user;
         const { email, username } = req.body;
         const emailDuplicate = await UserModel.find({ email });
@@ -387,6 +399,7 @@ UserRoute.post("/register", async (req, res, next) => {
   )
   .put("/me/settings", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 PUT USER SETTINGS [ME]");
       const { _id } = req.user;
       const update = { settings: req.body };
       const { settings } = await UserModel.findByIdAndUpdate(_id, update, {
@@ -404,6 +417,7 @@ UserRoute.post("/register", async (req, res, next) => {
     multer({ storage }).single("avatar"),
     async (req, res, next) => {
       try {
+        console.log("💠 PUT USER [ADMIN]");
         const { u_id } = req.params;
         const { email, username } = req.body;
         const emailDuplicate = await UserModel.find({ email });
@@ -446,6 +460,7 @@ UserRoute.post("/register", async (req, res, next) => {
   )
   .delete("/session", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 LOG OUT");
       req.user.refreshToken = null;
       await req.user.save();
       console.log("LOGGED OUT");
@@ -456,6 +471,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .delete("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 DELETE USER [ME]");
       const userDeleted = await UserModel.findByIdAndDelete(req.user._id);
       if (userDeleted) {
         console.log("DELETED USER");
@@ -467,6 +483,7 @@ UserRoute.post("/register", async (req, res, next) => {
   })
   .delete("/:u_id", ADMIN_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 DELETE USER [ADMIN]");
       const { u_id } = req.params;
       const deleteUser = await UserModel.findByIdAndDelete(u_id);
       if (deleteUser) {
