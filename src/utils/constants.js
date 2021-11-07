@@ -20,6 +20,8 @@ export const USER_CROP_IMG = `${cloud}/${squarecrop}`;
 export const DEFAULT_USER_IMG = `${USER_CROP_IMG}/${FARM}/${USER_IMG}`;
 // ***** categories ***** //
 export const NONE = "none";
+export const DELETE = "delete";
+export const UPDATE = "update";
 // ***** tasks ***** //
 export const SOLO = "solo";
 export const TEAM = "team";

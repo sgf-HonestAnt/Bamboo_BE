@@ -2,6 +2,7 @@ import express from "express";
 import { TaskModel } from "../tasks/model.js";
 import TaskListModel from "../tasks/model.js";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
+import { editTaskCategoryBulk } from "../../utils/route-funcs/tasks.js";
 
 const CategoriesRoute = express.Router();
 
@@ -26,7 +27,7 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
         }
       );
       if (categoryAdded) {
-        console.log("NEW CATEGORY SUCCESSFULLY ADDED");
+        console.log("💠 NEW CATEGORY SUCCESSFULLY ADDED [ME]");
         res.send({ category });
       } else {
         console.log("💀SOMETHING WENT WRONG...");
@@ -43,18 +44,13 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
       console.log("💠 GET CATEGORIES [ME]");
       const { _id } = req.user;
       const { categories } = await TaskListModel.findOne({ user: _id });
+      console.log("💠 FETCHED CATEGORIES [ME]");
       res.status(200).send({ categories });
     } catch (e) {
       next(e);
     }
   })
   .put("/me", JWT_MIDDLEWARE, async (req, res, next) => {
-    // 👁️‍🗨️NEXT!!
-    // WHEN CHANGING CATEGORY, I ALSO WANT TO ADD THAT CATEGORY TO THE OTHER SHARED USER TASKLIST (IF IT DOES NOT EXIST ALREADY).
-    // IN THE RARE INSTANCE THAT THEY HAVE THAT CATEGORY IN EXISTENCE, WITH TASKS ALREADY SET TO THAT CATEGORY, I WILL ONLY ADD MY CATEGORY AND CHANGE
-    // SHARED TASKS. I.E. THEY MAY HAVE EXTRA TASK CATEGORIES WITHOUT TASKS IN THEIR LIST...
-    // I ALSO WANT TO MOVE THE EDIT TASK CATEGORY FUNCTION TO UTILS.
-    // CREATE DELETE CATEGORY ENDPOINT (REVERTS TASKS WITH THAT CATEGORY TO A CATEGORY OF NONE)
     try {
       console.log("💠 PUT CATEGORY [ME]");
       const { _id } = req.user;
@@ -70,19 +66,23 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
           .send({ message: `REQUEST MUST INCLUDE UPDATED CATEGORY` });
       } else {
         const index = categories.indexOf(originalCategory);
+        //console.log("index",index);
         const updatedCategoryExists = categories.some(
           (category) => category === updatedCategory
         );
+        //console.log("updated category exists",updatedCategoryExists);
         if (index === -1) {
           res
             .status(400)
             .send({ message: `ORIGINAL CATEGORY NOT FOUND TO REPLACE` });
         } else {
           if (updatedCategoryExists) {
-            // Delete original category and edit the tasks
+            // Changing category a to b where b already exists in array: delete a and edit all categ 'a' tasks to categ 'b'
+            //console.log("delete and edit");
             categories.splice(index, 1);
           } else {
-            // Replace original category with updated category and edit the tasks
+            // Changing category a to b where b does not already exist in array: change a to b and edit all categ 'a' tasks to categ 'b'
+            //console.log("update and edit");
             categories[index] = updatedCategory;
           }
           const filter = { user: _id };
@@ -95,29 +95,21 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
             }
           );
           if (categoryUpdated) {
-            console.log("CATEGORY SUCCESSFULLY UPDATED");
+            console.log("💠 CATEGORY SUCCESSFULLY UPDATED [ME]");
             const my_tasks = await TaskListModel.findOne({
               user: req.user._id,
             }).populate("completed awaited in_progress");
             const { completed, awaited, in_progress } = my_tasks;
-            let array = [];
-            const editTaskCategory = async (tasks) => {
-              tasks.map(
-                (t, i) => t.category === originalCategory && array.push(t._id)
-              );
-            };
-            await editTaskCategory(completed);
-            await editTaskCategory(awaited);
-            await editTaskCategory(in_progress);
-            console.log(array);
-            for (let i = 0; i < array.length; i++) {
-              const id = array[i];
-              const update = { category: updatedCategory };
-              await TaskModel.findByIdAndUpdate(id, update, {
-                returnOriginal: false,
-              });
+            const allTasks = completed.concat(awaited, in_progress);
+            const allTaskCategoriesEdited = await editTaskCategoryBulk(
+              allTasks,
+              originalCategory,
+              "update",
+              updatedCategory
+            );
+            if (allTaskCategoriesEdited) {
+              res.send({ category: updatedCategory });
             }
-            res.send({ category: updatedCategory });
           } else {
             console.log("💀SOMETHING WENT WRONG...");
           }
@@ -126,6 +118,61 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     } catch (e) {
       next(e);
     }
+  })
+  .delete("/me", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 DELETE CATEGORY [ME]");
+      const { _id } = req.user;
+      const { deletedCategory } = req.body;
+      const { categories } = await TaskListModel.findOne({ user: _id });
+      if (!deletedCategory) {
+        res
+          .status(400)
+          .send({ message: `REQUEST MUST INCLUDE CATEGORY TO DELETE` });
+      } else {
+        console.log(categories);
+        const deletedCategoryExists = categories.some(
+          (category) => category === deletedCategory
+        );
+        if (!deletedCategoryExists) {
+          res
+            .status(400)
+            .send({ message: `CATEGORY MUST EXIST TO BE DELETED` });
+        } else {
+          const filter = { user: _id };
+          const update = { $pull: { categories: deletedCategory } };
+          const categoryDeleted = await TaskListModel.findOneAndUpdate(
+            filter,
+            update,
+            {
+              returnOriginal: false,
+            }
+          );
+          if (categoryDeleted) {
+            console.log("💠 CATEGORY SUCCESSFULLY DELETED [ME]");
+            const my_tasks = await TaskListModel.findOne({
+              user: req.user._id,
+            }).populate("completed awaited in_progress");
+            const { completed, awaited, in_progress } = my_tasks;
+            const allTasks = completed.concat(awaited, in_progress);
+            const allTaskCategoriesEdited = await editTaskCategoryBulk(
+              allTasks,
+              deletedCategory,
+              "delete"
+            );
+            if (allTaskCategoriesEdited) {
+              res.send();
+            }
+          } else {
+            console.log("💀SOMETHING WENT WRONG...");
+          }  
+        }
+      }
+    } catch (e) {
+      next(e);
+    }
   });
+
+// CREATE DELETE CATEGORY ENDPOINT (REVERTS TASKS WITH THAT CATEGORY TO A CATEGORY OF NONE)
 
 export default CategoriesRoute;

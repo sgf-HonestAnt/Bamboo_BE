@@ -13,6 +13,7 @@ import {
   updateTaskList,
   updateTaskListWithStatus,
   addXP,
+  pushCategory,
 } from "../../utils/route-funcs/tasks.js";
 
 const TaskRoute = express.Router();
@@ -65,7 +66,7 @@ TaskRoute.post(
           return updated;
         });
         if (updateAllLists) {
-          console.log("NEW TASK SUCCESSFULLY CREATED");
+          console.log("💠 NEW TASK SUCCESSFULLY CREATED");
           res.send({ _id });
         } else {
           console.log("💀SOMETHING WENT WRONG...");
@@ -83,7 +84,7 @@ TaskRoute.post(
         user: req.user._id,
       }).populate("completed awaited in_progress");
       if (my_tasks) {
-        console.log("FETCHED TASKS");
+        console.log("💠 FETCHED TASKS");
         res.send(my_tasks);
       } else {
         res.status(404).send({ message: `USER ${_id} TASKLIST NOT FOUND` });
@@ -100,7 +101,7 @@ TaskRoute.post(
       if (!task) {
         res.status(404).send({ message: `TASK ${t_id} NOT FOUND` });
       } else {
-        console.log("FETCHED TASK BY ID");
+        console.log("💠 FETCHED TASK BY ID");
         res.send(task);
       }
     } catch (e) {
@@ -115,7 +116,7 @@ TaskRoute.post(
       try {
         console.log("💠 PUT TASK");
         const { t_id } = req.params;
-        const { status } = req.body;
+        const { status, category } = req.body;
         const foundTask = await TaskModel.findById(t_id);
         if (!foundTask) {
           res.status(404).send(`Task with id ${t_id} not found`);
@@ -127,10 +128,26 @@ TaskRoute.post(
             const filePath = await getTaskFilePath(req.file.path);
             update.image = filePath;
           }
+          if (category) {
+            await pushCategory(_id, category)
+            // const secondFilter = { user: _id };
+            // const secondUpdate = { $push: { categories: category } };
+            // const { categories } = await TaskListModel.findOne(secondFilter);
+            // if (!categories.includes(category)) {
+            //   await TaskListModel.findOneAndUpdate(
+            //     secondFilter,
+            //     secondUpdate,
+            //     {
+            //       returnOriginal: false,
+            //     }
+            //   );
+            // }
+            // and this needs to be done for EVERY ONE INCLUDED ON THE TASK!!!
+          }
           const updatedTask = await TaskModel.findOneAndUpdate(filter, update, {
             returnOriginal: false,
           });
-          await updatedTask.save();
+          //await updatedTask.save();
           console.log(updatedTask);
           if (!updatedTask) {
             console.log("💀SOMETHING WENT WRONG...");
@@ -154,7 +171,7 @@ TaskRoute.post(
               if (updatedTask.status === "completed") {
                 await addXP(req.user._id, foundTask.value);
               }
-              console.log("UPDATED TASK BY ID");
+              console.log("💠 UPDATED TASK BY ID");
               res.send(updatedTask);
             } else {
               console.log("💀SOMETHING WENT WRONG...");
@@ -184,7 +201,7 @@ TaskRoute.post(
             }
           };
           await updateAllLists(sharedWith);
-          console.log("DELETED TASK BY ID");
+          console.log("💠 DELETED TASK BY ID");
           res.status(204).send(`TASK ${t_id} SUCCESSFULLY DELETED`);
         } else {
           console.log("💀SOMETHING WENT WRONG...");
