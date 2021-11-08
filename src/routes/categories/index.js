@@ -26,7 +26,7 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     } else {
       await pushCategory(_id, category);
       console.log("💠 NEW CATEGORY SUCCESSFULLY ADDED [ME]");
-      res.send({ category });
+      res.send({ category: category.toLowerCase() });
     }
   } catch (e) {
     next(e);
@@ -63,7 +63,7 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
       } else {
         const index = categories.indexOf(originalCategory);
         const updatedAlreadyExists = categories.some(
-          (category) => category === updatedCategory
+          (category) => category === updatedCategory.toLowerCase()
         );
         if (index === -1) {
           res
@@ -73,7 +73,7 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
           if (updatedAlreadyExists) {
             categories.splice(index, 1); // remove original category
           } else {
-            categories[index] = updatedCategory; // change original category to updated category
+            categories[index] = updatedCategory.toLowerCase(); // change original category to updated category
           }
           const categoryUpdated = await updateTasklistCategory(_id, categories)
           if (categoryUpdated) {
@@ -88,10 +88,10 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
               originalCategory,
               "update",
               req.user._id,
-              updatedCategory
+              updatedCategory.toLowerCase()
             );
             if (allTaskCategoriesEdited) {
-              res.send({ category: updatedCategory });
+              res.send({ category: updatedCategory.toLowerCase() });
             }
           } else {
             console.log("💀SOMETHING WENT WRONG...");

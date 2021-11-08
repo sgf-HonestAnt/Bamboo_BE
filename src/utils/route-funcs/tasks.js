@@ -125,7 +125,7 @@ export const pushCategory = async (id, category) => {
   // push new category to tasklist belonging to user _id
   console.log("➡️pushCategory");
   const filter = { user: id };
-  const update = { $push: { categories: category } };
+  const update = { $push: { categories: category.toLowerCase() } };
   const { categories } = await TaskListModel.findOne(filter);
   const categoryIncluded = categories.includes(category);
   if (!categoryIncluded) {
@@ -183,7 +183,7 @@ export const updateCategory = async (array, method, category) => {
     const id = array[i];
     const update =
       method === UPDATE
-        ? { category }
+        ? { category: category.toLowerCase() }
         : method === DELETE
         ? { category: NONE }
         : {};

@@ -33,9 +33,20 @@ TaskRoute.post(
         req.body.sharedWith,
         req.user._id
       );
+      const { repeats } = req.body;
+      const { body } = req;
+      body.category = req.body.category.toLowerCase();
+      if (
+        repeats !== "daily" &&
+        repeats !== "weekly" &&
+        repeats !== "monthly"
+      ) {
+        body.repeats = `every ${repeats} days`;
+      }
+      console.log(body.repeats);
       const newTask = new TaskModel({
         createdBy: req.user._id,
-        ...req.body,
+        ...body,
         sharedWith,
       });
       if (req.file) {
@@ -115,6 +126,7 @@ TaskRoute.post(
     multer({ storage }).single("image"),
     async (req, res, next) => {
       try {
+        // NOTE. WE WILL NOT ALLOW REPEATS TO BE CHANGED IN THE FRONT END - IT IS TOO TRICKY! JUST TITLE, CATEGORY AND DESCRIPTION CAN BE CHANGED.
         // put "/me/ID" endpoint updates a task ✔️
         // in all users sharing it, updated status moves task to relevant status ✔️
         // in all users sharing it, if new category provided, category added to "tasklist.categories" ✔️

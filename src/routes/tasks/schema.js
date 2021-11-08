@@ -16,6 +16,7 @@ export const TaskSchema = new mongoose.Schema(
     title: { type: String, required: true },
     image: { type: String, default: DEFAULT_TASK_IMG },
     desc: { type: String, required: true },
+    repeats: { type: String, required: true },
     type: {
       type: String,
       default: SOLO,
