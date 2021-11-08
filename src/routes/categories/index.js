@@ -55,7 +55,9 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   .put("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       console.log("💠 PUT CATEGORY [ME]");
-      // put "/me" must update a category in all sharedWith user's "tasklist.categories" (no duplications)
+      // put "/me" must change all tasks belonging to user with that category
+      // see put /tasks/ me when category changed
+      // it must push category to all sharedWith user's "tasklist.categories" (no duplications)
       const { _id } = req.user;
       const { originalCategory, updatedCategory } = req.body;
       const { categories } = await TaskListModel.findOne({ user: _id });

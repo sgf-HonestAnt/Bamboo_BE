@@ -22,7 +22,7 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
-    avatar: { type: String, default: DEFAULT_USER_IMG, required: true }, 
+    avatar: { type: String, default: DEFAULT_USER_IMG, required: true },
     bio: { type: String, default: NEW_BIO, required: true },
     level: { type: Number, default: 0, required: true },
     xp: { type: Number, default: 0, required: true },
@@ -60,6 +60,7 @@ const UserSchema = new mongoose.Schema(
     },
     tasks: { type: Schema.Types.ObjectId, ref: "TaskList" },
     achievements: { type: Schema.Types.ObjectId, ref: "Achievement" },
+    notification: { default: [], type: [{ type: String }], required: true },
     refreshToken: { type: String },
   },
   { timestamps: true }

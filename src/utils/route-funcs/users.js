@@ -97,3 +97,13 @@ export const getUserFilePath = (path) => {
   filePath = `${USER_CROP_IMG}/${filePathSplit[1]}`;
   return filePath;
 };
+////////////////////////////////////////////////////////////////////
+export const pushNotification = async (id, notification) => {
+  // push notification to user _id
+  console.log("➡️pushNotification")
+  const update = { $push: { notification: notification } };
+    await UserModel.findByIdAndUpdate(id, update, {
+      returnOriginal: false,
+    });
+  return
+};
