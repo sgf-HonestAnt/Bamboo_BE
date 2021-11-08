@@ -2,18 +2,17 @@ import express from "express";
 import mongoose from "mongoose";
 import TaskListModel from "../tasks/model.js";
 import { TaskModel } from "./model.js";
-import q2m from "query-to-mongo";
 import multer from "multer";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
 import { storage } from "../../utils/constants.js";
 import {
+  createSharedWithArray,
   getTaskFilePath,
-  createSharedArray,
-  removeFromTaskList,
-  updateTaskList,
-  updateTaskListWithStatus,
-  addXP,
+  updateTasklist,
+  updateListsAfterDelete,
+  updateTaskStatus,
   pushCategory,
+  addXP,
 } from "../../utils/route-funcs/tasks.js";
 
 const TaskRoute = express.Router();
@@ -24,8 +23,15 @@ TaskRoute.post(
   multer({ storage }).single("image"),
   async (req, res, next) => {
     try {
+      // post "/me" endpoint creates a task with non-duplicated sharedWith array ✔️
+      // in all users sharing it, task id is added to "tasklist.awaited"; category is added to "tasklist.categories" ✔️
+      //❌ not always adding to other user tasklist, check this tomorrow
+      // if req.file, file path points to correct cloudinary url ✔️
       console.log("💠 POST TASK");
-      const sharedWith = createSharedArray(req.body.sharedWith, req.user._id);
+      const sharedWith = createSharedWithArray(
+        req.body.sharedWith,
+        req.user._id
+      );
       const newTask = new TaskModel({
         createdBy: req.user._id,
         ...req.body,
@@ -42,22 +48,9 @@ TaskRoute.post(
           task: newTask,
         });
       } else {
-        // add category to array if it doesn't already exist
-        const { categories } = await TaskListModel.findOne({
-          user: req.user._id,
-        });
-        if (!categories.includes(category)) {
-          const filter = { user: req.user._id };
-          const update = {
-            $push: { categories: category },
-          };
-          await TaskListModel.findOneAndUpdate(filter, update, {
-            returnOriginal: false,
-          });
-        }
-        // update all lists
-        const updateAllLists = await newTask.sharedWith.map((user_id) => {
-          const updated = updateTaskList(
+        await pushCategory(req.user._id, category);
+        const updateAllLists = sharedWith.map((user_id) => {
+          const updated = updateTasklist(
             user_id,
             newTask.status,
             newTask,
@@ -79,6 +72,8 @@ TaskRoute.post(
 )
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      // get "/me" endpoint returns all tasks belong to user ✔️
+      // categories and all three status arrays are returned ✔️
       console.log("💠 GET TASKS");
       const my_tasks = await TaskListModel.findOne({
         user: req.user._id,
@@ -95,11 +90,16 @@ TaskRoute.post(
   })
   .get("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      // get "/me/ID" endpoint returns single task by id if it belongs to user ✔️
+      // 401 if task does not belong to user ✔️
       console.log("💠 GET TASK");
       const { t_id } = req.params;
+      const { _id } = req.user;
       const task = await TaskModel.findById(t_id);
       if (!task) {
         res.status(404).send({ message: `TASK ${t_id} NOT FOUND` });
+      } else if (!task.sharedWith.includes(_id)) {
+        res.status(401).send({ message: `TASK DOES NOT BELONG TO USER` });
       } else {
         console.log("💠 FETCHED TASK BY ID");
         res.send(task);
@@ -114,14 +114,22 @@ TaskRoute.post(
     multer({ storage }).single("image"),
     async (req, res, next) => {
       try {
+        // put "/me/ID" endpoint updates a task ✔️
+        // in all users sharing it, updated status moves task to relevant status ✔️
+        // in all users sharing it, if new category provided, category added to "tasklist.categories" ❌ not happening for all users. investigate
+        // if req.file, file path points to updated cloudinary url ✔️
+        // if status "completed", XP to value of the task is added to the user who completed it ✔️
+        // 401 if task does not belong to user ✔️
         console.log("💠 PUT TASK");
         const { t_id } = req.params;
         const { status, category } = req.body;
-        const foundTask = await TaskModel.findById(t_id);
-        if (!foundTask) {
+        const task = await TaskModel.findById(t_id);
+        if (!task) {
           res.status(404).send(`Task with id ${t_id} not found`);
+        } else if (!task.sharedWith.includes(req.user._id)) {
+          res.status(401).send({ message: `TASK DOES NOT BELONG TO USER` });
         } else {
-          const changeOfStatus = status ? status !== foundTask.status : false;
+          const changeOfStatus = status ? status !== task.status : false;
           const filter = { _id: t_id };
           const update = { ...req.body };
           if (req.file) {
@@ -129,38 +137,24 @@ TaskRoute.post(
             update.image = filePath;
           }
           if (category) {
-            await pushCategory(_id, category)
-            // const secondFilter = { user: _id };
-            // const secondUpdate = { $push: { categories: category } };
-            // const { categories } = await TaskListModel.findOne(secondFilter);
-            // if (!categories.includes(category)) {
-            //   await TaskListModel.findOneAndUpdate(
-            //     secondFilter,
-            //     secondUpdate,
-            //     {
-            //       returnOriginal: false,
-            //     }
-            //   );
-            // }
-            // and this needs to be done for EVERY ONE INCLUDED ON THE TASK!!!
+            await pushCategory(req.user._id, category);
           }
           const updatedTask = await TaskModel.findOneAndUpdate(filter, update, {
             returnOriginal: false,
           });
-          //await updatedTask.save();
           console.log(updatedTask);
           if (!updatedTask) {
             console.log("💀SOMETHING WENT WRONG...");
           } else if (!changeOfStatus) {
-            console.log("UPDATED TASK BY ID");
+            console.log("💠 UPDATED TASK BY ID");
             res.send(updatedTask);
           } else {
             const updateAllListsWithStatus = await updatedTask.sharedWith.map(
               (user_id) => {
-                const updated = updateTaskListWithStatus(
+                const updated = updateTaskStatus(
                   user_id,
                   t_id,
-                  foundTask.status,
+                  task.status,
                   updatedTask.status,
                   updatedTask
                 );
@@ -169,7 +163,7 @@ TaskRoute.post(
             );
             if (updateAllListsWithStatus) {
               if (updatedTask.status === "completed") {
-                await addXP(req.user._id, foundTask.value);
+                await addXP(req.user._id, task.value);
               }
               console.log("💠 UPDATED TASK BY ID");
               res.send(updatedTask);
@@ -185,6 +179,8 @@ TaskRoute.post(
   )
   .delete("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      // delete "/me/ID" endpoint removes a task ✔️
+      // in all users sharing it, task removed from status ❌ not happening for all users. investigate
       console.log("💠 DELETE TASK");
       const { t_id } = req.params;
       const foundTask = await TaskModel.findById(t_id);
@@ -194,15 +190,9 @@ TaskRoute.post(
         const { status, sharedWith } = foundTask;
         const deletedTask = await TaskModel.findByIdAndDelete(t_id);
         if (deletedTask) {
-          const updateAllLists = async (list) => {
-            for (let i = 0; i < list.length; i++) {
-              await removeFromTaskList(list, status, t_id);
-              return;
-            }
-          };
-          await updateAllLists(sharedWith);
+          await updateListsAfterDelete(sharedWith, status, t_id);
           console.log("💠 DELETED TASK BY ID");
-          res.status(204).send(`TASK ${t_id} SUCCESSFULLY DELETED`);
+          res.status(204).send();
         } else {
           console.log("💀SOMETHING WENT WRONG...");
         }

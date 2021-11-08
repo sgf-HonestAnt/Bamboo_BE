@@ -9,6 +9,7 @@ const CategoriesRoute = express.Router();
 CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   try {
     console.log("💠 POST CATEGORY [ME]");
+    // post "/me" endpoint must push category to user's "tasklist.categories" (no duplications) ✔️
     const { _id } = req.user;
     const { category } = req.body;
     const { categories } = await TaskListModel.findOne({ user: _id });
@@ -21,7 +22,7 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
       const update = { $push: { categories: category } };
       const categoryAdded = await TaskListModel.findOneAndUpdate(
         filter,
-        update,
+        update, 
         {
           returnOriginal: false,
         }
@@ -42,6 +43,7 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       console.log("💠 GET CATEGORIES [ME]");
+      // get "/me" endpoint must return "tasklist.categories" ✔️
       const { _id } = req.user;
       const { categories } = await TaskListModel.findOne({ user: _id });
       console.log("💠 FETCHED CATEGORIES [ME]");
@@ -53,6 +55,7 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   .put("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       console.log("💠 PUT CATEGORY [ME]");
+      // put "/me" must update a category in all sharedWith user's "tasklist.categories" (no duplications)
       const { _id } = req.user;
       const { originalCategory, updatedCategory } = req.body;
       const { categories } = await TaskListModel.findOne({ user: _id });
@@ -122,6 +125,9 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   .delete("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       console.log("💠 DELETE CATEGORY [ME]");
+      // delete "/me" must remove category from logged in user's "tasklist.categories"
+      // all of the user's tasks with that category must revert to {category: none}
+      // the category is NOT removed from other user's tasklists
       const { _id } = req.user;
       const { deletedCategory } = req.body;
       const { categories } = await TaskListModel.findOne({ user: _id });
@@ -165,14 +171,12 @@ CategoriesRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
             }
           } else {
             console.log("💀SOMETHING WENT WRONG...");
-          }  
+          }
         }
       }
     } catch (e) {
       next(e);
     }
   });
-
-// CREATE DELETE CATEGORY ENDPOINT (REVERTS TASKS WITH THAT CATEGORY TO A CATEGORY OF NONE)
 
 export default CategoriesRoute;
