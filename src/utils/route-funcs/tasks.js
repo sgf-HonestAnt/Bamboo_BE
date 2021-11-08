@@ -41,7 +41,7 @@ export const pushToStatus = async (id, status, taskId) => {
 export const pullFromStatus = async (id, status, taskId) => {
   // pull task id from task list status upon delete task
   console.log("➡️pullFromStatus");
-  console.log(id,status,taskId)
+  console.log(id, status, taskId);
   const updatedList = await TaskListModel.findOneAndUpdate(
     { user: id },
     { $pull: { [status]: taskId } },
@@ -92,11 +92,16 @@ export const addXP = async (id, value) => {
   return updatedUser;
 };
 ////////////////////////////////////////////////////////////////////
-export const findTasksByCategory = async (tasks, category) => {
+export const findTasksByCategory = async (tasks, category, user) => {
   // return array of task ids with selected category
   console.log("➡️findTasksByCategory");
   let array = [];
-  tasks.map((t) => t.category === category && array.push(t._id));
+  tasks.map(
+    (t) =>
+      t.sharedWith.includes(user) &&
+      t.category === category &&
+      array.push(t._id)
+  );
   return array;
 };
 ////////////////////////////////////////////////////////////////////
@@ -128,7 +133,7 @@ export const pushCategory = async (id, category) => {
       returnOriginal: false,
     });
   }
-  return;
+  return { category };
 };
 ////////////////////////////////////////////////////////////////////
 export const pullCategory = async (id, category) => {
@@ -139,11 +144,17 @@ export const pullCategory = async (id, category) => {
   const { categories } = await TaskListModel.findOne(filter);
   const categoryIncluded = categories.includes(category);
   if (categoryIncluded) {
-    await TaskListModel.findOneAndUpdate(secondFilter, update, {
-      returnOriginal: false,
-    });
+    const categoryPulled = await TaskListModel.findOneAndUpdate(
+      filter,
+      update,
+      {
+        returnOriginal: false,
+      }
+    );
+    return categoryPulled;
+  } else {
+    return null;
   }
-  return;
 };
 ////////////////////////////////////////////////////////////////////
 export const updateTasklist = async (id, status, task, category) => {
@@ -152,6 +163,17 @@ export const updateTasklist = async (id, status, task, category) => {
   await pushCategory(id, category);
   const updatedList = await pushToStatus(id, status, task._id);
   return updatedList;
+};
+////////////////////////////////////////////////////////////////////
+export const updateTasklistCategory = async (id, categories) => {
+  // change category in "tasklist.categories" prior to bulk edit (single user)
+  console.log("➡️updateTasklistCategory");
+  const filter = { user: id };
+  const update = { categories };
+  const categoryUpdated = await TaskListModel.findOneAndUpdate(filter, update, {
+    returnOriginal: false,
+  });
+  return categoryUpdated;
 };
 ////////////////////////////////////////////////////////////////////
 export const updateCategory = async (array, method, category) => {
@@ -171,7 +193,7 @@ export const updateCategory = async (array, method, category) => {
     const sharedUsers = await findSharedUsers(id);
     if (sharedUsers.length > 0) {
       for (let i = 0; i < sharedUsers.length; i++) {
-        const { categories } = await findTaskList(sharedUsers[i]);
+        const { categories } = await findTasklist(sharedUsers[i]);
         if (!categories.includes(category)) {
           await pushCategory(sharedUsers[i], category);
         }
@@ -185,11 +207,13 @@ export const editTaskCategoryBulk = async (
   tasks,
   originalCategory,
   method,
-  updatedCategory = null
+  id,
+  updatedCategory
 ) => {
-  // 
+  // finds array of tasks matched to category and user, and changes category to all shared users' tasklists
   console.log("➡️editTaskCategoryBulk");
-  const array = await findTasksByCategory(tasks, originalCategory);
-  updatedCategory && (await updateCategory(array, method, updatedCategory));
-  return;
+  const array = await findTasksByCategory(tasks, originalCategory, id);
+  console.log(array);
+  await updateCategory(array, method, updatedCategory);
+  return array;
 };
