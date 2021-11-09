@@ -74,8 +74,6 @@ export const shuffle = async (
 };
 
 export const getPublicUsers = async (users, array) => {
-  console.log(users.length);
-  console.log(array.length);
   for (let i = 0; i < users.length; i++) {
     const user = await UserModel.findById(users[i]._id).populate(
       "achievements"
@@ -90,7 +88,6 @@ export const getPublicUsers = async (users, array) => {
       achievements: user.achievements.list,
     });
   }
-  console.log(array.length);
   return array;
 };
 
@@ -99,4 +96,14 @@ export const getUserFilePath = (path) => {
   const filePathSplit = filePath.split("/upload/", 2);
   filePath = `${USER_CROP_IMG}/${filePathSplit[1]}`;
   return filePath;
+};
+////////////////////////////////////////////////////////////////////
+export const pushNotification = async (id, notification) => {
+  // push notification to user _id
+  console.log("➡️pushNotification")
+  const update = { $push: { notification: notification } };
+    await UserModel.findByIdAndUpdate(id, update, {
+      returnOriginal: false,
+    });
+  return
 };

@@ -4,6 +4,7 @@ import AchievementRoute from "./routes/achievements/index.js";
 import FeatureRoute from "./routes/app-features/index.js";
 import ChallengeRoute from "./routes/challenges/index.js";
 import TaskRoute from "./routes/tasks/index.js";
+import CategoriesRoute from "./routes/categories/index.js";
 import UserRoute from "./routes/users/index.js";
 import {
   err400,
@@ -32,6 +33,8 @@ server.use("/users", UserRoute);
 server.use("/features", FeatureRoute);
 
 server.use("/tasks", TaskRoute);
+
+server.use("/categories", CategoriesRoute);
 
 server.use("/achievements", AchievementRoute);
 
