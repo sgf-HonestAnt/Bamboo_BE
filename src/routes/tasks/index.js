@@ -4,7 +4,13 @@ import TaskListModel from "../tasks/model.js";
 import { TaskModel } from "./model.js";
 import multer from "multer";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
-import { storage } from "../../utils/constants.js";
+import {
+  DAILY,
+  WEEKLY,
+  MONTHLY,
+  storage,
+  NEVER,
+} from "../../utils/constants.js";
 import {
   createSharedWithArray,
   getTaskFilePath,
@@ -14,6 +20,7 @@ import {
   pushCategory,
   addXP,
   removeOwnId,
+  repeatTaskSave,
 } from "../../utils/route-funcs/tasks.js";
 import { pushNotification } from "../../utils/route-funcs/users.js";
 
@@ -37,13 +44,13 @@ TaskRoute.post(
       const { body } = req;
       body.category = req.body.category.toLowerCase();
       if (
-        repeats !== "daily" &&
-        repeats !== "weekly" &&
-        repeats !== "monthly"
+        repeats !== DAILY &&
+        repeats !== MONTHLY &&
+        repeats !== WEEKLY &&
+        repeats !== NEVER
       ) {
         body.repeats = `every ${repeats} days`;
       }
-      console.log(body.repeats);
       const newTask = new TaskModel({
         createdBy: req.user._id,
         ...body,
@@ -61,6 +68,9 @@ TaskRoute.post(
         });
       } else {
         await pushCategory(req.user._id, category);
+        if (repeats !== NEVER) {
+          await repeatTaskSave(body, req.user._id, sharedWith, 10);
+        }
         const updateAllLists = sharedWith.map((user_id) => {
           const updated = updateTasklist(
             user_id,
@@ -71,6 +81,7 @@ TaskRoute.post(
           return updated;
         });
         if (updateAllLists) {
+          // Front end does not allow shared tasks that repeat - it could spam followers too much.
           console.log("💠 NEW TASK SUCCESSFULLY CREATED");
           res.send({ _id });
         } else {

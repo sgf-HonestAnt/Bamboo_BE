@@ -29,7 +29,7 @@ export const TaskSchema = new mongoose.Schema(
       type: [{ type: Schema.Types.ObjectId, ref: "User" }],
     },
     status: { type: String, default: AWAITED, enum: TASK_STATUS_TYPES },
-    deadline: { type: String, default: NONE },
+    deadline: { type: Date },
   },
   {
     timestamps: false,
