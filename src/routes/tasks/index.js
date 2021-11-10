@@ -36,6 +36,7 @@ TaskRoute.post(
       // in all users sharing it, task id is added to "tasklist.awaited"; category is added to "tasklist.categories" ✔️
       // if req.file, file path points to correct cloudinary url ✔️
       console.log("💠 POST TASK");
+      console.log(req.body)
       const sharedWith = createSharedWithArray(
         req.body.sharedWith,
         req.user._id

@@ -89,6 +89,7 @@ UserRoute.post("/register", async (req, res, next) => {
     try {
       console.log("💠 REFRESH SESSION");
       const { actualRefreshToken } = req.body;
+      // send refreshToken to detectReuse func
       const { accessToken, refreshToken } = await refreshTokens(
         actualRefreshToken
       );
