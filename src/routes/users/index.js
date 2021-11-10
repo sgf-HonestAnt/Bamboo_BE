@@ -13,7 +13,7 @@ import {
   getUserFilePath,
   getPublicUsers,
 } from "../../utils/route-funcs/users.js";
-import { generateTokens, refreshTokens } from "../../auth/tools.js";
+import { detectReuse, generateTokens, refreshTokens } from "../../auth/tools.js";
 
 const UserRoute = express.Router();
 
@@ -89,12 +89,14 @@ UserRoute.post("/register", async (req, res, next) => {
     try {
       console.log("💠 REFRESH SESSION");
       const { actualRefreshToken } = req.body;
-      // send refreshToken to detectReuse func
-      const { accessToken, refreshToken } = await refreshTokens(
-        actualRefreshToken
-      );
-      console.log("💠 REFRESHED TOKENS");
-      res.send({ accessToken, refreshToken });
+      await detectReuse(actualRefreshToken) // if used throw 403 Forbidden
+      if (res.status!==403) {
+        const { accessToken, refreshToken } = await refreshTokens(
+          actualRefreshToken
+        );
+        console.log("💠 REFRESHED TOKENS");
+        res.send({ accessToken, refreshToken });
+      }
     } catch (e) {
       next(e);
     }

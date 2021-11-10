@@ -2,10 +2,6 @@ import UserModel from "../../routes/users/model.js";
 import { USER_CROP_IMG } from "../constants.js";
 import { ADJECTIVES, NOUNS } from "../wordsArray.js";
 ////////////////////////////////////////////////////////////////////
-export const detectReuse = async () => {
-  // check refreshToken has not already been used (malicious users)
-};
-////////////////////////////////////////////////////////////////////
 export const generator = async () => {
   // generate username from random nouns and adjectives
   const nounsArray = NOUNS;

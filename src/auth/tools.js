@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import createHttpError from "http-errors";
 import UserModel from "../routes/users/model.js";
+import TokenModel from "../routes/tokens/model.js";
 
 export const generateTokens = async (user) => {
   const accessToken = await generateJWT({ _id: user._id });
@@ -61,5 +62,17 @@ export const refreshTokens = async (actualRefreshToken) => {
     return { accessToken, refreshToken };
   } else {
     throw createHttpError(401, "Refresh Token not valid!");
+  }
+};
+
+export const detectReuse = async (token) => {
+  const foundToken = await TokenModel.findOne({ token });
+  if (foundToken) {
+    throw createHttpError(403, "Token detected!");
+  } else {
+    // add token to the list so it cannot be used again.
+    console.log("💠 ADDED TOKEN TO DATABASE");
+    const newToken = new TokenModel({ token });
+    await newToken.save();
   }
 };
