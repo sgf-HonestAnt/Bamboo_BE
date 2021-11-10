@@ -1,11 +1,12 @@
 import express from "express";
 import cors from "cors";
-import AchievementRoute from "./routes/achievements/index.js";
+import UserRoute from "./routes/users/index.js";
 import FeatureRoute from "./routes/app-features/index.js";
-import ChallengeRoute from "./routes/challenges/index.js";
 import TaskRoute from "./routes/tasks/index.js";
 import CategoriesRoute from "./routes/categories/index.js";
-import UserRoute from "./routes/users/index.js";
+import AchievementRoute from "./routes/achievements/index.js";
+import ChallengeRoute from "./routes/challenges/index.js";
+import TokenRoute from "./routes/tokens/index.js";
 import {
   err400,
   err401,
@@ -39,6 +40,8 @@ server.use("/categories", CategoriesRoute);
 server.use("/achievements", AchievementRoute);
 
 server.use("/challenges", ChallengeRoute);
+
+server.use("/guard", TokenRoute);
 
 server.use(err400);
 

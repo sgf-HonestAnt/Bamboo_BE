@@ -1,8 +1,9 @@
 import UserModel from "../../routes/users/model.js";
 import { USER_CROP_IMG } from "../constants.js";
 import { ADJECTIVES, NOUNS } from "../wordsArray.js";
-
+////////////////////////////////////////////////////////////////////
 export const generator = async () => {
+  // generate username from random nouns and adjectives
   const nounsArray = NOUNS;
   const adjectivesArray = ADJECTIVES;
   const noun = nounsArray[Math.floor(Math.random() * nounsArray.length)];
@@ -13,7 +14,8 @@ export const generator = async () => {
   const username = adjNounNum.replace(" ", "");
   return username;
 };
-
+////////////////////////////////////////////////////////////////////
+// generate a unique username using generator
 export const nameGenerator = async (username) => {
   let altNames = [];
   for (let i = 0; i < 5; i++) {
@@ -26,7 +28,8 @@ export const nameGenerator = async (username) => {
   }
   return altNames;
 };
-
+////////////////////////////////////////////////////////////////////
+// move task _id between two status lists
 export const shuffle = async (
   ID,
   _id,
@@ -72,7 +75,8 @@ export const shuffle = async (
   await updatedUser.save();
   return updatedUser;
 };
-
+////////////////////////////////////////////////////////////////////
+// return a list of users without private information (admin and own user can still access private info)
 export const getPublicUsers = async (users, array) => {
   for (let i = 0; i < users.length; i++) {
     const user = await UserModel.findById(users[i]._id).populate(
@@ -90,8 +94,9 @@ export const getPublicUsers = async (users, array) => {
   }
   return array;
 };
-
+////////////////////////////////////////////////////////////////////
 export const getUserFilePath = (path) => {
+  // return scaled, sharpened, gravity-based file path from cloudinary
   let filePath = path;
   const filePathSplit = filePath.split("/upload/", 2);
   filePath = `${USER_CROP_IMG}/${filePathSplit[1]}`;
@@ -100,10 +105,10 @@ export const getUserFilePath = (path) => {
 ////////////////////////////////////////////////////////////////////
 export const pushNotification = async (id, notification) => {
   // push notification to user _id
-  console.log("➡️pushNotification")
+  console.log("➡️pushNotification");
   const update = { $push: { notification: notification } };
-    await UserModel.findByIdAndUpdate(id, update, {
-      returnOriginal: false,
-    });
-  return
+  await UserModel.findByIdAndUpdate(id, update, {
+    returnOriginal: false,
+  });
+  return;
 };

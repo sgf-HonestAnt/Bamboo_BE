@@ -1,6 +1,15 @@
 import TaskListModel, { TaskModel } from "../../routes/tasks/model.js";
 import UserModel from "../../routes/users/model.js";
-import { DELETE, NONE, TASK_RESIZE_IMG, UPDATE } from "../constants.js";
+import {
+  DAILY,
+  DELETE,
+  MONTHLY,
+  NEVER,
+  NONE,
+  TASK_RESIZE_IMG,
+  UPDATE,
+  WEEKLY,
+} from "../constants.js";
 ////////////////////////////////////////////////////////////////////
 export const getTaskFilePath = (path) => {
   // return scaled, sharpened, gravity-based file path from cloudinary
@@ -48,6 +57,88 @@ export const pullFromStatus = async (id, status, taskId) => {
     { returnOriginal: false }
   );
   return updatedList;
+};
+////////////////////////////////////////////////////////////////////
+export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
+  const { repeats, deadline } = body;
+  // return x number of repeated tasks for a total of y repetitions
+  console.log("➡️repeatTaskSave");
+  const startDate = deadline ? deadline : new Date();
+  console.log(startDate)
+  const s = 1000;
+  const m = 60;
+  const h = 60;
+  const d = 24;
+  let newDate;
+  let newDateAsDate;
+  if (repeats === DAILY) {
+    for (let i = 0; i < repetitions; i++) {
+      console.log(repeats)
+      newDate = await startDate.getTime() + i * d * h * m * s;
+      newDateAsDate = new Date(newDate);
+      // console.log(newDate, newDateAsDate);
+      const newTask = new TaskModel({
+        createdBy: user,
+        ...body,
+        sharedWith,
+      });
+      newTask.deadline = newDateAsDate;
+      const { _id } = await newTask.save();
+      await pushToStatus(user, "awaited", _id);
+      console.log(_id);
+    }
+  } else if (repeats === WEEKLY) {
+    console.log(repeats)
+    for (let i = 0; i < repetitions; i++) {
+      newDate = await startDate.getTime() + i * 7 * d * h * m * s;
+      newDateAsDate = new Date(newDate);
+      // console.log(newDate, newDateAsDate);
+      const newTask = new TaskModel({
+        createdBy: user,
+        ...body,
+        sharedWith,
+      });
+      newTask.deadline = newDateAsDate;
+      const { _id } = await newTask.save();
+      await pushToStatus(user, "awaited", _id);
+      console.log(_id);
+    }
+  } else if (repeats === MONTHLY) {
+    console.log(repeats)
+    for (let i = 0; i < repetitions; i++) {
+      newDate = await startDate.getTime() + i * 28 * d * h * m * s;
+      newDateAsDate = new Date(newDate);
+      // console.log(newDate, newDateAsDate);
+      const newTask = new TaskModel({
+        createdBy: user,
+        ...body,
+        sharedWith,
+      });
+      newTask.deadline = newDateAsDate;
+      const { _id } = await newTask.save();
+      await pushToStatus(user, "awaited", _id);
+      console.log(_id);
+    }
+  } else {
+    console.log(repeats)
+    // must be number, e.g. 3
+    for (let i = 0; i < repetitions; i++) {
+      const number = Number(repeats.split(" ")[1])
+      newDate = await startDate.getTime() + i * number * d * h * m * s;
+      newDateAsDate = new Date(newDate);
+      console.log(newDate, newDateAsDate, number);
+      const newTask = new TaskModel({
+        createdBy: user,
+        ...body,
+        sharedWith,
+      });
+      newTask.deadline = newDateAsDate;
+      const { _id } = await newTask.save();
+      await pushToStatus(user, "awaited", _id);
+      console.log(_id);
+    }
+  }
+  return;
 };
 ////////////////////////////////////////////////////////////////////
 export const updateTaskStatus = async (
