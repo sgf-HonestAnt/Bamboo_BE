@@ -13,7 +13,11 @@ import {
   getUserFilePath,
   getPublicUsers,
 } from "../../utils/route-funcs/users.js";
-import { detectReuse, generateTokens, refreshTokens } from "../../auth/tools.js";
+import {
+  detectReuse,
+  generateTokens,
+  refreshTokens,
+} from "../../auth/tools.js";
 
 const UserRoute = express.Router();
 
@@ -89,8 +93,8 @@ UserRoute.post("/register", async (req, res, next) => {
     try {
       console.log("💠 REFRESH SESSION");
       const { actualRefreshToken } = req.body;
-      await detectReuse(actualRefreshToken) // if used throw 403 Forbidden
-      if (res.status!==403) {
+      await detectReuse(actualRefreshToken); // if used throw 403 Forbidden
+      if (res.status !== 403) {
         const { accessToken, refreshToken } = await refreshTokens(
           actualRefreshToken
         );
@@ -287,7 +291,17 @@ UserRoute.post("/register", async (req, res, next) => {
     } catch (e) {
       next(e);
     }
-  })
+  });
+UserRoute.get("/test", JWT_MIDDLEWARE, async (req, res, next) => {
+  try {
+    console.log("💠 TEST TOKEN");
+    const username = req.user.username;
+    console.log("💠 TESTED", {username});
+    res.send({username});
+  } catch (e) {
+    next(e);
+  }
+})
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       console.log("💠 GET USER [ME]");
@@ -504,5 +518,5 @@ UserRoute.post("/register", async (req, res, next) => {
       next(e);
     }
   });
- 
-export default UserRoute;  
+
+export default UserRoute;
