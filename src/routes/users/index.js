@@ -291,17 +291,17 @@ UserRoute.post("/register", async (req, res, next) => {
     } catch (e) {
       next(e);
     }
-  });
-UserRoute.get("/test", JWT_MIDDLEWARE, async (req, res, next) => {
-  try {
-    console.log("💠 TEST TOKEN");
-    const username = req.user.username;
-    console.log("💠 TESTED", {username});
-    res.send({username});
-  } catch (e) {
-    next(e);
-  }
-})
+  })
+  .get("/test", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 TEST TOKEN");
+      const username = req.user.username;
+      console.log("💠 TESTED", { username });
+      res.send({ username });
+    } catch (e) {
+      next(e);
+    }
+  })
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       console.log("💠 GET USER [ME]");

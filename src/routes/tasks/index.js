@@ -32,24 +32,20 @@ TaskRoute.post(
   multer({ storage }).single("image"),
   async (req, res, next) => {
     try {
-      // post "/me" endpoint creates a task with non-duplicated sharedWith array ✔️
-      // in all users sharing it, task id is added to "tasklist.awaited"; category is added to "tasklist.categories" ✔️
-      // if req.file, file path points to correct cloudinary url ✔️
       console.log("💠 POST TASK");
-      console.log(req.body)
+      const { total } = req.body; // total repeats (repeatTaskSave)
+      delete req.body.total;
       const sharedWith = createSharedWithArray(
+        // create sharedWith id array
         req.body.sharedWith,
         req.user._id
       );
       const { repeats } = req.body;
       const { body } = req;
       body.category = req.body.category.toLowerCase();
-      if (
-        repeats !== DAILY &&
-        repeats !== MONTHLY &&
-        repeats !== WEEKLY &&
-        repeats !== NEVER
-      ) {
+      const repeatsIsANumber = Number(repeats) !== NaN
+      if (repeatsIsANumber) {
+        // set repeats script
         body.repeats = `every ${repeats} days`;
       }
       const newTask = new TaskModel({
@@ -58,6 +54,7 @@ TaskRoute.post(
         sharedWith,
       });
       if (req.file) {
+        // if image sent, rewrite to file path
         const filePath = await getTaskFilePath(req.file.path);
         newTask.image = filePath;
       }
@@ -68,9 +65,10 @@ TaskRoute.post(
           task: newTask,
         });
       } else {
-        await pushCategory(req.user._id, category);
+        await pushCategory(req.user._id, category); // if new category, push to list in lowercase
         if (repeats !== NEVER) {
-          await repeatTaskSave(body, req.user._id, sharedWith, 10);
+          // if repeats, save multiple times
+          await repeatTaskSave(body, req.user._id, sharedWith, total);
         }
         const updateAllLists = sharedWith.map((user_id) => {
           const updated = updateTasklist(

@@ -71,12 +71,12 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
   const d = 24;
   let newDate;
   let newDateAsDate;
+  console.log("REPEATS AT TASKSAVE",repeats)
   if (repeats === DAILY) {
-    for (let i = 0; i < repetitions; i++) {
+    for (let i = 0; i < 365; i++) {
       console.log(repeats)
       newDate = await startDate.getTime() + i * d * h * m * s;
       newDateAsDate = new Date(newDate);
-      // console.log(newDate, newDateAsDate);
       const newTask = new TaskModel({
         createdBy: user,
         ...body,
@@ -89,10 +89,9 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
     }
   } else if (repeats === WEEKLY) {
     console.log(repeats)
-    for (let i = 0; i < repetitions; i++) {
+    for (let i = 0; i < 52; i++) {
       newDate = await startDate.getTime() + i * 7 * d * h * m * s;
       newDateAsDate = new Date(newDate);
-      // console.log(newDate, newDateAsDate);
       const newTask = new TaskModel({
         createdBy: user,
         ...body,
@@ -105,10 +104,9 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
     }
   } else if (repeats === MONTHLY) {
     console.log(repeats)
-    for (let i = 0; i < repetitions; i++) {
+    for (let i = 0; i < 12; i++) {
       newDate = await startDate.getTime() + i * 28 * d * h * m * s;
       newDateAsDate = new Date(newDate);
-      // console.log(newDate, newDateAsDate);
       const newTask = new TaskModel({
         createdBy: user,
         ...body,
@@ -120,8 +118,6 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
       console.log(_id);
     }
   } else {
-    console.log(repeats)
-    // must be number, e.g. 3
     for (let i = 0; i < repetitions; i++) {
       const number = Number(repeats.split(" ")[1])
       newDate = await startDate.getTime() + i * number * d * h * m * s;
