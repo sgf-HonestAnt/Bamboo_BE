@@ -1,4 +1,4 @@
-import { refreshTokens } from "../auth/tools";
+import { refreshTokens } from "../auth/tools.js";
 
 const REFRESH = async (req, res, next, _id) => {
   try {
