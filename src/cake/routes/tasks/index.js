@@ -40,10 +40,10 @@ TaskRoute.post(
         req.body.sharedWith,
         req.user._id
       );
-      const { repeats } = req.body;
+      const { repeats, deadline } = req.body;
       const { body } = req;
       body.category = req.body.category.toLowerCase();
-      const repeatsIsANumber = Number(repeats) !== NaN
+      const repeatsIsANumber = repeats !== DAILY && repeats !== WEEKLY && repeats !== MONTHLY && repeats !== NEVER
       if (repeatsIsANumber) {
         // set repeats script
         body.repeats = `every ${repeats} days`;

@@ -63,8 +63,7 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
   const { repeats, deadline } = body;
   // return x number of repeated tasks for a total of y repetitions
   console.log("➡️repeatTaskSave");
-  const startDate = deadline ? deadline : new Date();
-  console.log(startDate)
+  const startDate = deadline ? new Date(deadline) : new Date();
   const s = 1000;
   const m = 60;
   const h = 60;
@@ -74,7 +73,6 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
   console.log("REPEATS AT TASKSAVE",repeats)
   if (repeats === DAILY) {
     for (let i = 0; i < 365; i++) {
-      console.log(repeats)
       newDate = await startDate.getTime() + i * d * h * m * s;
       newDateAsDate = new Date(newDate);
       const newTask = new TaskModel({
@@ -88,7 +86,6 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
       console.log(_id);
     }
   } else if (repeats === WEEKLY) {
-    console.log(repeats)
     for (let i = 0; i < 52; i++) {
       newDate = await startDate.getTime() + i * 7 * d * h * m * s;
       newDateAsDate = new Date(newDate);
@@ -103,7 +100,6 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
       console.log(_id);
     }
   } else if (repeats === MONTHLY) {
-    console.log(repeats)
     for (let i = 0; i < 12; i++) {
       newDate = await startDate.getTime() + i * 28 * d * h * m * s;
       newDateAsDate = new Date(newDate);
