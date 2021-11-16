@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import TaskListModel from "../tasks/model.js";
 import { TaskModel } from "./model.js";
+import q2m from "query-to-mongo";
 import multer from "multer";
 import { JWT_MIDDLEWARE } from "../../auth/jwt.js";
 import {
@@ -43,7 +44,11 @@ TaskRoute.post(
       const { repeats, deadline } = req.body;
       const { body } = req;
       body.category = req.body.category.toLowerCase();
-      const repeatsIsANumber = repeats !== DAILY && repeats !== WEEKLY && repeats !== MONTHLY && repeats !== NEVER
+      const repeatsIsANumber =
+        repeats !== DAILY &&
+        repeats !== WEEKLY &&
+        repeats !== MONTHLY &&
+        repeats !== NEVER;
       if (repeatsIsANumber) {
         // set repeats script
         body.repeats = `every ${repeats} days`;
@@ -106,6 +111,22 @@ TaskRoute.post(
       } else {
         res.status(404).send({ message: `USER ${_id} TASKLIST NOT FOUND` });
       }
+    } catch (e) {
+      next(e);
+    }
+  })
+  .get("/query", async (req, res, next) => {
+    try {
+      console.log("💠 GET TASKS QUERY");
+      const query = q2m(req.query);
+      const { total, tasks } = await TaskModel.findTasks(query);
+      console.log("💠 FETCHED TASKS BY QUERY [ME]");
+      res.send({
+        links: query.links("/tasks", total),
+        total,
+        tasks,
+        pageTotal: Math.ceil(total / query.options.limit),
+      });
     } catch (e) {
       next(e);
     }
