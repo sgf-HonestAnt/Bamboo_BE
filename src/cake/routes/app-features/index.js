@@ -15,7 +15,7 @@ FeatureRoute.post(
   async (req, res, next) => {
     try {
       const newFeature = new FeatureModel(req.body);
-      if (req.file) {
+      if (req.hasOwnProperty("file")) {
         const filePath = await getFeatureFilePath(req.file.path);
         newFeature.image = filePath;
       }
@@ -50,7 +50,7 @@ FeatureRoute.post(
       try {
         const _id = req.params.f_id;
         const update = { ...req.body };
-        if (req.file) {
+        if (req.hasOwnProperty("file")) {
           const filePath = await getFeatureFilePath(req.file.path);
           update.image = filePath;
         }

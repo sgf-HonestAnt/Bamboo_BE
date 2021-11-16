@@ -53,7 +53,7 @@ TaskRoute.post(
         ...body,
         sharedWith,
       });
-      if (req.file) {
+      if (req.hasOwnProperty("file")) {
         // if image sent, rewrite to file path
         const filePath = await getTaskFilePath(req.file.path);
         newTask.image = filePath;
@@ -157,7 +157,7 @@ TaskRoute.post(
           const changeOfStatus = status ? status !== task.status : false;
           const filter = { _id: t_id };
           const update = { ...req.body };
-          if (req.file) {
+          if (req.hasOwnProperty("file")) {
             const filePath = await getTaskFilePath(req.file.path);
             update.image = filePath;
           }
