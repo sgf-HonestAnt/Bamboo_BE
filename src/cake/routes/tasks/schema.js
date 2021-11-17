@@ -54,11 +54,12 @@ const TaskListSchema = new mongoose.Schema({
 });
 
 TaskSchema.static("findTasks", async function (query) {
-  console.log(query.criteria);
+  const { criteria } = query
+  console.log(criteria);
   // var thename = "Andrew";
   // db.collection.find({ name: /^thename$/i });
-  const total = await this.countDocuments(query.criteria);
-  const tasks = await this.find(query.criteria, query.options.fields) // problem here I think
+  const total = await this.countDocuments(criteria);
+  const tasks = await this.find(criteria, query.options.fields) // problem here I think
     .limit(query.options.limit)
     .skip(query.options.skip)
     .sort(query.options.sort);
