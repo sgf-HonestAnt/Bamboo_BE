@@ -18,6 +18,7 @@ import {
   generateTokens,
   refreshTokens,
 } from "../../auth/tools.js";
+import { createTasksUponRegister } from "../../utils/route-funcs/tasks.js";
 
 const UserRoute = express.Router();
 
@@ -63,7 +64,9 @@ UserRoute.post("/register", async (req, res, next) => {
             returnOriginal: false,
           });
           await updatedUser.save();
-          console.log("💠 NEW USER REGISTERED [ME]");
+          // now create default Tasks!
+          await createTasksUponRegister(_id);
+          console.log("💠 NEW USER REGISTERED WITH 5 DEFAULT TASKS [ME]");
           res.status(201).send({ _id, accessToken, refreshToken, admin });
         }
       }

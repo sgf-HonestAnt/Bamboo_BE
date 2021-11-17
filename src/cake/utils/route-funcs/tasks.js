@@ -11,6 +11,98 @@ import {
   WEEKLY,
 } from "../constants.js";
 ////////////////////////////////////////////////////////////////////
+export const getDateAsString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const date = now.getDate();
+  const shortMonth = month.toString().length < 2;
+  const shortDate = date.toString().length < 2;
+  let dateAsString;
+  if (shortMonth && shortDate) {
+    dateAsString = `${year}-0${month}-0${date}`;
+  } else if (shortMonth) {
+    dateAsString = `${year}-0${month}-${date}`;
+  } else if (shortDate) {
+    dateAsString = `${year}-${month}-0${date}`;
+  } else {
+    dateAsString = `${year}-${month}-${date}`;
+  }
+  return dateAsString;
+};
+////////////////////////////////////////////////////////////////////
+export const createTasksUponRegister = async (userId) => {
+  const dateAsString = getDateAsString();
+  const status = "awaited"
+  const urgentTask = new TaskModel({
+    createdBy: userId,
+    category: "urgent",
+    title: "Something Urgent",
+    desc: "Get it done!",
+    repeats: "never",
+    status,
+    deadline: null,
+    value: 10,
+    sharedWith: [userId],
+  });
+  const householdTask = new TaskModel({
+    createdBy: userId,
+    category: "home",
+    title: "Vacuuming",
+    desc: "Housework can be fun!",
+    repeats: "never",
+    status,
+    deadline: null,
+    value: 10,
+    sharedWith: [userId],
+  });
+  const shoppingTask = new TaskModel({
+    createdBy: userId,
+    category: "shopping",
+    title: "Buy Groceries",
+    desc: "Got milk?",
+    repeats: "never",
+    status,
+    deadline: null,
+    value: 10,
+    sharedWith: [userId],
+  });
+  const fitnessTask = new TaskModel({
+    createdBy: userId,
+    category: "fitness",
+    title: "Go to the gym",
+    desc: "Work up a sweat.",
+    repeats: "never",
+    status,
+    deadline: null,
+    value: 10,
+    sharedWith: [userId],
+  });
+  const petTask = new TaskModel({
+    createdBy: userId,
+    category: "pets",
+    title: "Take Fido to the vet",
+    desc: "We're sure he'll be fine!",
+    repeats: "never",
+    status,
+    deadline: dateAsString,
+    value: 10,
+    sharedWith: [userId],
+  });
+  const defaultTasks = [
+    urgentTask,
+    householdTask,
+    shoppingTask,
+    fitnessTask,
+    petTask,
+  ];
+  for (let i = 0; i < defaultTasks.length; i++) {
+    const { _id, category } = await defaultTasks[i].save();
+    await updateTasklist(userId, status, _id, category);
+  }
+  return;
+};
+////////////////////////////////////////////////////////////////////
 export const getTaskFilePath = (path) => {
   // return scaled, sharpened, gravity-based file path from cloudinary
   console.log("➡️getTaskFilePath");
@@ -70,10 +162,10 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
   const d = 24;
   let newDate;
   let newDateAsDate;
-  console.log("REPEATS AT TASKSAVE",repeats)
+  console.log("REPEATS AT TASKSAVE", repeats);
   if (repeats === DAILY) {
     for (let i = 0; i < 365; i++) {
-      newDate = await startDate.getTime() + i * d * h * m * s;
+      newDate = (await startDate.getTime()) + i * d * h * m * s;
       newDateAsDate = new Date(newDate);
       const newTask = new TaskModel({
         createdBy: user,
@@ -87,7 +179,7 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
     }
   } else if (repeats === WEEKLY) {
     for (let i = 0; i < 52; i++) {
-      newDate = await startDate.getTime() + i * 7 * d * h * m * s;
+      newDate = (await startDate.getTime()) + i * 7 * d * h * m * s;
       newDateAsDate = new Date(newDate);
       const newTask = new TaskModel({
         createdBy: user,
@@ -101,7 +193,7 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
     }
   } else if (repeats === MONTHLY) {
     for (let i = 0; i < 12; i++) {
-      newDate = await startDate.getTime() + i * 28 * d * h * m * s;
+      newDate = (await startDate.getTime()) + i * 28 * d * h * m * s;
       newDateAsDate = new Date(newDate);
       const newTask = new TaskModel({
         createdBy: user,
@@ -115,8 +207,8 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
     }
   } else {
     for (let i = 0; i < repetitions; i++) {
-      const number = Number(repeats.split(" ")[1])
-      newDate = await startDate.getTime() + i * number * d * h * m * s;
+      const number = Number(repeats.split(" ")[1]);
+      newDate = (await startDate.getTime()) + i * number * d * h * m * s;
       newDateAsDate = new Date(newDate);
       console.log(newDate, newDateAsDate, number);
       const newTask = new TaskModel({
