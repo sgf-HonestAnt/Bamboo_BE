@@ -14,10 +14,10 @@ export const storage = new CloudinaryStorage({
   params: { folder: "my-task-app" },
 });
 // ***** users ***** //
-export const NEW_BIO = "Newbie!";
+export const NEW_BIO = "Just joined Panda";
 export const USER_IMG = "default_avatar_rnmt6a.jpg";
 export const USER_CROP_IMG = `${cloud}/${squarecrop}`;
-export const DEFAULT_USER_IMG = `${USER_CROP_IMG}/${FARM}/${USER_IMG}`;
+export const DEFAULT_USER_IMG = `https://res.cloudinary.com/dowvu52wz/image/upload/v1637250583/schrutefarms/panda_grjq9c.png`;
 // ***** categories ***** //
 export const NONE = "none";
 export const DELETE = "delete";
@@ -27,8 +27,8 @@ export const SOLO = "solo";
 export const TEAM = "team";
 export const TASK_TYPES = [SOLO, TEAM];
 export const AWAITED = "awaited";
-export const COMPLETED = "completed"
-export const IN_PROGRESS = "in_progress"
+export const COMPLETED = "completed";
+export const IN_PROGRESS = "in_progress";
 export const TASK_STATUS_TYPES = [AWAITED, COMPLETED, IN_PROGRESS];
 export const NEVER = "never";
 export const DAILY = "daily";
@@ -56,8 +56,7 @@ export const LIGHT_MODE = "light-mode";
 export const DARK_MODE = "dark-mode";
 export const THEMES = [LIGHT_MODE, DARK_MODE];
 
-
-// ***** features tests ***** // 
+// ***** features tests ***** //
 export const newFeature = {
   month: "January",
   descrip: "Here's the featured challenge of the month!",

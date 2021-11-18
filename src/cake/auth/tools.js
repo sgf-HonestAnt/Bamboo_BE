@@ -10,7 +10,6 @@ export const generateTokens = async (user) => {
   await user.save();
   return { accessToken, refreshToken };
 };
-
 const generateJWT = (payload) =>
   new Promise((resolve, reject) =>
     jwt.sign(
@@ -23,7 +22,6 @@ const generateJWT = (payload) =>
       }
     )
   );
-
 export const verifyJWT = (token) =>
   new Promise((resolve, reject) =>
     jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, decodedToken) => {
@@ -31,7 +29,6 @@ export const verifyJWT = (token) =>
       resolve(decodedToken);
     })
   );
-
 const generateRefreshJWT = (payload) =>
   new Promise((resolve, reject) =>
     jwt.sign(
@@ -44,7 +41,6 @@ const generateRefreshJWT = (payload) =>
       }
     )
   );
-
 export const verifyRefreshJWT = (token) =>
   new Promise((resolve, reject) =>
     jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, decodedToken) => {
@@ -52,7 +48,6 @@ export const verifyRefreshJWT = (token) =>
       resolve(decodedToken);
     })
   );
-
 export const refreshTokens = async (actualRefreshToken) => {
   const decodedRefreshToken = await verifyRefreshJWT(actualRefreshToken);
   const user = await UserModel.findById(decodedRefreshToken._id);
@@ -64,7 +59,6 @@ export const refreshTokens = async (actualRefreshToken) => {
     throw createHttpError(401, "Refresh Token not valid!");
   }
 };
-
 export const detectReuse = async (token) => {
   const foundToken = await TokenModel.findOne({ token });
   if (foundToken) {

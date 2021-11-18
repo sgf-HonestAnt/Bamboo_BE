@@ -22,7 +22,6 @@ export const JWT_MIDDLEWARE = async (req, res, next) => {
     }
   }
 };
-
 export const ADMIN_MIDDLEWARE = async (req, res, next) => {
   if (!req.headers.authorization) {
     next(createHttpError(401, "CREDENTIALS REQUIRED!"));
