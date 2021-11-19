@@ -11,11 +11,10 @@ import {
   WEEKLY,
 } from "../constants.js";
 ////////////////////////////////////////////////////////////////////
-export const getDateAsString = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const date = now.getDate();
+export const getDateAsString = (datePar) => {
+  const year = datePar.getFullYear();
+  const month = datePar.getMonth() + 1;
+  const date = datePar.getDate();
   const shortMonth = month.toString().length < 2;
   const shortDate = date.toString().length < 2;
   let dateAsString;
@@ -32,8 +31,15 @@ export const getDateAsString = () => {
 };
 ////////////////////////////////////////////////////////////////////
 export const createTasksUponRegister = async (userId) => {
-  const dateAsString = getDateAsString();
-  const status = "awaited"
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const todayDateAsString = getDateAsString(today);
+  const tomorrowDateAsString = getDateAsString(tomorrow);
+  const yesterdayDateAsString = getDateAsString(yesterday);
+  const status = "awaited";
   const urgentTask = new TaskModel({
     createdBy: userId,
     category: "urgent",
@@ -41,8 +47,8 @@ export const createTasksUponRegister = async (userId) => {
     desc: "Get it done!",
     repeats: "never",
     status,
-    deadline: null,
-    value: 10,
+    deadline: todayDateAsString,
+    value: 0,
     sharedWith: [userId],
   });
   const householdTask = new TaskModel({
@@ -52,8 +58,8 @@ export const createTasksUponRegister = async (userId) => {
     desc: "Housework can be fun!",
     repeats: "never",
     status,
-    deadline: null,
-    value: 10,
+    deadline: tomorrowDateAsString,
+    value: 0,
     sharedWith: [userId],
   });
   const shoppingTask = new TaskModel({
@@ -63,8 +69,8 @@ export const createTasksUponRegister = async (userId) => {
     desc: "Got milk?",
     repeats: "never",
     status,
-    deadline: null,
-    value: 10,
+    deadline: yesterdayDateAsString,
+    value: 0,
     sharedWith: [userId],
   });
   const fitnessTask = new TaskModel({
@@ -75,7 +81,7 @@ export const createTasksUponRegister = async (userId) => {
     repeats: "never",
     status,
     deadline: null,
-    value: 10,
+    value: 0,
     sharedWith: [userId],
   });
   const petTask = new TaskModel({
@@ -85,8 +91,8 @@ export const createTasksUponRegister = async (userId) => {
     desc: "We're sure he'll be fine!",
     repeats: "never",
     status,
-    deadline: dateAsString,
-    value: 10,
+    deadline: null,
+    value: 0,
     sharedWith: [userId],
   });
   const defaultTasks = [
