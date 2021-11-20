@@ -131,6 +131,20 @@ TaskRoute.post(
       next(e);
     }
   })
+  .get("/me/null", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 GET TASK NULL DEADLINE");
+      const { _id } = req.user;
+      const task = await TaskModel.find({
+        createdBy: _id,
+        deadline: { $exists: false },
+      });
+      console.log("💠 FETCHED TASK BY ID");
+      res.send(task);
+    } catch (e) {
+      next(e);
+    }
+  })
   .get("/me/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       // get "/me/ID" endpoint returns single task by id if it belongs to user ✔️

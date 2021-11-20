@@ -95,8 +95,8 @@ UserSchema.methods.toJSON = function () {
   return userObj;
 };
 
-UserSchema.statics.checkCredentials = async function (email, plainPW) {
-  const user = await this.findOne({ email });
+UserSchema.statics.checkCredentials = async function (username, plainPW) {
+  const user = await this.findOne({ username });
   if (user) {
     const isMatch = await bcrypt.compare(plainPW, user.password);
     if (isMatch) return user;

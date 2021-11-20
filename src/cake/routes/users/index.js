@@ -78,8 +78,8 @@ UserRoute.post("/register", async (req, res, next) => {
   .post("/session", async (req, res, next) => {
     try {
       console.log("💠 LOG IN");
-      const { email, password } = req.body;
-      const user = await UserModel.checkCredentials(email, password);
+      const { username, password } = req.body;
+      const user = await UserModel.checkCredentials(username, password);
       if (user !== null) {
         const { accessToken, refreshToken } = await generateTokens(user);
         const { admin, _id } = user;
@@ -331,6 +331,16 @@ UserRoute.post("/register", async (req, res, next) => {
       const settings = my_user.settings;
       console.log("💠 FETCHED SETTINGS [ME]");
       res.send(settings);
+    } catch (e) {
+      next(e);
+    }
+  })
+  .get("/admin", ADMIN_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 GET USERS [ADMIN]");
+      const users = await UserModel.find();
+      console.log("💠 FETCHED USERS [ADMIN]");
+      res.send(users);
     } catch (e) {
       next(e);
     }
