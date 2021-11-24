@@ -6,9 +6,12 @@ import {
   MONTHLY,
   NEVER,
   NONE,
+  SHOPPING,
   TASK_RESIZE_IMG,
   UPDATE,
+  URGENT,
   WEEKLY,
+  WELLBEING,
 } from "../constants.js";
 ////////////////////////////////////////////////////////////////////
 export const getDateAsString = (datePar) => {
@@ -37,14 +40,14 @@ export const createTasksUponRegister = async (userId) => {
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
   const todayDateAsString = getDateAsString(today);
-  const tomorrowDateAsString = getDateAsString(tomorrow);
-  const yesterdayDateAsString = getDateAsString(yesterday);
+  // const tomorrowDateAsString = getDateAsString(tomorrow);
+  // const yesterdayDateAsString = getDateAsString(yesterday);
   const status = "awaited";
   const urgentTask = new TaskModel({
     createdBy: userId,
-    category: "urgent",
-    title: "Something Urgent",
-    desc: "Get it done!",
+    category: URGENT,
+    title: "Solve World Hunger",
+    desc: "Put food before trade, find balance with nature's systems",
     repeats: "never",
     status,
     deadline: todayDateAsString,
@@ -53,55 +56,27 @@ export const createTasksUponRegister = async (userId) => {
   });
   const householdTask = new TaskModel({
     createdBy: userId,
-    category: "home",
-    title: "Vacuuming",
-    desc: "Housework can be fun!",
+    category: WELLBEING,
+    title: "Brush Your Teeth",
+    desc: "Don't forget to floss!",
     repeats: "never",
     status,
-    deadline: tomorrowDateAsString,
+    deadline: todayDateAsString,
     value: 0,
     sharedWith: [userId],
   });
   const shoppingTask = new TaskModel({
     createdBy: userId,
-    category: "shopping",
+    category: SHOPPING,
     title: "Buy Groceries",
     desc: "Got milk?",
     repeats: "never",
     status,
-    deadline: yesterdayDateAsString,
-    value: 0,
-    sharedWith: [userId],
-  });
-  const fitnessTask = new TaskModel({
-    createdBy: userId,
-    category: "fitness",
-    title: "Go to the gym",
-    desc: "Work up a sweat.",
-    repeats: "never",
-    status,
     deadline: null,
     value: 0,
-    sharedWith: [userId],
+    sharedWith: [userId], // 🌈 add ADMIN ID to this one and also FOLLOWED (tasks won't show up to AdminPanda)
   });
-  const petTask = new TaskModel({
-    createdBy: userId,
-    category: "pets",
-    title: "Take Fido to the vet",
-    desc: "We're sure he'll be fine!",
-    repeats: "never",
-    status,
-    deadline: null,
-    value: 0,
-    sharedWith: [userId],
-  });
-  const defaultTasks = [
-    urgentTask,
-    householdTask,
-    shoppingTask,
-    fitnessTask,
-    petTask,
-  ];
+  const defaultTasks = [urgentTask, householdTask, shoppingTask];
   for (let i = 0; i < defaultTasks.length; i++) {
     const { _id, category } = await defaultTasks[i].save();
     await updateTasklist(userId, status, _id, category);

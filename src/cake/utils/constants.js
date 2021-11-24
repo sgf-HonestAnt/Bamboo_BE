@@ -14,12 +14,11 @@ export const storage = new CloudinaryStorage({
   params: { folder: "my-task-app" },
 });
 // ***** users ***** //
-export const NEW_BIO = "Just joined Panda";
+export const NEW_BIO = "Just joined Bamboo";
 export const USER_IMG = "default_avatar_rnmt6a.jpg";
 export const USER_CROP_IMG = `${cloud}/${squarecrop}`;
 export const DEFAULT_USER_IMG = `https://res.cloudinary.com/dowvu52wz/image/upload/v1637250583/schrutefarms/panda_grjq9c.png`;
 // ***** categories ***** //
-export const NONE = "none";
 export const DELETE = "delete";
 export const UPDATE = "update";
 // ***** tasks ***** //
@@ -43,6 +42,28 @@ export const TASK_REPEAT_TYPES = [
   BIMONTHLY,
   MONTHLY,
   NUMBER,
+];
+export const URGENT = "urgent";
+export const HOUSEHOLD = "home";
+export const SHOPPING = "shopping";
+export const WORK = "work";
+export const RELATIONSHIPS = "relationships";
+export const FINANCE = "finance";
+export const FITNESS = "fitness";
+export const PETS = "pets";
+export const WELLBEING = "wellbeing";
+export const NONE = "none";
+export const TASK_CATEGORIES = [
+  URGENT,
+  HOUSEHOLD,
+  SHOPPING,
+  WORK,
+  RELATIONSHIPS,
+  FINANCE,
+  FITNESS,
+  PETS,
+  WELLBEING,
+  NONE,
 ];
 export const TASK_IMG = "default_task_nv0jcq.jpg";
 export const TASK_RESIZE_IMG = `${cloud}/${scalew800}`;

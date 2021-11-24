@@ -64,8 +64,15 @@ UserRoute.post("/register", async (req, res, next) => {
           const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
             returnOriginal: false,
           });
-          const welcomeNotification = "Welcome to Bamboo!"
-          updatedUser.notification.push(welcomeNotification)
+          const welcomeNotification = "Welcome to Bamboo!";
+          updatedUser.notification.push(welcomeNotification);
+          // 🌈BEFORE FINAL DEPLOYMENT
+          // add AdminPanda to FollowedUsers
+          // const adminId = process.env.ADMIN_ID
+          // const AdminPanda = await UserModel.findById(adminId)
+          // updatedUser.followedUsers.accepted.push(adminId)
+          // adminPanda.followedUsers.accepted.push(_id)
+          // await adminPanda.save()
           await updatedUser.save();
           // now create default Tasks!
           await createTasksUponRegister(_id);
@@ -186,6 +193,8 @@ UserRoute.post("/register", async (req, res, next) => {
             .status(409)
             .send({ message: `REJECTED USERS CANNOT MAKE REQUEST` });
         } else {
+          // 🌈 BEFORE FINAL DEPLOYMENT
+          // if sendee id is BigBear, allow for automatic acceptance
           const shuffleSenderList = await shuffle(
             sendee._id,
             sender._id,
@@ -199,8 +208,8 @@ UserRoute.post("/register", async (req, res, next) => {
             "response_awaited"
           );
           if (shuffleSenderList && shuffleSendeeList) {
-            const notification = `${sender.username} has sent you a request`
-            await pushNotification(sendee._id, notification)
+            const notification = `${sender.username} has sent you a request`;
+            await pushNotification(sendee._id, notification);
             console.log(`💠 ${sender._id} REQUESTED ${sendee._id}`);
             res.status(201).send(shuffleSenderList.followedUsers);
           } else {
@@ -246,8 +255,8 @@ UserRoute.post("/register", async (req, res, next) => {
           moveIDFromSendeeAwaitedToAccepted &&
           moveIDFromSenderRequestedToAccepted;
         if (complete) {
-          const notification = `${sendee.username} accepted your request`
-          await pushNotification(sender._id, notification)
+          const notification = `${sendee.username} accepted your request`;
+          await pushNotification(sender._id, notification);
           console.log(`💠 ${sendee._id} ACCEPTED ${sender._id}`);
           res.status(201).send(moveIDFromSendeeAwaitedToAccepted.followedUsers);
         } else {
@@ -417,6 +426,7 @@ UserRoute.post("/register", async (req, res, next) => {
           res.status(409).send({ message: `Username Exists`, available });
         } else {
           const update = { ...req.body };
+          console.log(update);
           if (req.file) {
             const filePath = await getUserFilePath(req.file.path);
             update.avatar = filePath;
