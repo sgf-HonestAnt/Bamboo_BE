@@ -13,7 +13,7 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     });
     if (_id) {
       const createdAt = new Date();
-      const item = { username, item: req.body.item, createdAt };
+      const item = { username, item: req.body.item, category: req.body.category, createdAt };
       console.log(item);
       const updateAchievements = await AchievementModel.findByIdAndUpdate(
         _id,

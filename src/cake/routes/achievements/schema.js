@@ -6,6 +6,7 @@ const SingleAchievementSchema = new mongoose.Schema(
   {
     username: { type: String },
     item: { type: String },
+    category: {type: String},
     createdAt: { type: Date },
   },
   { timestamps: false }
