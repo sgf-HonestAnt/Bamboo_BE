@@ -20,7 +20,7 @@ const AchievementSchema = new mongoose.Schema(
   {
     timestamps: false,
   }
-);
+); 
 
 SingleAchievementSchema.methods.toJSON = function () {
   const singleAchievementDoc = this;

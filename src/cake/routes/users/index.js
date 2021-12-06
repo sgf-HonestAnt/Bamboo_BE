@@ -5,6 +5,7 @@ import TaskListModel from "../tasks/model.js";
 import AchievementModel from "../achievements/model.js";
 import q2m from "query-to-mongo";
 import multer from "multer";
+import { sendWelcome } from "../../utils/sendgrid.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 import { storage } from "../../utils/constants.js";
 import {
@@ -77,6 +78,7 @@ UserRoute.post("/register", async (req, res, next) => {
           // now create default Tasks!
           await createTasksUponRegister(_id);
           console.log("💠 NEW USER REGISTERED WITH 5 DEFAULT TASKS [ME]");
+          await sendWelcome(email)
           res.status(201).send({ _id, accessToken, refreshToken, admin });
         }
       }
