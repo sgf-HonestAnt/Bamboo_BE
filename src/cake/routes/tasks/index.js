@@ -34,64 +34,65 @@ TaskRoute.post(
   async (req, res, next) => {
     try {
       console.log("💠 POST TASK");
-      const { total } = req.body; // total repeats (repeatTaskSave)
-      delete req.body.total;
-      const sharedWith = createSharedWithArray(
-        // create sharedWith id array
-        req.body.sharedWith,
-        req.user._id
-      );
-      const { repeats, deadline } = req.body;
-      const { body } = req;
-      body.category = req.body.category.toLowerCase();
-      const repeatsIsANumber =
-        repeats !== DAILY &&
-        repeats !== WEEKLY &&
-        repeats !== MONTHLY &&
-        repeats !== NEVER;
-      if (repeatsIsANumber) {
-        // set repeats script
-        body.repeats = `every ${repeats} days`;
-      }
-      const newTask = new TaskModel({
-        createdBy: req.user._id,
-        ...body,
-        sharedWith,
-      });
-      if (req.hasOwnProperty("file")) {
-        // if image sent, rewrite to file path
-        const filePath = await getTaskFilePath(req.file.path);
-        newTask.image = filePath;
-      }
-      const { _id, category } = await newTask.save();
-      if (!_id) {
-        console.log({
-          message: "💀TASK NOT SAVED",
-          task: newTask,
-        });
-      } else {
-        await pushCategory(req.user._id, category); // if new category, push to list in lowercase
-        if (repeats !== NEVER) {
-          // if repeats, save multiple times
-          await repeatTaskSave(body, req.user._id, sharedWith, total);
-        }
-        const updateAllLists = sharedWith.map((user_id) => {
-          const updated = updateTasklist(
-            user_id,
-            newTask.status,
-            newTask,
-            category
-          );
-          return updated;
-        });
-        if (updateAllLists) {
-          // Front end does not allow shared tasks that repeat - it could spam followers too much.
-          console.log("💠 NEW TASK SUCCESSFULLY CREATED");
-          res.send({ _id });
-        } else {
-          console.log("💀SOMETHING WENT WRONG...");
-        }
-      }
+      console.log(req.body)
+      // const { total } = req.body; // total repeats (repeatTaskSave)
+      // delete req.body.total;
+      // const sharedWith = createSharedWithArray(
+      //   // create sharedWith id array
+      //   req.body.sharedWith,
+      //   req.user._id
+      // );
+      // const { repeats, deadline } = req.body;
+      // const { body } = req;
+      // body.category = req.body.category.toLowerCase();
+      // const repeatsIsANumber =
+      //   repeats !== DAILY &&
+      //   repeats !== WEEKLY &&
+      //   repeats !== MONTHLY &&
+      //   repeats !== NEVER;
+      // if (repeatsIsANumber) {
+      //   // set repeats script
+      //   body.repeats = `every ${repeats} days`;
+      // }
+      // const newTask = new TaskModel({
+      //   createdBy: req.user._id,
+      //   ...body,
+      //   sharedWith,
+      // });
+      // if (req.hasOwnProperty("file")) {
+      //   // if image sent, rewrite to file path
+      //   const filePath = await getTaskFilePath(req.file.path);
+      //   newTask.image = filePath;
+      // }
+      // const { _id, category } = await newTask.save();
+      // if (!_id) {
+      //   console.log({
+      //     message: "💀TASK NOT SAVED",
+      //     task: newTask,
+      //   });
+      // } else {
+      //   await pushCategory(req.user._id, category); // if new category, push to list in lowercase
+      //   if (repeats !== NEVER) {
+      //     // if repeats, save multiple times
+      //     await repeatTaskSave(body, req.user._id, sharedWith, total);
+      //   }
+      //   const updateAllLists = sharedWith.map((user_id) => {
+      //     const updated = updateTasklist(
+      //       user_id,
+      //       newTask.status,
+      //       newTask,
+      //       category
+      //     );
+      //     return updated;
+      //   });
+      //   if (updateAllLists) {
+      //     // Front end does not allow shared tasks that repeat - it could spam followers too much.
+      //     console.log("💠 NEW TASK SUCCESSFULLY CREATED");
+      //     res.send({ _id });
+      //   } else {
+      //     console.log("💀SOMETHING WENT WRONG...");
+      //   }
+      // }
     } catch (e) {
       next(e);
     }

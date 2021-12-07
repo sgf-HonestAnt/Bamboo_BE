@@ -5,7 +5,7 @@ import TaskListModel from "../tasks/model.js";
 import AchievementModel from "../achievements/model.js";
 import q2m from "query-to-mongo";
 import multer from "multer";
-import { sendGoodbye, sendWelcome } from "../../utils/sendgrid.js";
+import { confirmEdit, sendGoodbye, sendWelcome } from "../../utils/sendgrid.js";
 import { JWT_MIDDLEWARE, ADMIN_MIDDLEWARE } from "../../auth/jwt.js";
 import { storage } from "../../utils/constants.js";
 import {
@@ -21,6 +21,7 @@ import {
   refreshTokens,
 } from "../../auth/tools.js";
 import { createTasksUponRegister } from "../../utils/route-funcs/tasks.js";
+import { generateEditsPDFAsync } from "../../utils/pdf.js";
 
 const UserRoute = express.Router();
 
@@ -78,7 +79,7 @@ UserRoute.post("/register", async (req, res, next) => {
           // now create default Tasks!
           await createTasksUponRegister(_id);
           console.log("💠 NEW USER REGISTERED WITH 5 DEFAULT TASKS [ME]");
-          await sendWelcome(email)
+          await sendWelcome(email);
           res.status(201).send({ _id, accessToken, refreshToken, admin });
         }
       }
@@ -411,7 +412,9 @@ UserRoute.post("/register", async (req, res, next) => {
     async (req, res, next) => {
       try {
         console.log("💠 PUT USER [ME]");
-        const { _id } = req.user;
+        const { _id, first_name, last_name, password } = req.user;
+        const originalEmail = req.user.email;
+        const originalUsername = req.user.username;
         const { email, username } = req.body;
         const emailDuplicate = await UserModel.find({ email });
         const usernameDuplicate = await UserModel.find({ username });
@@ -430,16 +433,40 @@ UserRoute.post("/register", async (req, res, next) => {
           const update = { ...req.body };
           console.log(update);
           if (req.file) {
+            console.log("=>",req.file)
             const filePath = await getUserFilePath(req.file.path);
             update.avatar = filePath;
           }
           const filter = { _id: req.user._id };
-          const updatedUser = await UserModel.findOneAndUpdate(filter, update, {
+          const updated = await UserModel.findOneAndUpdate(filter, update, {
             returnOriginal: false,
           });
           console.log("💠 UPDATED USER [ME]");
-          await updatedUser.save();
-          res.send(updatedUser);
+          await updated.save();
+          const editedFirstName =
+            updated.first_name === first_name
+              ? first_name
+              : `${updated.first_name} (was ${first_name})`;
+          const editedLastName =
+            updated.last_name === last_name
+              ? last_name
+              : `${updated.last_name} (was ${last_name})`;
+          const editedUsername =
+            updated.username === originalUsername
+              ? originalUsername
+              : `${updated.username} (was ${originalUsername})`;
+          const editedEmail =
+            updated.email === originalEmail ? originalEmail : `${updated.email} (was ${originalEmail})`;
+          const editedPassword = updated.password !== password;
+          const pdfPath = await generateEditsPDFAsync({
+            first_name: editedFirstName,
+            last_name: editedLastName,
+            username: editedUsername,
+            email: editedEmail,
+            password: editedPassword,
+          });
+          await confirmEdit(email, pdfPath);
+          res.send(updated);
         }
       } catch (e) {
         next(e);
@@ -527,7 +554,7 @@ UserRoute.post("/register", async (req, res, next) => {
         await TaskListModel.findOneAndDelete({ user: _id });
         await AchievementModel.findOneAndDelete({ user: _id });
         console.log("💠 DELETED USER [ME]");
-        await sendGoodbye(email)
+        await sendGoodbye(email);
         res.status(204).send();
       }
     } catch (e) {
