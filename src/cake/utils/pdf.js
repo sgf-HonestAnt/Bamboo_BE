@@ -27,6 +27,7 @@ export const generateEditsPDFAsync = async (data) => {
       `Last name: ${data.last_name}`,
       `Email: ${data.email}`,
       `Username: ${data.username}`,
+      `Avatar: ${data.avatar}`,
       `Password Changed: ${data.password}`,
     ],
   };
