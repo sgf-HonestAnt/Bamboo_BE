@@ -236,13 +236,13 @@ export const updateListsAfterDelete = async (list, status, id) => {
 };
 ////////////////////////////////////////////////////////////////////
 export const addXP = async (id, value) => {
-  // accumulate xp to user _id
   console.log("➡️addXP");
   const user = await UserModel.findById(id);
   const xp = user.xp + value;
+  const total_xp = user.total_xp + value; // accumulate xp to user _id
   const updatedUser = await UserModel.findByIdAndUpdate(
     id,
-    { xp },
+    { xp, total_xp },
     { returnOriginal: false }
   );
   return updatedUser;

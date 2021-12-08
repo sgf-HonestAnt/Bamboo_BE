@@ -316,19 +316,20 @@ TaskRoute.post(
     try {
       console.log("💠 DELETE SELF FROM TASK");
       const { t_id } = req.params;
+      const { _id, username, tasks } = req.user;
       const foundTask = await TaskModel.findById(t_id);
       if (!foundTask || !mongoose.Types.ObjectId.isValid(t_id)) {
         res.status(404).send({ message: `TASK ${t_id} NOT FOUND` });
       } else if (
         foundTask.sharedWith.length < 2 ||
-        foundTask.createdBy === req.user._id.toString()
+        foundTask.createdBy === _id.toString()
       ) {
         res
           .status(409)
           .send({ message: `CAN'T REMOVE SELF FROM OWN OR UNSHARED TASK` });
       } else {
-        const { sharedWith } = foundTask;
-        const newSharedWith = await removeOwnId(sharedWith, req.user._id);
+        const { title, status, sharedWith, createdBy } = foundTask;
+        const newSharedWith = await removeOwnId(sharedWith, _id);
         const updatedTask = await TaskModel.findOneAndUpdate(
           { _id: t_id },
           {
@@ -339,7 +340,9 @@ TaskRoute.post(
           }
         );
         if (updatedTask) {
-          await removeTaskFromTaskList(t_id, req.user.tasks, "awaited");
+          await removeTaskFromTaskList(t_id, tasks, status);
+          const notification = `${username} removed themselves from your task: "${title}".`;
+          await pushNotification(createdBy, notification);
           console.log("💠 DELETED SELF FROM TASK");
           res.status(204).send();
         } else {
