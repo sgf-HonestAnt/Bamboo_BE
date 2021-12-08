@@ -373,3 +373,11 @@ export const editTaskCategoryBulk = async (
   await updateCategory(array, method, updatedCategory);
   return array;
 };
+export const removeTaskFromTaskList = async (taskId, taskListId, status) => {
+  const updatedList = await TaskListModel.findOneAndUpdate(
+    { _id: taskListId },
+    { $pull: { [status]: taskId } },
+    { returnOriginal: false }
+  );
+  return updatedList;
+};

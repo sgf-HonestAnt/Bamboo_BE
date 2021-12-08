@@ -22,10 +22,37 @@ import {
   addXP,
   removeOwnId,
   repeatTaskSave,
+  removeTaskFromTaskList,
 } from "../../utils/route-funcs/tasks.js";
-import { pushNotification } from "../../utils/route-funcs/users.js";
+import { pushNotification, shuffle } from "../../utils/route-funcs/users.js";
 
 const TaskRoute = express.Router();
+
+// export const TaskSchema = new mongoose.Schema(
+//   {
+//     category: { type: String, default: NONE, required: true },
+//     title: { type: String, required: true },
+//     image: { type: String, default: DEFAULT_TASK_IMG },
+//     desc: { type: String, required: true },
+//     repeats: { type: String, required: true },
+//     type: {
+//       type: String,
+//       default: SOLO,
+//       enum: TASK_TYPES,
+//     },
+//     value: { type: Number, default: 0 },
+//     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
+//     sharedWith: {
+//       default: [],
+//       type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+//     },
+//     status: { type: String, default: AWAITED, enum: TASK_STATUS_TYPES },
+//     deadline: { type: Date },
+//   },
+//   {
+//     timestamps: false,
+//   }
+// );
 
 TaskRoute.post(
   "/me",
@@ -34,65 +61,79 @@ TaskRoute.post(
   async (req, res, next) => {
     try {
       console.log("💠 POST TASK");
-      console.log(req.body)
-      // const { total } = req.body; // total repeats (repeatTaskSave)
-      // delete req.body.total;
-      // const sharedWith = createSharedWithArray(
-      //   // create sharedWith id array
-      //   req.body.sharedWith,
-      //   req.user._id
-      // );
-      // const { repeats, deadline } = req.body;
-      // const { body } = req;
-      // body.category = req.body.category.toLowerCase();
-      // const repeatsIsANumber =
-      //   repeats !== DAILY &&
-      //   repeats !== WEEKLY &&
-      //   repeats !== MONTHLY &&
-      //   repeats !== NEVER;
-      // if (repeatsIsANumber) {
-      //   // set repeats script
-      //   body.repeats = `every ${repeats} days`;
-      // }
-      // const newTask = new TaskModel({
-      //   createdBy: req.user._id,
-      //   ...body,
-      //   sharedWith,
-      // });
+      console.log("RECEIVED=>", req.body);
+      const { newCategory, repeated, repeatsOther, repetitions } = req.body; // total repeats (repeatTaskSave)
+      delete req.body.newCategory;
+      delete req.body.repeated;
+      delete req.body.repeatsOther;
+      delete req.body.repetitions;
+      const sharedWith = createSharedWithArray(
+        // create sharedWith id array
+        req.body.sharedWith,
+        req.user._id
+      );
+      const { body } = req;
+      body.category = req.body.category.toLowerCase();
+      body.sharedWith = sharedWith;
+      const { category, title, desc, repeats, value, deadline } = body;
+      const repeatsIsANumber =
+        repeats !== DAILY &&
+        repeats !== WEEKLY &&
+        repeats !== MONTHLY &&
+        repeats !== NEVER;
+      if (repeatsIsANumber) {
+        // set repeats script
+        body.repeats = `every ${repeats} days`;
+      }
+      const newTask = new TaskModel({
+        createdBy: req.user._id,
+        ...body,
+        sharedWith,
+      });
+      console.log(newTask);
+
       // if (req.hasOwnProperty("file")) {
       //   // if image sent, rewrite to file path
       //   const filePath = await getTaskFilePath(req.file.path);
       //   newTask.image = filePath;
       // }
-      // const { _id, category } = await newTask.save();
-      // if (!_id) {
-      //   console.log({
-      //     message: "💀TASK NOT SAVED",
-      //     task: newTask,
-      //   });
-      // } else {
-      //   await pushCategory(req.user._id, category); // if new category, push to list in lowercase
-      //   if (repeats !== NEVER) {
-      //     // if repeats, save multiple times
-      //     await repeatTaskSave(body, req.user._id, sharedWith, total);
-      //   }
-      //   const updateAllLists = sharedWith.map((user_id) => {
-      //     const updated = updateTasklist(
-      //       user_id,
-      //       newTask.status,
-      //       newTask,
-      //       category
-      //     );
-      //     return updated;
-      //   });
-      //   if (updateAllLists) {
-      //     // Front end does not allow shared tasks that repeat - it could spam followers too much.
-      //     console.log("💠 NEW TASK SUCCESSFULLY CREATED");
-      //     res.send({ _id });
-      //   } else {
-      //     console.log("💀SOMETHING WENT WRONG...");
-      //   }
-      // }
+
+      const { _id } = await newTask.save();
+      if (!_id) {
+        console.log({
+          message: "💀TASK NOT SAVED",
+          task: newTask,
+        });
+      } else {
+        await pushCategory(req.user._id, category); // if new category, push to list in lowercase
+        // if (repeats !== NEVER) {
+        //   // if repeats, save multiple times
+        //   await repeatTaskSave(body, req.user._id, sharedWith, total);
+        // }
+        const updateAllLists = sharedWith.map((user_id) => {
+          const updated = updateTasklist(
+            user_id,
+            newTask.status,
+            newTask,
+            newTask.category
+          );
+          return updated;
+        });
+        if (sharedWith.length > 1) {
+          const notification = `${req.user.username}:::included you in a shared task:::${newTask._id}:::${newTask.title}:::${req.user.avatar}`;
+          await removeOwnId(sharedWith, req.user._id);
+          sharedWith.map((user_id) => {
+            pushNotification(user_id, notification);
+          });
+        }
+        if (updateAllLists) {
+          // Front end must not allow shared tasks that repeat - it could spam followers too much.
+          console.log("💠 NEW TASK SUCCESSFULLY CREATED");
+          res.send({ _id });
+        } else {
+          console.log("💀SOMETHING WENT WRONG...");
+        }
+      }
     } catch (e) {
       next(e);
     }
@@ -262,6 +303,44 @@ TaskRoute.post(
         if (deletedTask) {
           await updateListsAfterDelete(sharedWith, status, t_id);
           console.log("💠 DELETED TASK BY ID");
+          res.status(204).send();
+        } else {
+          console.log("💀SOMETHING WENT WRONG...");
+        }
+      }
+    } catch (e) {
+      next(e);
+    }
+  })
+  .delete("/remove/:t_id", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 DELETE SELF FROM TASK");
+      const { t_id } = req.params;
+      const foundTask = await TaskModel.findById(t_id);
+      if (!foundTask || !mongoose.Types.ObjectId.isValid(t_id)) {
+        res.status(404).send({ message: `TASK ${t_id} NOT FOUND` });
+      } else if (
+        foundTask.sharedWith.length < 2 ||
+        foundTask.createdBy === req.user._id.toString()
+      ) {
+        res
+          .status(409)
+          .send({ message: `CAN'T REMOVE SELF FROM OWN OR UNSHARED TASK` });
+      } else {
+        const { sharedWith } = foundTask;
+        const newSharedWith = await removeOwnId(sharedWith, req.user._id);
+        const updatedTask = await TaskModel.findOneAndUpdate(
+          { _id: t_id },
+          {
+            sharedWith: newSharedWith,
+          },
+          {
+            returnOriginal: false,
+          }
+        );
+        if (updatedTask) {
+          await removeTaskFromTaskList(t_id, req.user.tasks, "awaited");
+          console.log("💠 DELETED SELF FROM TASK");
           res.status(204).send();
         } else {
           console.log("💀SOMETHING WENT WRONG...");
