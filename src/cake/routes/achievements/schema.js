@@ -6,6 +6,7 @@ const SingleAchievementSchema = new mongoose.Schema(
   {
     username: { type: String },
     item: { type: String },
+    category: {type: String},
     createdAt: { type: Date },
   },
   { timestamps: false }
@@ -19,7 +20,7 @@ const AchievementSchema = new mongoose.Schema(
   {
     timestamps: false,
   }
-);
+); 
 
 SingleAchievementSchema.methods.toJSON = function () {
   const singleAchievementDoc = this;

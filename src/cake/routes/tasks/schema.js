@@ -29,7 +29,7 @@ export const TaskSchema = new mongoose.Schema(
       type: [{ type: Schema.Types.ObjectId, ref: "User" }],
     },
     status: { type: String, default: AWAITED, enum: TASK_STATUS_TYPES },
-    deadline: { type: Date },
+    deadline: { type: Date }, 
   },
   {
     timestamps: false,
@@ -51,6 +51,19 @@ const TaskListSchema = new mongoose.Schema({
     default: [],
     type: [{ type: Schema.Types.ObjectId, ref: "Task" }],
   },
+});
+
+TaskSchema.static("findTasks", async function (query) {
+  const { criteria } = query
+  console.log(criteria);
+  // var thename = "Andrew";
+  // db.collection.find({ name: /^thename$/i });
+  const total = await this.countDocuments(criteria);
+  const tasks = await this.find(criteria, query.options.fields) // problem here I think
+    .limit(query.options.limit)
+    .skip(query.options.skip)
+    .sort(query.options.sort);
+  return { total, tasks };
 });
 
 TaskListSchema.methods.toJSON = function () {

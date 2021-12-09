@@ -29,7 +29,7 @@ export const nameGenerator = async (username) => {
   return altNames;
 };
 ////////////////////////////////////////////////////////////////////
-// move task _id between two status lists
+// move user _id between awaited, accepted and rejected
 export const shuffle = async (
   ID,
   _id,
@@ -89,6 +89,7 @@ export const getPublicUsers = async (users, array) => {
       bio: user.bio,
       level: user.level,
       xp: user.xp,
+      total_xp: user.total_xp,
       achievements: user.achievements.list,
     });
   }

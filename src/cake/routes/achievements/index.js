@@ -6,14 +6,15 @@ const AchievementRoute = express.Router();
 
 AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   try {
+    console.log("💠 POST ACHIEVEMENT [ME]");
     const { username } = req.user;
     const { _id } = await AchievementModel.findOne({
       user: req.user._id,
     });
     if (_id) {
       const createdAt = new Date();
-      const item = { username, item: req.body.item, createdAt };
-      console.log(username);
+      const item = { username, item: req.body.item, category: req.body.category, createdAt };
+      console.log(item);
       const updateAchievements = await AchievementModel.findByIdAndUpdate(
         _id,
         {
@@ -31,10 +32,11 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
 })
   .get("/me", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 GET ACHIEVEMENTS");
       const achievements = await AchievementModel.findOne({
         user: req.user._id,
       });
-      console.log("FETCHED ACHIEVEMENTS");
+      console.log("FETCHED ACHIEVEMENTS [ME]");
       res.status(200).send(achievements);
     } catch (e) {
       next(e);
@@ -42,6 +44,7 @@ AchievementRoute.post("/me", JWT_MIDDLEWARE, async (req, res, next) => {
   })
   .get("/:a_id", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
+      console.log("💠 GET ACHIEVEMENT BY ID [ME]");
       const { a_id } = req.params;
       const { list } = await AchievementModel.findOne({
         user: req.user._id,
