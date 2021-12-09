@@ -319,7 +319,6 @@ UserRoute.post("/register", async (req, res, next) => {
       console.log("💠 SEND FOLLOWED USERS A NOTIFICATION");
       const { notification } = req.body;
       const {followedUsers} = req.user
-      console.log("=>",followedUsers)
       const acceptedUsers = followedUsers.accepted;
       if (acceptedUsers.length < 1) {
         res.status(409).send({ message: `NO ACCEPTED USERS` });
