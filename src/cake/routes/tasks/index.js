@@ -111,13 +111,13 @@ TaskRoute.post(
         //   await repeatTaskSave(body, req.user._id, sharedWith, total);
         // }
         const updateAllLists = sharedWith.map((user_id) => {
-          const updated = updateTasklist(
+          updateTasklist(
             user_id,
             newTask.status,
             newTask,
             newTask.category
           );
-          return updated;
+          // return updated;
         });
         if (sharedWith.length > 1) {
           const notification = `${req.user.username}:::included you in a shared task:::${newTask._id}:::${newTask.title}:::${req.user.avatar}`;
@@ -128,8 +128,8 @@ TaskRoute.post(
         }
         if (updateAllLists) {
           // Front end must not allow shared tasks that repeat - it could spam followers too much.
-          console.log("💠 NEW TASK SUCCESSFULLY CREATED");
-          res.send({ _id });
+          console.log("💠 NEW TASK SUCCESSFULLY CREATED", newTask);
+          res.send(newTask);
         } else {
           console.log("💀SOMETHING WENT WRONG...");
         }
