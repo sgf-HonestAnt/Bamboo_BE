@@ -69,11 +69,14 @@ TaskRoute.post(
       delete req.body.repetitions;
       const sharedWith = createSharedWithArray(
         // create sharedWith id array
-        req.body.sharedWith,
+        req.body.sharedWith, 
         req.user._id
       );
       const { body } = req;
-      body.category = req.body.category.toLowerCase();
+      body.category =
+        newCategory.length > 0
+          ? newCategory.toLowerCase()
+          : req.body.category.toLowerCase();
       body.sharedWith = sharedWith;
       const { category, title, desc, repeats, value, deadline } = body;
       const repeatsIsANumber =
@@ -111,12 +114,7 @@ TaskRoute.post(
         //   await repeatTaskSave(body, req.user._id, sharedWith, total);
         // }
         const updateAllLists = sharedWith.map((user_id) => {
-          updateTasklist(
-            user_id,
-            newTask.status,
-            newTask,
-            newTask.category
-          );
+          updateTasklist(user_id, newTask.status, newTask, newTask.category);
           // return updated;
         });
         if (sharedWith.length > 1) {

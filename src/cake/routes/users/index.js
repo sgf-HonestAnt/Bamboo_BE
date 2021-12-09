@@ -77,7 +77,7 @@ UserRoute.post("/register", async (req, res, next) => {
           // await adminPanda.save()
           await updatedUser.save();
           // now create default Tasks!
-          await createTasksUponRegister(_id);
+          // await createTasksUponRegister(_id); // still works, but I've taken it off for now.
           console.log("💠 NEW USER REGISTERED WITH 5 DEFAULT TASKS [ME]");
           await sendWelcome(email);
           res.status(201).send({ _id, accessToken, refreshToken, admin });
@@ -470,31 +470,31 @@ UserRoute.post("/register", async (req, res, next) => {
           });
           console.log("💠 UPDATED USER [ME]");
           await updated.save();
-          const editedFirstName =
-            updated.first_name === first_name
-              ? first_name
-              : `${updated.first_name} (was ${first_name})`;
-          const editedLastName =
-            updated.last_name === last_name
-              ? last_name
-              : `${updated.last_name} (was ${last_name})`;
-          const editedUsername =
-            updated.username === originalUsername
-              ? originalUsername
-              : `${updated.username} (was ${originalUsername})`;
-          const editedEmail =
-            updated.email === originalEmail
-              ? originalEmail
-              : `${updated.email} (was ${originalEmail})`;
-          const editedPassword = updated.password !== password;
-          const pdfPath = await generateEditsPDFAsync({
-            first_name: editedFirstName,
-            last_name: editedLastName,
-            username: editedUsername,
-            email: editedEmail,
-            password: editedPassword,
-          });
-          await confirmEdit(email, pdfPath);
+          // const editedFirstName =
+          //   updated.first_name === first_name
+          //     ? first_name
+          //     : `${updated.first_name} (was ${first_name})`;
+          // const editedLastName =
+          //   updated.last_name === last_name
+          //     ? last_name
+          //     : `${updated.last_name} (was ${last_name})`;
+          // const editedUsername =
+          //   updated.username === originalUsername
+          //     ? originalUsername
+          //     : `${updated.username} (was ${originalUsername})`;
+          // const editedEmail =
+          //   updated.email === originalEmail
+          //     ? originalEmail
+          //     : `${updated.email} (was ${originalEmail})`;
+          // const editedPassword = updated.password !== password;
+          // const pdfPath = await generateEditsPDFAsync({
+          //   first_name: editedFirstName,
+          //   last_name: editedLastName,
+          //   username: editedUsername,
+          //   email: editedEmail,
+          //   password: editedPassword,
+          // });
+          // await confirmEdit(email, pdfPath);
           res.send(updated);
         }
       } catch (e) {
