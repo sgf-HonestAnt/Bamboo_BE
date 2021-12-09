@@ -89,6 +89,7 @@ export const getPublicUsers = async (users, array) => {
       bio: user.bio,
       level: user.level,
       xp: user.xp,
+      total_xp: user.total_xp,
       achievements: user.achievements.list,
     });
   }

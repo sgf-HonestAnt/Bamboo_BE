@@ -314,6 +314,34 @@ UserRoute.post("/register", async (req, res, next) => {
       next(e);
     }
   })
+  .post("/notification", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 SEND FOLLOWED USERS A NOTIFICATION");
+      const { notification } = req.body;
+      const {followedUsers} = req.user
+      console.log("=>",followedUsers)
+      const acceptedUsers = followedUsers.accepted;
+      if (acceptedUsers.length < 1) {
+        res.status(409).send({ message: `NO ACCEPTED USERS` });
+      } else {
+        for (let i = 0; i < acceptedUsers.length; i++) {
+          const {username} = await UserModel.findOneAndUpdate(
+            { _id: acceptedUsers[i]._id },
+            {
+              $push: { notification },
+            },
+            {
+              returnOriginal: false,
+            }
+          );
+          console.log(`💠 NOTIFIED ${username}`);
+        }
+        res.status(200).send({ message: `NOTIFICATIONS SENT` });
+      }
+    } catch (e) {
+      next(e);
+    }
+  })
   .get("/test", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       console.log("💠 TEST TOKEN");
@@ -433,7 +461,7 @@ UserRoute.post("/register", async (req, res, next) => {
           const update = { ...req.body };
           console.log(update);
           if (req.file) {
-            console.log("=>",req.file)
+            console.log("=>", req.file);
             const filePath = await getUserFilePath(req.file.path);
             update.avatar = filePath;
           }
@@ -456,7 +484,9 @@ UserRoute.post("/register", async (req, res, next) => {
               ? originalUsername
               : `${updated.username} (was ${originalUsername})`;
           const editedEmail =
-            updated.email === originalEmail ? originalEmail : `${updated.email} (was ${originalEmail})`;
+            updated.email === originalEmail
+              ? originalEmail
+              : `${updated.email} (was ${originalEmail})`;
           const editedPassword = updated.password !== password;
           const pdfPath = await generateEditsPDFAsync({
             first_name: editedFirstName,
