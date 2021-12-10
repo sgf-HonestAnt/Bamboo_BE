@@ -23,6 +23,7 @@ import {
   removeOwnId,
   repeatTaskSave,
   removeTaskFromTaskList,
+  addTotal,
 } from "../../utils/route-funcs/tasks.js";
 import { pushNotification, shuffle } from "../../utils/route-funcs/users.js";
 
@@ -69,7 +70,7 @@ TaskRoute.post(
       delete req.body.repetitions;
       const sharedWith = createSharedWithArray(
         // create sharedWith id array
-        req.body.sharedWith, 
+        req.body.sharedWith,
         req.user._id
       );
       const { body } = req;
@@ -267,6 +268,7 @@ TaskRoute.post(
                   sharedWith,
                   req.user._id
                 );
+                await addTotal(req.user._id);
                 for (let i = 0; i < sharedWithOthers.length; i++) {
                   await pushNotification(
                     sharedWithOthers[i],

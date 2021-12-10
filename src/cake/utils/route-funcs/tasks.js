@@ -248,6 +248,18 @@ export const addXP = async (id, value) => {
   return updatedUser;
 };
 ////////////////////////////////////////////////////////////////////
+export const addTotal = async (id) => {
+  console.log("➡️addTotal");
+  const user = await UserModel.findById(id);
+  const total_completed = user.total_completed + 1;
+  const updatedUser = await UserModel.findByIdAndUpdate(
+    id,
+    { total_completed },
+    { returnOriginal: false }
+  );
+  return updatedUser;
+};
+////////////////////////////////////////////////////////////////////
 export const findTasksByCategory = async (tasks, category, user) => {
   // return array of task ids with selected category
   console.log("➡️findTasksByCategory");
@@ -373,7 +385,9 @@ export const editTaskCategoryBulk = async (
   await updateCategory(array, method, updatedCategory);
   return array;
 };
+////////////////////////////////////////////////////////////////////
 export const removeTaskFromTaskList = async (taskId, taskListId, status) => {
+  // remove task from list upon removing self id
   const updatedList = await TaskListModel.findOneAndUpdate(
     { _id: taskListId },
     { $pull: { [status]: taskId } },
