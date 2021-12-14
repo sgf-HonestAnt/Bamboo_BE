@@ -33,6 +33,49 @@ export const getDateAsString = (datePar) => {
   return dateAsString;
 };
 ////////////////////////////////////////////////////////////////////
+export const getDayByIndex = (date) => {
+  // simple func to get current day
+  const dayAsNum = date.getDay();
+  const dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  return dayNames[dayAsNum];
+};
+////////////////////////////////////////////////////////////////////
+export const getMonthByIndex = (date) => {
+  // simple func to get current month
+  const monthAsNum = date.getMonth();
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  return monthNames[monthAsNum];
+};
+////////////////////////////////////////////////////////////////////
+export const getShortDateAsString = (datePar) => {
+  const dateAsDate = new Date(datePar);
+  const day = getDayByIndex(dateAsDate);
+  const date = dateAsDate.getDate();
+  const month = getMonthByIndex(dateAsDate);
+  return `${day.slice(0, 3)}, ${date} ${month.slice(0, 3)}`;
+};
+////////////////////////////////////////////////////////////////////
 export const createTasksUponRegister = async (userId) => {
   const today = new Date();
   const tomorrow = new Date(today);
@@ -133,20 +176,20 @@ export const pullFromStatus = async (id, status, taskId) => {
 };
 ////////////////////////////////////////////////////////////////////
 export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
-  const { repeats, deadline } = body;
+  console.log(body)
+  const { repeats, deadline } = body; // check this deadline
   // return x number of repeated tasks for a total of y repetitions
   console.log("➡️repeatTaskSave");
-  const startDate = deadline ? new Date(deadline) : new Date();
+  const startDate = deadline ? deadline : new Date();
   const s = 1000;
   const m = 60;
   const h = 60;
   const d = 24;
   let newDate;
   let newDateAsDate;
-  console.log("REPEATS AT TASKSAVE", repeats);
   if (repeats === DAILY) {
-    for (let i = 0; i < 365; i++) {
-      newDate = (await startDate.getTime()) + i * d * h * m * s;
+    for (let i = 1; i < 2; i++) {
+      newDate = startDate.getTime() + i * d * h * m * s;
       newDateAsDate = new Date(newDate);
       const newTask = new TaskModel({
         createdBy: user,
@@ -156,11 +199,10 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
       newTask.deadline = newDateAsDate;
       const { _id } = await newTask.save();
       await pushToStatus(user, "awaited", _id);
-      console.log(_id);
     }
   } else if (repeats === WEEKLY) {
-    for (let i = 0; i < 52; i++) {
-      newDate = (await startDate.getTime()) + i * 7 * d * h * m * s;
+    for (let i = 1; i < 2; i++) {
+      newDate = startDate.getTime() + i * 7 * d * h * m * s;
       newDateAsDate = new Date(newDate);
       const newTask = new TaskModel({
         createdBy: user,
@@ -170,11 +212,10 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
       newTask.deadline = newDateAsDate;
       const { _id } = await newTask.save();
       await pushToStatus(user, "awaited", _id);
-      console.log(_id);
     }
   } else if (repeats === MONTHLY) {
-    for (let i = 0; i < 12; i++) {
-      newDate = (await startDate.getTime()) + i * 28 * d * h * m * s;
+    for (let i = 1; i < 2; i++) {
+      newDate = startDate.getTime() + i * 28 * d * h * m * s;
       newDateAsDate = new Date(newDate);
       const newTask = new TaskModel({
         createdBy: user,
@@ -184,12 +225,13 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
       newTask.deadline = newDateAsDate;
       const { _id } = await newTask.save();
       await pushToStatus(user, "awaited", _id);
-      console.log(_id);
     }
   } else {
-    for (let i = 0; i < repetitions; i++) {
+    for (let i = 1; i < repetitions; i++) {
+      console.log(repetitions)
       const number = Number(repeats.split(" ")[1]);
-      newDate = (await startDate.getTime()) + i * number * d * h * m * s;
+      console.log(number)
+      newDate = (await startDate.getTime()) + (i * number) * d * h * m * s;
       newDateAsDate = new Date(newDate);
       console.log(newDate, newDateAsDate, number);
       const newTask = new TaskModel({
@@ -203,7 +245,6 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
       console.log(_id);
     }
   }
-  return;
 };
 ////////////////////////////////////////////////////////////////////
 export const updateTaskStatus = async (
