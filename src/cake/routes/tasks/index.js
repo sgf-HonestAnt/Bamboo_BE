@@ -11,6 +11,8 @@ import {
   MONTHLY,
   storage,
   NEVER,
+  TEAM,
+  SOLO,
 } from "../../utils/constants.js";
 import {
   createSharedWithArray,
@@ -23,6 +25,9 @@ import {
   removeOwnId,
   repeatTaskSave,
   removeTaskFromTaskList,
+  addTotal,
+  getDateAsString,
+  getShortDateAsString,
 } from "../../utils/route-funcs/tasks.js";
 import { pushNotification, shuffle } from "../../utils/route-funcs/users.js";
 
@@ -63,37 +68,57 @@ TaskRoute.post(
       console.log("💠 POST TASK");
       console.log("RECEIVED=>", req.body);
       const { newCategory, repeated, repeatsOther, repetitions } = req.body; // total repeats (repeatTaskSave)
+
+      // from front-end implementation
       delete req.body.newCategory;
       delete req.body.repeated;
       delete req.body.repeatsOther;
       delete req.body.repetitions;
+
       const sharedWith = createSharedWithArray(
         // create sharedWith id array
-        req.body.sharedWith, 
+        req.body.sharedWith,
         req.user._id
       );
+
       const { body } = req;
+
       body.category =
         newCategory.length > 0
           ? newCategory.toLowerCase()
           : req.body.category.toLowerCase();
+
       body.sharedWith = sharedWith;
+
       const { category, title, desc, repeats, value, deadline } = body;
-      const repeatsIsANumber =
-        repeats !== DAILY &&
-        repeats !== WEEKLY &&
-        repeats !== MONTHLY &&
-        repeats !== NEVER;
+
+      const repeatsIsANumber = repeatsOther !== 0;
+
+      if (repeats !== NEVER && deadline) {
+        console.log("REPEATS NOT NEVER, DEADLINE EXISTS")
+        body.deadline = new Date(deadline);
+      } else if (repeats !== NEVER) {
+        body.deadline = new Date();
+      } else {
+        body.deadline = deadline
+      }
+
+      console.log(body.deadline)
+
       if (repeatsIsANumber) {
         // set repeats script
-        body.repeats = `every ${repeats} days`;
+        body.repeats = `every ${repeatsOther} days, ${repetitions} times, starting on ${getShortDateAsString(
+          body.deadline
+        )}`;
       }
+
+      body.type = body.sharedWith.length > 1 ? TEAM : SOLO;
+
       const newTask = new TaskModel({
         createdBy: req.user._id,
         ...body,
         sharedWith,
       });
-      console.log(newTask);
 
       // if (req.hasOwnProperty("file")) {
       //   // if image sent, rewrite to file path
@@ -102,6 +127,7 @@ TaskRoute.post(
       // }
 
       const { _id } = await newTask.save();
+
       if (!_id) {
         console.log({
           message: "💀TASK NOT SAVED",
@@ -109,14 +135,17 @@ TaskRoute.post(
         });
       } else {
         await pushCategory(req.user._id, category); // if new category, push to list in lowercase
-        // if (repeats !== NEVER) {
-        //   // if repeats, save multiple times
-        //   await repeatTaskSave(body, req.user._id, sharedWith, total);
-        // }
+
+        if (repeats !== NEVER) {
+          // if repeats, save multiple times
+          await repeatTaskSave(body, req.user._id, sharedWith, repetitions);
+        }
+
         const updateAllLists = sharedWith.map((user_id) => {
           updateTasklist(user_id, newTask.status, newTask, newTask.category);
           // return updated;
         });
+
         if (sharedWith.length > 1) {
           const notification = `${req.user.username}:::included you in a shared task:::${newTask._id}:::${newTask.title}:::${req.user.avatar}`;
           await removeOwnId(sharedWith, req.user._id);
@@ -124,6 +153,7 @@ TaskRoute.post(
             pushNotification(user_id, notification);
           });
         }
+
         if (updateAllLists) {
           // Front end must not allow shared tasks that repeat - it could spam followers too much.
           console.log("💠 NEW TASK SUCCESSFULLY CREATED", newTask);
@@ -141,7 +171,7 @@ TaskRoute.post(
     try {
       // get "/me" endpoint returns all tasks belong to user ✔️
       // categories and all three status arrays are returned ✔️
-      console.log("💠 GET TASKS");
+      console.log("💠 GET TASKS"); 
       const my_tasks = await TaskListModel.findOne({
         user: req.user._id,
       }).populate("completed awaited in_progress");
@@ -267,6 +297,7 @@ TaskRoute.post(
                   sharedWith,
                   req.user._id
                 );
+                await addTotal(req.user._id);
                 for (let i = 0; i < sharedWithOthers.length; i++) {
                   await pushNotification(
                     sharedWithOthers[i],

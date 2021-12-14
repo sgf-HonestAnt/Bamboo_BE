@@ -26,7 +26,8 @@ const UserSchema = new mongoose.Schema(
     bio: { type: String, default: NEW_BIO, required: true },
     level: { type: Number, default: 0, required: true },
     xp: { type: Number, default: 0, required: true },
-    total_xp: {type: Number, default: 0, required: true}, // total cumulative xp
+    total_xp: { type: Number, default: 0, required: true }, // total cumulative xp
+    total_completed: { type: Number, default: 0, required: true }, // total cumulative completed tasks
     password: { type: String, required: true },
     admin: { type: Boolean, required: false },
     settings: {

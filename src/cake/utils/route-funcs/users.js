@@ -80,7 +80,7 @@ export const shuffle = async (
 export const getPublicUsers = async (users, array) => {
   for (let i = 0; i < users.length; i++) {
     const user = await UserModel.findById(users[i]._id).populate(
-      "achievements"
+      "achievements tasks"
     );
     array.push({
       _id: user._id,
@@ -90,6 +90,9 @@ export const getPublicUsers = async (users, array) => {
       level: user.level,
       xp: user.xp,
       total_xp: user.total_xp,
+      total_completed: user.total_completed,
+      total_awaited: user.tasks.awaited.length,
+      total_in_progress: user.tasks.in_progress.length,
       achievements: user.achievements.list,
     });
   }
