@@ -85,6 +85,7 @@ export const getPublicUsers = async (users, array) => {
     array.push({
       _id: user._id,
       username: user.username,
+      admin: user.admin,
       avatar: user.avatar,
       bio: user.bio,
       level: user.level,
