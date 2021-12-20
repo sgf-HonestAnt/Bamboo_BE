@@ -88,7 +88,7 @@ TaskRoute.post(
       const repeatsIsANumber = repeatsOther !== 0;
       if (repeats !== NEVER && deadline) {
         console.log("REPEATS NOT NEVER, DEADLINE EXISTS")
-        body.deadline = new Date(deadline);
+        body.deadline = new Date(deadline); // 2021-12-15T00:00:00.000Z
       } else if (repeats !== NEVER) {
         body.deadline = new Date();
       } else {

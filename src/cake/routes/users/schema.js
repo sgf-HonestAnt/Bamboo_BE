@@ -28,6 +28,7 @@ const UserSchema = new mongoose.Schema(
     xp: { type: Number, default: 0, required: true },
     total_xp: { type: Number, default: 0, required: true }, // total cumulative xp
     total_completed: { type: Number, default: 0, required: true }, // total cumulative completed tasks
+    tasks_to_hide: [],
     password: { type: String, required: true },
     admin: { type: Boolean, required: false },
     settings: {
