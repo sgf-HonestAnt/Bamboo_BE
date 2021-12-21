@@ -28,7 +28,9 @@ const UserRoute = express.Router();
 UserRoute.post("/register", async (req, res, next) => {
   try {
     console.log("💠 REGISTER USER");
-    const { email, username } = req.body;
+    const { body } = req;
+    const username = body.username.toLowerCase();
+    const email = body.email.toLowerCase();
     const emailIsDuplicate = await UserModel.findOne({ email });
     const usernameIsDuplicate = await UserModel.findOne({ username });
     if (emailIsDuplicate) {
@@ -91,7 +93,9 @@ UserRoute.post("/register", async (req, res, next) => {
   .post("/session", async (req, res, next) => {
     try {
       console.log("💠 LOG IN");
-      const { username, password } = req.body;
+      const { body } = req;
+      const username = body.username.toLowerCase();
+      const {password} = body
       const user = await UserModel.checkCredentials(username, password);
       if (user !== null) {
         const { accessToken, refreshToken } = await generateTokens(user);
@@ -318,13 +322,13 @@ UserRoute.post("/register", async (req, res, next) => {
     try {
       console.log("💠 SEND FOLLOWED USERS A NOTIFICATION");
       const { notification } = req.body;
-      const {followedUsers} = req.user
+      const { followedUsers } = req.user;
       const acceptedUsers = followedUsers.accepted;
       if (acceptedUsers.length < 1) {
         res.status(409).send({ message: `NO ACCEPTED USERS` });
       } else {
         for (let i = 0; i < acceptedUsers.length; i++) {
-          const {username} = await UserModel.findOneAndUpdate(
+          const { username } = await UserModel.findOneAndUpdate(
             { _id: acceptedUsers[i]._id },
             {
               $push: { notification },
@@ -439,10 +443,12 @@ UserRoute.post("/register", async (req, res, next) => {
     async (req, res, next) => {
       try {
         console.log("💠 PUT USER [ME]");
-        const { _id, first_name, last_name, password } = req.user;
-        const originalEmail = req.user.email;
-        const originalUsername = req.user.username;
-        const { email, username } = req.body;
+        const {user, body} = req
+        const { _id, first_name, last_name, password } = user;
+        const originalEmail = user.email;
+        const originalUsername = user.username;
+        const email = body.email.toLowerCase()
+        const username = body.username.toLowerCase()
         const emailDuplicate = await UserModel.find({ email });
         const usernameDuplicate = await UserModel.find({ username });
         if (
@@ -523,8 +529,10 @@ UserRoute.post("/register", async (req, res, next) => {
     async (req, res, next) => {
       try {
         console.log("💠 PUT USER [ADMIN]");
-        const { u_id } = req.params;
-        const { email, username } = req.body;
+        const {body, params} = req
+        const { u_id } = params;
+        const email = body.email.toLowerCase()
+        const username = body.username.toLowerCase()
         const emailDuplicate = await UserModel.find({ email });
         const usernameDuplicate = await UserModel.find({ username });
         if (!mongoose.Types.ObjectId.isValid(u_id)) {
