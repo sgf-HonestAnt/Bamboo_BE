@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 
 const SingleAchievementSchema = new mongoose.Schema(
   {
-    username: { type: String },
+    username: { type: Schema.Types.ObjectId, ref: "User" },
     item: { type: String },
     category: {type: String},
     createdAt: { type: Date },
