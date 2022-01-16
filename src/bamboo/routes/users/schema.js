@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import {
+  DEFAULT_REWARDS,
   DEFAULT_USER_IMG,
   LIGHT_MODE,
   NEW_BIO,
@@ -8,6 +9,16 @@ import {
 } from "../../utils/constants.js";
 
 const { Schema } = mongoose;
+
+const SingleRewardSchema = new mongoose.Schema(
+  {
+    belongsTo: { type: Schema.Types.ObjectId, ref: "User" },
+    reward: String,
+    value: Number,
+    available: Number || null,
+  },
+  { timestamps: false }
+);
 
 const UserSchema = new mongoose.Schema(
   {
@@ -27,14 +38,8 @@ const UserSchema = new mongoose.Schema(
     level: { type: Number, default: 0, required: true },
     xp: { type: Number, default: 0, required: true },
     rewards: {
-      default: [],
-      type: [
-        {
-          reward: String,
-          value: Number,
-          available: { type: Number, default: 0 },
-        },
-      ],
+      default: DEFAULT_REWARDS,
+      type: [SingleRewardSchema],
       required: true,
     },
     total_xp: { type: Number, default: 0, required: true }, // total cumulative xp
@@ -101,6 +106,13 @@ UserSchema.pre("save", async function (next) {
     next();
   }
 });
+
+SingleRewardSchema.methods.toJSON = function () {
+  const singleAchievementDoc = this;
+  const singleAchievementObj = singleAchievementDoc.toObject();
+  delete singleAchievementObj.updatedAt;
+  return singleAchievementObj;
+};
 
 UserSchema.methods.toJSON = function () {
   const userDoc = this;

@@ -532,26 +532,28 @@ UserRoute.post("/register", async (req, res, next) => {
       console.log("💠 PUT USER REWARD [ME]");
       const { _id, rewards } = req.user;
       const { reward, value, available } = req.body;
+      console.log(available);
       const { r_id } = req.params;
-      const filtered = rewards.filter(
-        (reward) => reward._id.toString() !== r_id
-      );
-      const found = rewards.filter(
-        (reward) => reward._id.toString() === r_id
-      )[0];
-      const updatedReward = {
-        reward: reward ? reward : found.reward,
-        value: value ? value : found.value,
-        available: available ? available : found.available,
-        _id: r_id,
-      };
+      const filtered = rewards.filter((item) => item._id.toString() !== r_id);
+      const found = rewards.find((item) => item._id.toString() === r_id);
+      let updatedReward = found;
+      if (reward) {
+        updatedReward.reward = reward;
+      }
+      if (value) {
+        updatedReward.value = value;
+      }
+      if (available === 0) {
+        updatedReward.available = null;
+      }
       const updatedRewards = [...filtered, updatedReward];
-      const update = { rewards: updatedRewards }; // Would be nice to return it to same place. Maybe later?
-      const updated = await UserModel.findByIdAndUpdate(_id, update, {
+      const update = { rewards: updatedRewards };
+      // Would be nice to return it to same place. Maybe later?
+      await UserModel.findByIdAndUpdate(_id, update, {
         returnOriginal: false,
       });
       console.log("💠 UPDATED USER REWARD [ME]");
-      res.send(updated.rewards);
+      res.send(updatedReward);
     } catch (e) {
       next(e);
     }
