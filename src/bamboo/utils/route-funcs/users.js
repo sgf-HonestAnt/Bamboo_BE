@@ -90,6 +90,7 @@ export const getPublicUsers = async (users, array) => {
       bio: user.bio,
       level: user.level,
       xp: user.xp,
+      rewards: user.rewards,
       total_xp: user.total_xp,
       total_completed: user.total_completed,
       total_awaited: user.tasks.awaited.length,

@@ -40,6 +40,8 @@ UserRoute.post("/register", async (req, res, next) => {
       res.status(409).send({ message: `USERNAME NOT AVAILABLE`, available });
     } else {
       const newUser = new UserModel(req.body);
+      newUser.username = username;
+      newUser.email = email;
       const { _id, admin } = await newUser.save();
       if (!newUser) {
         console.log({ message: "USER NOT SAVED", user: req.body });
@@ -70,13 +72,6 @@ UserRoute.post("/register", async (req, res, next) => {
           });
           const welcomeNotification = "Welcome to Bamboo!";
           updatedUser.notification.push(welcomeNotification);
-          // 🌈BEFORE FINAL DEPLOYMENT
-          // add AdminPanda to FollowedUsers
-          // const adminId = process.env.ADMIN_ID
-          // const AdminPanda = await UserModel.findById(adminId)
-          // updatedUser.followedUsers.accepted.push(adminId)
-          // adminPanda.followedUsers.accepted.push(_id)
-          // await adminPanda.save()
           await updatedUser.save();
           // now create default Tasks!
           // await createTasksUponRegister(_id); // still works, but I've taken it off for now.
@@ -95,7 +90,7 @@ UserRoute.post("/register", async (req, res, next) => {
       console.log("💠 LOG IN");
       const { body } = req;
       const username = body.username.toLowerCase();
-      const {password} = body
+      const { password } = body;
       const user = await UserModel.checkCredentials(username, password);
       if (user !== null) {
         const { accessToken, refreshToken } = await generateTokens(user);
@@ -193,6 +188,8 @@ UserRoute.post("/register", async (req, res, next) => {
           res
             .status(409)
             .send({ message: `DUPLICATE REQUESTS ARE NOT ALLOWED` });
+        } else if (sendee.followedUsers.requested.includes(sender._id)) {
+          res.status(409).send({ message: `USER ALREADY AWAITING RESPONSE` });
         } else if (sender.followedUsers.accepted.includes(sendee._id)) {
           res.status(409).send({ message: `USER ALREADY ACCEPTED` });
         } else if (sender.followedUsers.rejected.includes(sendee._id)) {
@@ -345,6 +342,21 @@ UserRoute.post("/register", async (req, res, next) => {
       next(e);
     }
   })
+  .post("/me/rewards", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 PUT USER REWARDS [ME]");
+      const { _id, rewards } = req.user;
+      const newReward = req.body;
+      const update = { rewards: [...rewards, req.body] };
+      const updated = await UserModel.findByIdAndUpdate(_id, update, {
+        returnOriginal: false,
+      });
+      console.log("💠 UPDATED USER REWARDS [ME]");
+      res.send(updated.rewards);
+    } catch (e) {
+      next(e);
+    }
+  })
   .get("/test", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       console.log("💠 TEST TOKEN");
@@ -369,6 +381,30 @@ UserRoute.post("/register", async (req, res, next) => {
       const self = { my_user, followedUsers: array };
       console.log("💠 FETCHED USER [ME]");
       res.send(self);
+    } catch (e) {
+      next(e);
+    }
+  })
+  .get("/me/rewards", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 GET USER REWARDS [ME]");
+      const { rewards } = await UserModel.findById(req.user._id);
+      console.log("💠 FETCHED REWARDS [ME]");
+      res.send(rewards);
+    } catch (e) {
+      next(e);
+    }
+  })
+  .get("/me/rewards/:r_id", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 GET USER REWARDS [ME]");
+      const { rewards } = await UserModel.findById(req.user._id);
+      console.log(rewards);
+      const reward = rewards.find(
+        (reward) => reward._id.toString() === req.params.r_id
+      );
+      console.log("💠 FETCHED REWARDS [ME]");
+      res.send(reward);
     } catch (e) {
       next(e);
     }
@@ -408,7 +444,7 @@ UserRoute.post("/register", async (req, res, next) => {
         level: u.level,
         xp: u.xp,
         joined: u.createdAt,
-      }));
+      })); 
       console.log("💠 FETCHED ALL USERS / BY QUERY");
       res.send({
         links: query.links("/users", total),
@@ -443,27 +479,35 @@ UserRoute.post("/register", async (req, res, next) => {
     async (req, res, next) => {
       try {
         console.log("💠 PUT USER [ME]");
-        const {user, body} = req
+        const { user, body } = req;
         const { _id, first_name, last_name, password } = user;
         const originalEmail = user.email;
         const originalUsername = user.username;
-        const email = body.email.toLowerCase()
-        const username = body.username.toLowerCase()
+        const email = body.email ? body.email.toLowerCase() : "";
+        const username = body.username ? body.username.toLowerCase() : "";
         const emailDuplicate = await UserModel.find({ email });
         const usernameDuplicate = await UserModel.find({ username });
         if (
+          !body.notification &&
           emailDuplicate.length > 0 &&
           emailDuplicate[0]._id.toString() !== _id.toString()
         ) {
           res.status(409).send({ error: `Email Exists` });
         } else if (
+          !body.notification &&
           usernameDuplicate.length > 0 &&
           usernameDuplicate[0]._id.toString() !== _id.toString()
         ) {
           const available = await nameGenerator(username);
           res.status(409).send({ message: `Username Exists`, available });
         } else {
-          const update = { ...req.body };
+          const update = { ...body };
+          if (body.email) {
+            update.email = req.body.email.toLowerCase();
+          }
+          if (body.username) {
+            update.username = req.body.username.toLowerCase();
+          }
           console.log(update);
           if (req.file) {
             console.log("=>", req.file);
@@ -476,31 +520,6 @@ UserRoute.post("/register", async (req, res, next) => {
           });
           console.log("💠 UPDATED USER [ME]");
           await updated.save();
-          // const editedFirstName =
-          //   updated.first_name === first_name
-          //     ? first_name
-          //     : `${updated.first_name} (was ${first_name})`;
-          // const editedLastName =
-          //   updated.last_name === last_name
-          //     ? last_name
-          //     : `${updated.last_name} (was ${last_name})`;
-          // const editedUsername =
-          //   updated.username === originalUsername
-          //     ? originalUsername
-          //     : `${updated.username} (was ${originalUsername})`;
-          // const editedEmail =
-          //   updated.email === originalEmail
-          //     ? originalEmail
-          //     : `${updated.email} (was ${originalEmail})`;
-          // const editedPassword = updated.password !== password;
-          // const pdfPath = await generateEditsPDFAsync({
-          //   first_name: editedFirstName,
-          //   last_name: editedLastName,
-          //   username: editedUsername,
-          //   email: editedEmail,
-          //   password: editedPassword,
-          // });
-          // await confirmEdit(email, pdfPath);
           res.send(updated);
         }
       } catch (e) {
@@ -508,6 +527,37 @@ UserRoute.post("/register", async (req, res, next) => {
       }
     }
   )
+  .put("/me/rewards/:r_id", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 PUT USER REWARD [ME]");
+      const { _id, rewards } = req.user;
+      const { reward, value, available } = req.body;
+      console.log(available);
+      const { r_id } = req.params;
+      const filtered = rewards.filter((item) => item._id.toString() !== r_id);
+      const found = rewards.find((item) => item._id.toString() === r_id);
+      let updatedReward = found;
+      if (reward) {
+        updatedReward.reward = reward;
+      }
+      if (value) {
+        updatedReward.value = value;
+      }
+      if (available === 0) {
+        updatedReward.available = null;
+      }
+      const updatedRewards = [...filtered, updatedReward];
+      const update = { rewards: updatedRewards };
+      // Would be nice to return it to same place. Maybe later?
+      await UserModel.findByIdAndUpdate(_id, update, {
+        returnOriginal: false,
+      });
+      console.log("💠 UPDATED USER REWARD [ME]");
+      res.send(updatedReward);
+    } catch (e) {
+      next(e);
+    }
+  })
   .put("/me/settings", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       console.log("💠 PUT USER SETTINGS [ME]");
@@ -529,10 +579,10 @@ UserRoute.post("/register", async (req, res, next) => {
     async (req, res, next) => {
       try {
         console.log("💠 PUT USER [ADMIN]");
-        const {body, params} = req
+        const { body, params } = req;
         const { u_id } = params;
-        const email = body.email.toLowerCase()
-        const username = body.username.toLowerCase()
+        const email = body.email.toLowerCase();
+        const username = body.username.toLowerCase();
         const emailDuplicate = await UserModel.find({ email });
         const usernameDuplicate = await UserModel.find({ username });
         if (!mongoose.Types.ObjectId.isValid(u_id)) {
@@ -594,6 +644,24 @@ UserRoute.post("/register", async (req, res, next) => {
         await sendGoodbye(email);
         res.status(204).send();
       }
+    } catch (e) {
+      next(e);
+    }
+  })
+  .delete("/me/rewards/:r_id", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 DELETE USER REWARD [ME]");
+      const { _id, rewards } = req.user;
+      const filtered = rewards.filter(
+        (reward) => reward._id.toString() !== req.params.r_id
+      );
+      const updatedRewards = [...filtered];
+      const update = { rewards: updatedRewards }; // Would be nice to return it to same place. Maybe later?
+      const updated = await UserModel.findByIdAndUpdate(_id, update, {
+        returnOriginal: false,
+      });
+      console.log("💠 DELETE USER REWARD [ME]");
+      res.send(updated.rewards);
     } catch (e) {
       next(e);
     }

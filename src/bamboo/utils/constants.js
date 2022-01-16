@@ -76,7 +76,29 @@ export const CHALL_IMG = `${cloud}/${scalew800}/${FARM}/default_task_nv0jcq.jpg`
 export const LIGHT_MODE = "light-mode";
 export const DARK_MODE = "dark-mode";
 export const THEMES = [LIGHT_MODE, DARK_MODE];
-
+// ***** rewards ***** //
+export const DEFAULT_REWARDS = [
+  { reward: "Grow-plant", value: 50, available: 1 },
+  { reward: "Bonsai", value: 150, available: 1 },
+  { reward: "Cactus", value: 250, available: 1 },
+  { reward: "Tulips", value: 350, available: 1 },
+  { reward: "Big Cactus", value: 450, available: 1 },
+  { reward: "Vegan for Veganuary||SPECIAL JANUARY", value: 500, available: 1 },
+  { reward: "Love Letter||SPECIAL FEBRUARY", value: 500, available: 1 },
+  { reward: "Anatomically Correct Heart||SPECIAL FEBRUARY", value: 1000, available: 1 },
+  { reward: "Easter Egg||SPECIAL APRIL", value: 500, available: 1 },
+  { reward: "Earth Day: Love The Earth!||SPECIAL APRIL", value: 500, available: 1 }, // 2nd April
+  { reward: "International Firefighter's Day||SPECIAL MAY", value: 500, available: 1 }, // 4th May
+  { reward: "World Astronomy Day||SPECIAL MAY", value: 500, available: 1 }, // 4th May
+  { reward: "World Turtle Day||SPECIAL MAY", value: 500, available: 1 }, // 23rd May
+  { reward: "World Goth Day||SPECIAL MAY", value: 1000, available: 1 }, // 22nd May
+  { reward: "Poison Bottle||SPECIAL OCTOBER", value: 500, available: 1 },
+  { reward: "Business Devil||SPECIAL OCTOBER", value: 1000, available: 1 },
+  { reward: "World Vegetarian Day||SPECIAL OCTOBER", value: 500, available: 1 },
+  { reward: "National Pumpkin Day||SPECIAL OCTOBER", value: 500, available: 1 },
+  { reward: "Christmas Tree||SPECIAL DECEMBER", value: 500, available: 1 },
+  { reward: "Snow Globe||SPECIAL DECEMBER", value: 1000, available: 1 },
+];
 // ***** features tests ***** //
 export const newFeature = {
   month: "January",
