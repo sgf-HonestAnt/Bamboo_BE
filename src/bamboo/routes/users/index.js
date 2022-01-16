@@ -444,7 +444,7 @@ UserRoute.post("/register", async (req, res, next) => {
         level: u.level,
         xp: u.xp,
         joined: u.createdAt,
-      }));
+      })); 
       console.log("💠 FETCHED ALL USERS / BY QUERY");
       res.send({
         links: query.links("/users", total),
