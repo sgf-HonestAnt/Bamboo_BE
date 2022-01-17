@@ -194,7 +194,8 @@ UserRoute.post("/register", async (req, res, next) => {
           const updatedSendee = await giftXP(sendee._id, xp, false);
           const updatedSender = await giftXP(sender._id, xp, true);
           if (updatedSendee && updatedSender) {
-            console.log(updatedSendee.xp, updatedSender.xp);
+            const notification = `${sender.username} just sent you a gift!:::${xp}`;
+            await pushNotification(sendee._id, notification);
             res.status(201).send({
               message: `${sender._id} SENT ${xp}XP TO ${sendee._id}`,
             });
