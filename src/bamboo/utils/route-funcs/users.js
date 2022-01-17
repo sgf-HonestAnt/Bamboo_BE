@@ -122,7 +122,7 @@ export const pushNotification = async (id, notification) => {
 export const giftXP = async (id, value, gift) => {
   console.log("➡️giftXP");
   const user = await UserModel.findById(id);
-  const xp = gift ? user.xp - value : user.xp + value;
+  const xp = gift ? user.xp - value : user.xp + parseInt(value);
   const updatedUser = await UserModel.findByIdAndUpdate(
     id,
     { xp },
