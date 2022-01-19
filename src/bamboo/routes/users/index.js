@@ -14,6 +14,7 @@ import {
   getUserFilePath,
   getPublicUsers,
   pushNotification,
+  giftXP,
 } from "../../utils/route-funcs/users.js";
 import {
   detectReuse,
@@ -165,6 +166,39 @@ UserRoute.post("/register", async (req, res, next) => {
             await updatedUser.save();
             console.log("💠 NEW USER SUCCESSFULLY CREATED [ADMIN]");
             res.status(201).send({ _id });
+          }
+        }
+      }
+    } catch (e) {
+      next(e);
+    }
+  })
+  .post("/gift/:u_id", JWT_MIDDLEWARE, async (req, res, next) => {
+    try {
+      console.log("💠 SEND GIFT");
+      const sender = req.user;
+      const { u_id } = req.params;
+      const { xp } = req.body;
+      if (!mongoose.Types.ObjectId.isValid(u_id)) {
+        res.status(404).send({ message: `USER ${u_id} NOT FOUND` });
+      } else {
+        const sendee = await UserModel.findById(u_id);
+        const idsMatch = req.user._id.toString() === u_id;
+        if (idsMatch) {
+          res.status(409).send({ message: `USERS IDS CANNOT MATCH` });
+        } else if (xp > sender.xp) {
+          res
+            .status(409)
+            .send({ message: `SENDER NEEDS MORE XP TO SEND GIFT` });
+        } else {
+          const updatedSendee = await giftXP(sendee._id, xp, false);
+          const updatedSender = await giftXP(sender._id, xp, true);
+          if (updatedSendee && updatedSender) {
+            const notification = `${sender.username} just sent you a gift!:::${xp}`;
+            await pushNotification(sendee._id, notification);
+            res.status(201).send({
+              message: `${sender._id} SENT ${xp}XP TO ${sendee._id}`,
+            });
           }
         }
       }
@@ -444,7 +478,7 @@ UserRoute.post("/register", async (req, res, next) => {
         level: u.level,
         xp: u.xp,
         joined: u.createdAt,
-      })); 
+      }));
       console.log("💠 FETCHED ALL USERS / BY QUERY");
       res.send({
         links: query.links("/users", total),

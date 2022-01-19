@@ -118,3 +118,16 @@ export const pushNotification = async (id, notification) => {
   });
   return;
 };
+////////////////////////////////////////////////////////////////////
+export const giftXP = async (id, value, gift) => {
+  console.log("➡️giftXP");
+  const user = await UserModel.findById(id);
+  const xp = gift ? user.xp - value : user.xp + parseInt(value);
+  const updatedUser = await UserModel.findByIdAndUpdate(
+    id,
+    { xp },
+    { returnOriginal: false }
+  );
+  console.log(updatedUser.username, updatedUser.xp);
+  return updatedUser;
+};
