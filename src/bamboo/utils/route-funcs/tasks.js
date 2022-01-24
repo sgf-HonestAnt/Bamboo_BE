@@ -188,7 +188,7 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
   let newDate;
   let newDateAsDate;
   if (repeats === DAILY) {
-    for (let i = 1; i < 2; i++) {
+    for (let i = 1; i < 7; i++) {
       newDate = startDate.getTime() + i * d * h * m * s;
       newDateAsDate = new Date(newDate);
       const newTask = new TaskModel({
@@ -201,7 +201,7 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
       await pushToStatus(user, "awaited", _id);
     }
   } else if (repeats === WEEKLY) {
-    for (let i = 1; i < 2; i++) {
+    for (let i = 1; i < 4; i++) {
       newDate = startDate.getTime() + i * 7 * d * h * m * s;
       newDateAsDate = new Date(newDate);
       const newTask = new TaskModel({
