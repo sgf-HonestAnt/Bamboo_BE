@@ -73,9 +73,11 @@ TaskRoute.post(
       delete req.body.repeated;
       delete req.body.repeatsOther;
       delete req.body.repetitions;
+      // const makeNewArrayFromSharedObjects = req.body.sharedWith.
+      const sharedWithArray = req.body.sharedWith.map((user) => user.value);
       const sharedWith = createSharedWithArray(
         // create sharedWith id array
-        req.body.sharedWith,
+        sharedWithArray,
         req.user._id
       );
       const { body } = req;
@@ -87,12 +89,12 @@ TaskRoute.post(
       const { category, title, desc, repeats, value, deadline } = body;
       const repeatsIsANumber = repeatsOther !== 0;
       if (repeats !== NEVER && deadline) {
-        console.log("REPEATS NOT NEVER, DEADLINE EXISTS")
+        console.log("REPEATS NOT NEVER, DEADLINE EXISTS");
         body.deadline = new Date(deadline); // 2021-12-15T00:00:00.000Z
       } else if (repeats !== NEVER) {
         body.deadline = new Date();
       } else {
-        body.deadline = deadline
+        body.deadline = deadline;
       }
       if (repeatsIsANumber) {
         // set repeats script
@@ -101,6 +103,7 @@ TaskRoute.post(
         )}`;
       }
       body.type = body.sharedWith.length > 1 ? TEAM : SOLO;
+      console.log(body);
       const newTask = new TaskModel({
         createdBy: req.user._id,
         ...body,
@@ -150,7 +153,7 @@ TaskRoute.post(
     try {
       // get "/me" endpoint returns all tasks belong to user ✔️
       // categories and all three status arrays are returned ✔️
-      console.log("💠 GET TASKS"); 
+      console.log("💠 GET TASKS");
       const my_tasks = await TaskListModel.findOne({
         user: req.user._id,
       }).populate("completed awaited in_progress");
