@@ -32,14 +32,12 @@ export const TASK_STATUS_TYPES = [AWAITED, COMPLETED, IN_PROGRESS];
 export const NEVER = "never";
 export const DAILY = "daily";
 export const WEEKLY = "weekly";
-export const BIMONTHLY = "bimonthly";
 export const MONTHLY = "monthly";
 export const NUMBER = `+${!NaN}`; // ?
-export const TASK_REPEAT_TYPES = [
+export const TASK_REPEATS_TYPES = [
   NEVER,
   DAILY,
   WEEKLY,
-  BIMONTHLY,
   MONTHLY,
   NUMBER,
 ];

@@ -96,7 +96,7 @@ TaskRoute.post(
       } else {
         body.deadline = deadline;
       }
-      if (repeatsIsANumber) {
+      if (repeatsIsANumber) { // <==== HERE IS THE PROBLEM
         // set repeats script
         body.repeats = `every ${repeatsOther} days, ${repetitions} times, starting on ${getShortDateAsString(
           body.deadline
