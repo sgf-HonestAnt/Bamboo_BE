@@ -231,7 +231,7 @@ TaskRoute.post(
         // if req.file, file path points to updated cloudinary url ✔️
         // if status "completed", XP to value of the task is added to the user who completed it ✔️
         // 401 if task does not belong to user ✔️
-        console.log("💠 PUT TASK");
+        console.log("💠 PUT TASK", req.body);
         const { t_id } = req.params;
         const { status, category } = req.body;
         const task = await TaskModel.findById(t_id);
