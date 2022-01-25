@@ -564,9 +564,8 @@ UserRoute.post("/register", async (req, res, next) => {
   .put("/me/rewards/:r_id", JWT_MIDDLEWARE, async (req, res, next) => {
     try {
       console.log("💠 PUT USER REWARD [ME]");
-      const { _id, rewards } = req.user;
+      const { _id, rewards, xp } = req.user;
       const { reward, value, available } = req.body;
-      console.log(available);
       const { r_id } = req.params;
       const filtered = rewards.filter((item) => item._id.toString() !== r_id);
       const found = rewards.find((item) => item._id.toString() === r_id);
@@ -580,8 +579,11 @@ UserRoute.post("/register", async (req, res, next) => {
       if (available === 0) {
         updatedReward.available = null;
       }
+      console.log(available, xp, value);
+      // don't forget to change xp on user!
+      const remainingXp = xp - value;
       const updatedRewards = [...filtered, updatedReward];
-      const update = { rewards: updatedRewards };
+      const update = { rewards: updatedRewards, xp: remainingXp };
       // Would be nice to return it to same place. Maybe later?
       await UserModel.findByIdAndUpdate(_id, update, {
         returnOriginal: false,

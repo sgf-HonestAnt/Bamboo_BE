@@ -228,8 +228,8 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
     }
   } else {
     for (let i = 1; i < repetitions; i++) {
-      console.log(repetitions)
-      const number = Number(repeats.split(" ")[1]);
+      console.log(repetitions) // <== should not be just "2"
+      const number = Number(repeats.split(" ")[1]); // <==== HERE IS THE PROBLEM
       console.log(number)
       newDate = (await startDate.getTime()) + (i * number) * d * h * m * s;
       newDateAsDate = new Date(newDate);
