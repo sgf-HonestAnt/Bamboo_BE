@@ -142,6 +142,7 @@ export const createSharedWithArray = (array, id) => {
   let sharedWith;
   sharedWith = array?.length > 0 ? [...array, id] : [id];
   const noDuplicates = [...new Set(sharedWith)];
+  console.log(noDuplicates)
   return noDuplicates;
 };
 ////////////////////////////////////////////////////////////////////
