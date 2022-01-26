@@ -337,11 +337,26 @@ export const pushCategory = async (id, category) => {
   const { categories } = await TaskListModel.findOne(filter);
   const categoryIncluded = categories.includes(category);
   if (!categoryIncluded) {
-    await TaskListModel.findOneAndUpdate(filter, update, {
+    const newCategory = await TaskListModel.findOneAndUpdate(filter, update, {
       returnOriginal: false,
     });
+    return { newCategory };
   }
-  return { category };
+};
+////////////////////////////////////////////////////////////////////
+export const pushCategoryColor = async (id, categoryColor) => {
+  // push new category to tasklist belonging to user _id
+  console.log("➡️pushCategoryColor");
+  const filter = { user: id };
+  const update = { $push: { categoriesColors: categoryColor } };
+  const newCategoryColor = await TaskListModel.findOneAndUpdate(
+    filter,
+    update,
+    {
+      returnOriginal: false,
+    }
+  );
+  return { newCategoryColor };
 };
 ////////////////////////////////////////////////////////////////////
 export const pullCategory = async (id, category) => {
