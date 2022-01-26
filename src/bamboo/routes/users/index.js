@@ -21,7 +21,7 @@ import {
   generateTokens,
   refreshTokens,
 } from "../../auth/tools.js";
-import { createTasksUponRegister } from "../../utils/route-funcs/tasks.js";
+// import { createTasksUponRegister } from "../../utils/route-funcs/tasks.js";
 import { generateEditsPDFAsync } from "../../utils/pdf.js";
 
 const UserRoute = express.Router();

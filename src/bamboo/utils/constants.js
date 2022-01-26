@@ -34,37 +34,13 @@ export const DAILY = "daily";
 export const WEEKLY = "weekly";
 export const MONTHLY = "monthly";
 export const NUMBER = `+${!NaN}`; // ?
-export const TASK_REPEATS_TYPES = [
-  NEVER,
-  DAILY,
-  WEEKLY,
-  MONTHLY,
-  NUMBER,
-];
+export const TASK_REPEATS_TYPES = [NEVER, DAILY, WEEKLY, MONTHLY, NUMBER];
 export const URGENT = "urgent";
-export const HOUSEHOLD = "home";
-export const SHOPPING = "shopping";
-export const WORK = "work";
-export const RELATIONSHIPS = "relationships";
-export const FINANCE = "finance";
-export const FITNESS = "fitness";
-export const PETS = "pets";
-export const WELLBEING = "wellbeing";
 export const NONE = "none";
-export const TASK_CATEGORIES = [
-  URGENT,
-  HOUSEHOLD,
-  SHOPPING,
-  WORK,
-  RELATIONSHIPS,
-  FINANCE,
-  FITNESS,
-  PETS,
-  WELLBEING,
-  NONE,
-];
 export const TASK_IMG = "default_task_nv0jcq.jpg";
 export const TASK_RESIZE_IMG = `${cloud}/${scalew800}`;
+export const DEFAULT_CATEGORIES = [NONE, URGENT];
+export const DEFAULT_CATEGORIES_COLORS = ["#ccc", "hsla(12, 75%, 56%, 0.8)"];
 export const DEFAULT_TASK_IMG = `${TASK_RESIZE_IMG}/${FARM}/${TASK_IMG}`;
 // ***** features ***** //
 export const FEATURE_RESIZE_IMG = `${cloud}/${scalew800}`;
@@ -83,10 +59,22 @@ export const DEFAULT_REWARDS = [
   { reward: "Big Cactus", value: 450, available: 1 },
   { reward: "Vegan for Veganuary||SPECIAL JANUARY", value: 500, available: 1 },
   { reward: "Love Letter||SPECIAL FEBRUARY", value: 500, available: 1 },
-  { reward: "Anatomically Correct Heart||SPECIAL FEBRUARY", value: 1000, available: 1 },
+  {
+    reward: "Anatomically Correct Heart||SPECIAL FEBRUARY",
+    value: 1000,
+    available: 1,
+  },
   { reward: "Easter Egg||SPECIAL APRIL", value: 500, available: 1 },
-  { reward: "Earth Day: Love The Earth!||SPECIAL APRIL", value: 500, available: 1 }, // 2nd April
-  { reward: "International Firefighter's Day||SPECIAL MAY", value: 500, available: 1 }, // 4th May
+  {
+    reward: "Earth Day: Love The Earth!||SPECIAL APRIL",
+    value: 500,
+    available: 1,
+  }, // 2nd April
+  {
+    reward: "International Firefighter's Day||SPECIAL MAY",
+    value: 500,
+    available: 1,
+  }, // 4th May
   { reward: "World Astronomy Day||SPECIAL MAY", value: 500, available: 1 }, // 4th May
   { reward: "World Turtle Day||SPECIAL MAY", value: 500, available: 1 }, // 23rd May
   { reward: "World Goth Day||SPECIAL MAY", value: 1000, available: 1 }, // 22nd May
