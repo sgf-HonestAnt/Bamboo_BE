@@ -6,12 +6,10 @@ import {
   MONTHLY,
   NEVER,
   NONE,
-  SHOPPING,
   TASK_RESIZE_IMG,
   UPDATE,
   URGENT,
   WEEKLY,
-  WELLBEING,
 } from "../constants.js";
 ////////////////////////////////////////////////////////////////////
 export const getDateAsString = (datePar) => {
@@ -76,56 +74,56 @@ export const getShortDateAsString = (datePar) => {
   return `${day.slice(0, 3)}, ${date} ${month.slice(0, 3)}`;
 };
 ////////////////////////////////////////////////////////////////////
-export const createTasksUponRegister = async (userId) => {
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const todayDateAsString = getDateAsString(today);
-  // const tomorrowDateAsString = getDateAsString(tomorrow);
-  // const yesterdayDateAsString = getDateAsString(yesterday);
-  const status = "awaited";
-  const urgentTask = new TaskModel({
-    createdBy: userId,
-    category: URGENT,
-    title: "Solve World Hunger",
-    desc: "Put food before trade, find balance with nature's systems",
-    repeats: "never",
-    status,
-    deadline: todayDateAsString,
-    value: 0,
-    sharedWith: [userId],
-  });
-  const householdTask = new TaskModel({
-    createdBy: userId,
-    category: WELLBEING,
-    title: "Brush Your Teeth",
-    desc: "Don't forget to floss!",
-    repeats: "never",
-    status,
-    deadline: todayDateAsString,
-    value: 0,
-    sharedWith: [userId],
-  });
-  const shoppingTask = new TaskModel({
-    createdBy: userId,
-    category: SHOPPING,
-    title: "Buy Groceries",
-    desc: "Got milk?",
-    repeats: "never",
-    status,
-    deadline: null,
-    value: 0,
-    sharedWith: [userId], // 🌈 add ADMIN ID to this one and also FOLLOWED (tasks won't show up to AdminPanda)
-  });
-  const defaultTasks = [urgentTask, householdTask, shoppingTask];
-  for (let i = 0; i < defaultTasks.length; i++) {
-    const { _id, category } = await defaultTasks[i].save();
-    await updateTasklist(userId, status, _id, category);
-  }
-  return;
-};
+// export const createTasksUponRegister = async (userId) => {
+//   const today = new Date();
+//   const tomorrow = new Date(today);
+//   tomorrow.setDate(tomorrow.getDate() + 1);
+//   const yesterday = new Date(today);
+//   yesterday.setDate(yesterday.getDate() - 1);
+//   const todayDateAsString = getDateAsString(today);
+//   // const tomorrowDateAsString = getDateAsString(tomorrow);
+//   // const yesterdayDateAsString = getDateAsString(yesterday);
+//   const status = "awaited";
+//   const urgentTask = new TaskModel({
+//     createdBy: userId,
+//     category: URGENT,
+//     title: "Solve World Hunger",
+//     desc: "Put food before trade, find balance with nature's systems",
+//     repeats: "never",
+//     status,
+//     deadline: todayDateAsString,
+//     value: 0,
+//     sharedWith: [userId],
+//   });
+//   const householdTask = new TaskModel({
+//     createdBy: userId,
+//     category: WELLBEING,
+//     title: "Brush Your Teeth",
+//     desc: "Don't forget to floss!",
+//     repeats: "never",
+//     status,
+//     deadline: todayDateAsString,
+//     value: 0,
+//     sharedWith: [userId],
+//   });
+//   const shoppingTask = new TaskModel({
+//     createdBy: userId,
+//     category: SHOPPING,
+//     title: "Buy Groceries",
+//     desc: "Got milk?",
+//     repeats: "never",
+//     status,
+//     deadline: null,
+//     value: 0,
+//     sharedWith: [userId], // 🌈 add ADMIN ID to this one and also FOLLOWED (tasks won't show up to AdminPanda)
+//   });
+//   const defaultTasks = [urgentTask, householdTask, shoppingTask];
+//   for (let i = 0; i < defaultTasks.length; i++) {
+//     const { _id, category } = await defaultTasks[i].save();
+//     await updateTasklist(userId, status, _id, category);
+//   }
+//   return;
+// };
 ////////////////////////////////////////////////////////////////////
 export const getTaskFilePath = (path) => {
   // return scaled, sharpened, gravity-based file path from cloudinary
@@ -142,7 +140,7 @@ export const createSharedWithArray = (array, id) => {
   let sharedWith;
   sharedWith = array?.length > 0 ? [...array, id] : [id];
   const noDuplicates = [...new Set(sharedWith)];
-  console.log(noDuplicates)
+  console.log(noDuplicates);
   return noDuplicates;
 };
 ////////////////////////////////////////////////////////////////////
@@ -177,7 +175,7 @@ export const pullFromStatus = async (id, status, taskId) => {
 };
 ////////////////////////////////////////////////////////////////////
 export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
-  console.log(body)
+  console.log(body);
   const { repeats, deadline } = body; // check this deadline
   // return x number of repeated tasks for a total of y repetitions
   console.log("➡️repeatTaskSave");
@@ -229,10 +227,10 @@ export const repeatTaskSave = async (body, user, sharedWith, repetitions) => {
     }
   } else {
     for (let i = 1; i < repetitions; i++) {
-      console.log(repetitions) // <== should not be just "2"
+      console.log(repetitions); // <== should not be just "2"
       const number = Number(repeats.split(" ")[1]); // <==== HERE IS THE PROBLEM
-      console.log(number)
-      newDate = (await startDate.getTime()) + (i * number) * d * h * m * s;
+      console.log(number);
+      newDate = (await startDate.getTime()) + i * number * d * h * m * s;
       newDateAsDate = new Date(newDate);
       console.log(newDate, newDateAsDate, number);
       const newTask = new TaskModel({
@@ -339,11 +337,26 @@ export const pushCategory = async (id, category) => {
   const { categories } = await TaskListModel.findOne(filter);
   const categoryIncluded = categories.includes(category);
   if (!categoryIncluded) {
-    await TaskListModel.findOneAndUpdate(filter, update, {
+    const newCategory = await TaskListModel.findOneAndUpdate(filter, update, {
       returnOriginal: false,
     });
+    return { newCategory };
   }
-  return { category };
+};
+////////////////////////////////////////////////////////////////////
+export const pushCategoryColor = async (id, categoryColor) => {
+  // push new category to tasklist belonging to user _id
+  console.log("➡️pushCategoryColor");
+  const filter = { user: id };
+  const update = { $push: { categoriesColors: categoryColor } };
+  const newCategoryColor = await TaskListModel.findOneAndUpdate(
+    filter,
+    update,
+    {
+      returnOriginal: false,
+    }
+  );
+  return { newCategoryColor };
 };
 ////////////////////////////////////////////////////////////////////
 export const pullCategory = async (id, category) => {

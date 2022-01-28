@@ -28,6 +28,7 @@ import {
   addTotal,
   getDateAsString,
   getShortDateAsString,
+  pushCategoryColor,
 } from "../../utils/route-funcs/tasks.js";
 import { pushNotification, shuffle } from "../../utils/route-funcs/users.js";
 
@@ -67,9 +68,16 @@ TaskRoute.post(
     try {
       console.log("💠 POST TASK");
       console.log("RECEIVED=>", req.body);
-      const { newCategory, repeated, repeatsOther, repetitions } = req.body; // total repeats (repeatTaskSave)
+      const {
+        newCategory,
+        newCategoryColor,
+        repeated,
+        repeatsOther,
+        repetitions,
+      } = req.body; // total repeats (repeatTaskSave)
       // from front-end implementation
       delete req.body.newCategory;
+      delete req.body.newCategoryColor;
       delete req.body.repeated;
       delete req.body.repeatsOther;
       delete req.body.repetitions;
@@ -96,7 +104,8 @@ TaskRoute.post(
       } else {
         body.deadline = deadline;
       }
-      if (repeatsIsANumber) { // <==== HERE IS THE PROBLEM
+      if (repeatsIsANumber) {
+        // <==== HERE IS THE PROBLEM
         // set repeats script
         body.repeats = `every ${repeatsOther} days, ${repetitions} times, starting on ${getShortDateAsString(
           body.deadline
@@ -121,7 +130,10 @@ TaskRoute.post(
           task: newTask,
         });
       } else {
-        await pushCategory(req.user._id, category); // if new category, push to list in lowercase
+        const newCategory = await pushCategory(req.user._id, category); // if new category, push to list in lowercase
+        if (newCategory) {
+          await pushCategoryColor(req.user._id, newCategoryColor); // if new category, push the color to same index
+        }
         if (repeats !== NEVER) {
           // if repeats, save multiple times
           await repeatTaskSave(body, req.user._id, sharedWith, repetitions);
