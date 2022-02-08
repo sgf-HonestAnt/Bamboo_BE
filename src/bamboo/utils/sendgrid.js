@@ -8,8 +8,8 @@ export const sendWelcome = async (recipient) => {
   const msg = {
     to: recipient,
     from: "sgfishercardiff@gmail.com",
-    subject: "Thank you for signing up with Panda",
-    text: "I really appreciate it!",
+    subject: "Thank you for signing up!",
+    text: "Hi, I'm Sarah Fisher, a full-stack student at Strive School 2021-2022. The Bamboo task app was my capstone project. You can see more about what I'm up to (and a link to my portfolio) at github.com/sgf-HonestAnt.",
   };
   try {
     await sgMail.send(msg);
@@ -23,7 +23,7 @@ export const confirmEdit = async (recipient, pdfPath) => {
     to: recipient,
     from: "sgfishercardiff@gmail.com",
     subject: "Your details have been changed!",
-    text: "If this wasn't you, please contact Panda immediately. Otherwise, you can ignore this email.",
+    text: "If this wasn't you, please contact us immediately. Otherwise, you can safely ignore this email.",
     attachments: [
       {
         content: attachment,
@@ -43,8 +43,8 @@ export const sendGoodbye = async (recipient) => {
   const msg = {
     to: recipient,
     from: "sgfishercardiff@gmail.com",
-    subject: "Sorry you're leaving",
-    text: "So long and thanks for all the fish!",
+    subject: "You have successfully removed your details from Bamboo",
+    text: "Hi, I'm Sarah Fisher, a full-stack student at Strive School 2021-2022. The Bamboo task app was my capstone project. You can see more about what I'm up to (and a link to my portfolio) at github.com/sgf-HonestAnt.",
   };
   try {
     await sgMail.send(msg);
