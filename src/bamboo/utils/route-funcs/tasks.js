@@ -349,18 +349,23 @@ export const pushCategoryColor = async (id, categoryColor) => {
   console.log("➡️pushCategoryColor");
   const filter = { user: id };
   const update = { $push: { categoriesColors: categoryColor } };
-  const newCategoryColor = await TaskListModel.findOneAndUpdate(
-    filter,
-    update,
-    {
-      returnOriginal: false,
-    }
-  );
-  return { newCategoryColor };
+  const { categories, categoriesColors } = await TaskListModel.findOne(filter);
+  if (categories.length > categoriesColors.length) {
+    // only push new color if more categories than colors (suggests category must be new)
+    const newCategoryColor = await TaskListModel.findOneAndUpdate(
+      filter,
+      update,
+      {
+        returnOriginal: false,
+      }
+    );
+    return { newCategoryColor };
+  }
 };
 ////////////////////////////////////////////////////////////////////
 export const pullCategory = async (id, category) => {
   // pull category from tasklist belonging to user _id
+  // NOTE must also pullCategoryColor at the same time!
   console.log("➡️pullCategory");
   const filter = { user: id };
   const update = { $pull: { categories: category } };
@@ -390,11 +395,22 @@ export const updateTasklist = async (
 ) => {
   // push task category and id to relevant status upon create task
   console.log("➡️updateTasklist");
-  await pushCategory(id, category);
-  if (id !== myId && categoryColor) {
-    console.log(id, myId, categoryColor);
-    console.log("➡️id!==myId");
-    await pushCategoryColor(id, categoryColor); // ???
+  await pushCategory(id, category); // pushes category if not included
+  if (id !== myId) {
+    // category color already pushed if self created
+    if (categoryColor) {
+      console.log("➡️categoryColor provided=>", categoryColor);
+      await pushCategoryColor(id, categoryColor);
+    } else {
+      // if !categoryColor, get it from myId
+      const { categories, categoriesColors } = await TaskListModel.findOne({
+        user: myId,
+      });
+      const categoryColor =
+        categoriesColors[categories.findIndex((cat) => cat === category)];
+      console.log("➡️categoryColor found=>", categoryColor);
+      await pushCategoryColor(id, categoryColor);
+    }
   }
   const updatedList = await pushToStatus(id, status, task._id);
   return updatedList;
