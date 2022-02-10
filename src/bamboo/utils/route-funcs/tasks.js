@@ -392,7 +392,7 @@ export const updateTasklist = async (
   console.log("➡️updateTasklist");
   await pushCategory(id, category);
   if (id !== myId && categoryColor) {
-    console.log(id, myId);
+    console.log(id, myId, categoryColor);
     console.log("➡️id!==myId");
     await pushCategoryColor(id, categoryColor); // ???
   }
