@@ -380,10 +380,22 @@ export const pullCategory = async (id, category) => {
   }
 };
 ////////////////////////////////////////////////////////////////////
-export const updateTasklist = async (id, status, task, category) => {
+export const updateTasklist = async (
+  id,
+  status,
+  task,
+  category,
+  categoryColor,
+  myId
+) => {
   // push task category and id to relevant status upon create task
   console.log("➡️updateTasklist");
   await pushCategory(id, category);
+  if (id !== myId && categoryColor) {
+    console.log(id, myId);
+    console.log("➡️id!==myId");
+    await pushCategoryColor(id, categoryColor); // ???
+  }
   const updatedList = await pushToStatus(id, status, task._id);
   return updatedList;
 };

@@ -132,6 +132,7 @@ TaskRoute.post(
       } else {
         const newCategory = await pushCategory(req.user._id, category); // if new category, push to list in lowercase
         if (newCategory) {
+          console.log(newCategoryColor)
           await pushCategoryColor(req.user._id, newCategoryColor); // if new category, push the color to same index
         }
         if (repeats !== NEVER) {
@@ -139,7 +140,14 @@ TaskRoute.post(
           await repeatTaskSave(body, req.user._id, sharedWith, repetitions);
         }
         const updateAllLists = sharedWith.map((user_id) => {
-          updateTasklist(user_id, newTask.status, newTask, newTask.category);
+          updateTasklist(
+            user_id,
+            newTask.status,
+            newTask,
+            newTask.category,
+            newCategoryColor,
+            req.user._id
+          );
         });
         if (sharedWith.length > 1) {
           const notification = `${req.user.username}:::included you in a shared task:::${newTask._id}:::${newTask.title}:::${req.user.avatar}`;
