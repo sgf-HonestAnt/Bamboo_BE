@@ -20,7 +20,7 @@ Bamboo is a task management app created for my solo capstone with [Epicode Globa
 * Full CRUD capabilities at front-end for Admins
 * Users register with Team Leaders' join-up link, giving TL administrative control
 
-### Dependencies include:-
+### BE dependencies include:-
 * [cloudinary](https://www.npmjs.com/package/cloudinary)
 * [multer](https://www.npmjs.com/package/multer)
 * [query-to-mongo](https://www.npmjs.com/package/query-to-mongo)
